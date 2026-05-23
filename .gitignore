@@ -1,0 +1,29 @@
+# Dependencies
+**/node_modules/
+
+# Environment — never commit secrets
+**/.env
+**/.env.local
+**/.env.production
+# But do commit the example template
+!**/.env.example
+
+# Build outputs
+backend/dist/
+frontend/.next/
+frontend/out/
+
+# Prisma generated client
+backend/generated/
+
+# Test coverage
+**/coverage/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Claude Code local memory (machine-specific, not for version control)
+.claude/
