@@ -108,6 +108,8 @@ blocks merge until checks pass. Merge to `main` triggers deploy.
 ## Where to look
 
 - **`HANDOFF.md`** — what to do next, right now.
+- **`docs/WORKFLOW.md`** — how to run sessions: learning vs fast track, orchestration patterns,
+  per-phase classification. Read this at the start of every session.
 - **`docs/PLAN.md`** — the complete plan: architecture, schema, API design, roadmap, learning path.
 - **`docs/DECISIONS.md`** — why each technical choice was made (read before proposing changes to stack
   or architecture).
