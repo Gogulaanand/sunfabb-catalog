@@ -11,3 +11,23 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  image_url   String?
+  created_at  DateTime @default(now())
+}
+
+model Material {
+  id   String @id @default(uuid())
+  name String @unique
+}
+
+model Color {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  hex_code String?
+}
