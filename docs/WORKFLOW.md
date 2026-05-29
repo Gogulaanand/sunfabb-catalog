@@ -48,20 +48,36 @@ A session is **done** when:
 
 ---
 
-## 3. The `HANDOFF.md` contract
+## 3. The state files — `HANDOFF.md` vs `.session-state.md`
 
-`HANDOFF.md` is the **only** thing a new session needs to read to know where to
-start. At the end of every session it must answer three questions clearly:
+Project state lives in two files with different lifecycles:
 
-1. **What was just completed?** (1–2 lines)
-2. **What is the exact next step?** (specific, actionable, scoped)
-3. **Are there any open decisions or blockers?**
+### `HANDOFF.md` — committed, phase-level
+Versioned in git. Read by anyone cloning the repo. Answers:
+- Which phase are we in?
+- What's the current branch / latest PR?
+- Any open decisions or blockers?
+- What's the milestone history (append-only)?
 
-The "Progress log" section at the bottom is append-only — never delete entries.
-That's the history of how the project actually got built.
+**Update only at phase boundaries or feature merges** — never every session. Otherwise
+the commit history gets polluted with meta-state churn.
 
-If `HANDOFF.md` is ruthlessly kept up to date, the conversation transcript becomes
-disposable. That's the goal.
+### `.session-state.md` — local, gitignored
+Lives only on the active developer's machine. Read at the start of a session, rewritten
+at the end. Answers:
+- Where did the last session leave off, in fine detail?
+- What's the exact next bounded scope?
+- Anything mid-work-in-progress?
+- Anti-scope: things to *not* do this session
+
+**Why split:** the project-level facts (phases, decisions, milestones) belong in git so anyone
+can pick up the project. The session-level scratchpad changes every day and would just create
+commit noise. Splitting keeps both files honest about their purpose.
+
+### What if a fresh agent needs to pick up cold from another machine?
+They get: `HANDOFF.md` (phase + branch) + the latest commit message + git log. That's enough
+to know the project state at a phase boundary. For mid-feature pickup, you'd write a focused
+session prompt anyway (see §7).
 
 ---
 
@@ -251,8 +267,9 @@ OUTPUT:
 
 **At session start:**
 - [ ] Read `CLAUDE.md` (rules)
-- [ ] Read `HANDOFF.md` (where we are, what's next)
-- [ ] Identify the bounded scope of this session (one thing, with a clear done condition)
+- [ ] Read `HANDOFF.md` (phase-level state)
+- [ ] Read `.session-state.md` if present (fine-grained next-step detail)
+- [ ] Confirm the bounded scope of this session (one thing, with a clear done condition)
 - [ ] Classify each task as L or F (table in §5)
 - [ ] Restate the plan to the user; get confirmation
 
@@ -266,7 +283,8 @@ OUTPUT:
 - [ ] Tests pass (if relevant)
 - [ ] Changes committed
 - [ ] Pushed to remote if feature-ready (PR if appropriate)
-- [ ] `HANDOFF.md` updated: what's done, what's next, any blockers
+- [ ] `.session-state.md` rewritten for the next session's pickup
+- [ ] `HANDOFF.md` updated **only if** this session crossed a phase boundary or merged a feature
 - [ ] Summarise outcome to user in 3 lines
 
 ---
