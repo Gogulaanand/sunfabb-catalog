@@ -6,8 +6,8 @@ Context for Claude Code. Read this first every session. Keep it updated as the p
 
 A product catalog website for a home-textiles brand (bedspreads, towels, napkins, table linen) in
 **India (INR only)**. Built deliberately as a **frontend → full-stack learning project**: the owner is
-a frontend engineer learning real backend engineering. **No timeline pressure — prioritize clean code,
-correct patterns, and learning over speed or premature optimization.**
+a frontend engineer learning real backend engineering. **No timeline pressure — prioritize clean code and correct patterns.**
+**Learning mode is currently DISABLED** — build without teaching pauses or predict-before-run prompts.
 
 E-commerce (cart, checkout, payments) is a **future phase** — not now. Phase 1 is a browsable catalog
 with a hidden admin.
