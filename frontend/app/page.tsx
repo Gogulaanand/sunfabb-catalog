@@ -3,7 +3,7 @@ import Image from "next/image";
 import { getCategories } from "@/lib/api";
 
 export default async function HomePage() {
-  let categories = await getCategories().catch(() => []);
+  const categories = await getCategories().catch(() => []);
 
   return (
     <>
