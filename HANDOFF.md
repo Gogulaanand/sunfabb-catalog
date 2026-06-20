@@ -78,6 +78,10 @@ Test data left in the dev DB from this verification pass (category "Bedspreads",
 color "Indigo", product "Royal Cotton Bedspread" with one soft-deleted variant) — left in place per
 request, safe to delete manually via the admin UI once it's up.
 
+**See `docs/PRE_PHASE5_VERIFICATION.md`** for the full manual test checklist (credentials sanity
+check, plus scenario-by-scenario coverage across PRs #1–#4) that still needs a human pass before
+treating Phase 4 as fully closed and starting Phase 5.
+
 ---
 
 ## Open decisions / blockers
@@ -92,7 +96,8 @@ request, safe to delete manually via the admin UI once it's up.
 - **Phase 4 verification** — data-layer golden path confirmed against a live DB (see note above); a
   manual visual click-through in a browser (Chakra forms, design tokens, dialogs) is still pending —
   no browser tooling was available this session. Also need real Cloudinary credentials in
-  `backend/.env` to test image upload (currently blank, fails with `cloud_name is disabled`).
+  `backend/.env` to test image upload (currently blank, fails with `cloud_name is disabled`). Full
+  checklist: `docs/PRE_PHASE5_VERIFICATION.md`.
 
 ---
 
