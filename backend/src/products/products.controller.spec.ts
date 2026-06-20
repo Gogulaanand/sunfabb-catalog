@@ -40,7 +40,12 @@ describe('ProductsController', () => {
 
   describe('findAll', () => {
     it('returns paginated products', async () => {
-      const paginatedResult = { items: [mockProduct], total: 1, page: 1, limit: 20 };
+      const paginatedResult = {
+        items: [mockProduct],
+        total: 1,
+        page: 1,
+        limit: 20,
+      };
       mockProductsService.findAll.mockResolvedValue(paginatedResult);
 
       const dto: FindProductsDto = {};
@@ -58,13 +63,17 @@ describe('ProductsController', () => {
       const result = await controller.findOne('classic-bedspread');
 
       expect(result).toEqual(mockProduct);
-      expect(mockProductsService.findOne).toHaveBeenCalledWith('classic-bedspread');
+      expect(mockProductsService.findOne).toHaveBeenCalledWith(
+        'classic-bedspread',
+      );
     });
 
     it('throws NotFoundException when product does not exist', async () => {
       mockProductsService.findOne.mockResolvedValue(null);
 
-      await expect(controller.findOne('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(controller.findOne('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

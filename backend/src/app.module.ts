@@ -6,6 +6,12 @@ import { ColorsModule } from './colors/colors.module.js';
 import { ProductsModule } from './products/products.module.js';
 
 @Module({
-  imports: [PrismaModule, CategoriesModule, MaterialsModule, ColorsModule, ProductsModule],
+  imports: [
+    PrismaModule,
+    CategoriesModule,
+    MaterialsModule,
+    ColorsModule,
+    ProductsModule,
+  ],
 })
 export class AppModule {}

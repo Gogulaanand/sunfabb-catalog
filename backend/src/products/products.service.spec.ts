@@ -50,7 +50,12 @@ describe('ProductsService', () => {
       const dto: FindProductsDto = {};
       const result = await service.findAll(dto);
 
-      expect(result).toEqual({ items: [mockProduct], total: 1, page: 1, limit: 20 });
+      expect(result).toEqual({
+        items: [mockProduct],
+        total: 1,
+        page: 1,
+        limit: 20,
+      });
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { is_active: true },
@@ -78,14 +83,23 @@ describe('ProductsService', () => {
       mockPrisma.product.findMany.mockResolvedValue([]);
       mockPrisma.product.count.mockResolvedValue(0);
 
-      const dto: FindProductsDto = { materialId: 'cuid-mat-1', colorId: 'cuid-col-1' };
+      const dto: FindProductsDto = {
+        materialId: 'cuid-mat-1',
+        colorId: 'cuid-col-1',
+      };
       await service.findAll(dto);
 
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
             is_active: true,
-            variants: { some: { is_active: true, material_id: 'cuid-mat-1', color_id: 'cuid-col-1' } },
+            variants: {
+              some: {
+                is_active: true,
+                material_id: 'cuid-mat-1',
+                color_id: 'cuid-col-1',
+              },
+            },
           },
         }),
       );
@@ -129,10 +143,10 @@ describe('ProductsService', () => {
       expect(mockPrisma.product.findUnique).toHaveBeenCalledWith({
         where: { slug: 'classic-bedspread' },
         include: expect.objectContaining({
-          category: expect.any(Object),
-          variants: expect.any(Object),
-          images: expect.any(Object),
-        }),
+          category: expect.any(Object) as unknown,
+          variants: expect.any(Object) as unknown,
+          images: expect.any(Object) as unknown,
+        }) as unknown,
       });
     });
 
