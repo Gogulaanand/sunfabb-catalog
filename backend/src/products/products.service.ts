@@ -29,31 +29,42 @@ export class ProductsService {
       where.variants = { some: variantFilter };
     }
 
-    const orderBy =
-      sortBy === 'price_asc'
-        ? { variants: { _min: { price: 'asc' as const } } }
-        : sortBy === 'price_desc'
-          ? { variants: { _min: { price: 'desc' as const } } }
-          : { name: 'asc' as const };
+    const include = {
+      category: { select: { name: true, slug: true } },
+      images: { where: { is_primary: true }, take: 1 },
+      variants: {
+        where: { is_active: true },
+        select: { price: true },
+        orderBy: { price: 'asc' as const },
+        take: 1,
+      },
+    };
+
+    // Prisma's generated types don't support ordering a to-many relation by
+    // _min/_max of a scalar field, only _count — so price sort is done in
+    // application code. The catalog is small (<=100 products), so this is fine.
+    if (sortBy === 'price_asc' || sortBy === 'price_desc') {
+      const all = await this.prisma.product.findMany({ where, include });
+      all.sort((a, b) => {
+        const priceA = a.variants[0]?.price ?? 0;
+        const priceB = b.variants[0]?.price ?? 0;
+        return sortBy === 'price_asc' ? priceA - priceB : priceB - priceA;
+      });
+
+      const total = all.length;
+      const skip = (page - 1) * limit;
+      return { items: all.slice(skip, skip + limit), total, page, limit };
+    }
 
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
-        orderBy,
+        orderBy: { name: 'asc' },
         skip,
         take: limit,
-        include: {
-          category: { select: { name: true, slug: true } },
-          images: { where: { is_primary: true }, take: 1 },
-          variants: {
-            where: { is_active: true },
-            select: { price: true },
-            orderBy: { price: 'asc' },
-            take: 1,
-          },
-        },
+        include,
       }),
       this.prisma.product.count({ where }),
     ]);

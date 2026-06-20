@@ -117,18 +117,53 @@ describe('ProductsService', () => {
       );
     });
 
-    it('sorts by price ascending', async () => {
-      mockPrisma.product.findMany.mockResolvedValue([]);
-      mockPrisma.product.count.mockResolvedValue(0);
+    it('sorts by price ascending in application code', async () => {
+      const cheap = {
+        ...mockProduct,
+        id: 'cuid-2',
+        variants: [{ price: 100000 }],
+      };
+      const expensive = {
+        ...mockProduct,
+        id: 'cuid-3',
+        variants: [{ price: 500000 }],
+      };
+      mockPrisma.product.findMany.mockResolvedValue([expensive, cheap]);
 
       const dto: FindProductsDto = { sortBy: 'price_asc' };
-      await service.findAll(dto);
+      const result = await service.findAll(dto);
 
+      expect(result.items).toEqual([cheap, expensive]);
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: { variants: { _min: { price: 'asc' } } },
-        }),
+        expect.objectContaining({ where: { is_active: true } }),
       );
+      expect(mockPrisma.product.findMany).not.toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy: expect.anything() as unknown }),
+      );
+    });
+
+    it('sorts by price descending and paginates in application code', async () => {
+      const cheap = {
+        ...mockProduct,
+        id: 'cuid-2',
+        variants: [{ price: 100000 }],
+      };
+      const expensive = {
+        ...mockProduct,
+        id: 'cuid-3',
+        variants: [{ price: 500000 }],
+      };
+      mockPrisma.product.findMany.mockResolvedValue([cheap, expensive]);
+
+      const dto: FindProductsDto = { sortBy: 'price_desc', page: 1, limit: 1 };
+      const result = await service.findAll(dto);
+
+      expect(result).toEqual({
+        items: [expensive],
+        total: 2,
+        page: 1,
+        limit: 1,
+      });
     });
   });
 
