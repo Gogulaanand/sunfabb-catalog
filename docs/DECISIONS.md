@@ -194,3 +194,22 @@ Supabase). Worth keeping in mind for Phase 5 deploy targets (Render/Railway/Fly.
 network has IPv6 egress, or rely on this fix.
 **Status:** Confirmed (2026-06-20) — verified against a live DB query with no manual env exports, full
 test suite (72 tests) still passing after the `main.ts` changes.
+
+### D22 — GOTCHA: admin pages inherited the storefront header/footer because both lived under one root layout
+**Observation:** While visually QA-ing the Phase 4 admin UI against the Stitch mockups, the public
+storefront nav and footer rendered above/below `/admin/login` and every other `/admin/**` page —
+directly contradicting the Phase 4 plan's own acceptance criterion ("uses a layout distinct from
+storefront header/footer, no public nav/cart chrome"). Root cause: `frontend/app/layout.tsx` (the root
+layout, which every route including `/admin/**` inherits) rendered the storefront `<header>`/`<footer>`
+directly, and Next.js App Router layouts always wrap their children — there was no route-level escape
+hatch for `/admin` to opt out.
+**Fix:** Moved the storefront pages (`page.tsx`, `catalog/`) into a `(storefront)` route group with
+their own `(storefront)/layout.tsx` carrying the header/footer; the root `app/layout.tsx` is now a bare
+`<html>/<body>` shell with just font variables. Route groups don't affect URL paths, so `/`, `/catalog`,
+`/catalog/[slug]` are unchanged. `/admin/**` now only gets `app/admin/layout.tsx`'s Chakra `Provider`,
+with no storefront chrome.
+**Why this matters:** Any future top-level section that needs different chrome (e.g. a future
+mobile app shell, a checkout flow) should get its own route group + layout rather than adding
+conditional rendering to the root layout — the root layout should stay a minimal shell.
+**Status:** Confirmed (2026-06-20) — verified via Playwright screenshot that `/admin/login` and
+`/admin` no longer render the Sunfabb storefront nav/footer.

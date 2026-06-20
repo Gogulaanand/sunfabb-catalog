@@ -17,7 +17,9 @@ export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
         {label && (
           <ChakraField.Label>
             {label}
-            <ChakraField.RequiredIndicator fallback={optionalText} />
+            <ChakraField.RequiredIndicator
+              fallback={optionalText && <>&nbsp;{optionalText}</>}
+            />
           </ChakraField.Label>
         )}
         {children}

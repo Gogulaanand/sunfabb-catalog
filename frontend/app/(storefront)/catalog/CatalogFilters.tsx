@@ -39,18 +39,18 @@ export default function CatalogFilters({
   const currentSort = searchParams.get("sort") ?? "";
 
   return (
-    <aside className="w-full lg:w-60 shrink-0 space-y-6">
+    <aside className="w-full lg:w-56 shrink-0 space-y-8">
       {/* Sort */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+        <label className="block text-label-caps text-on-surface-variant mb-2">
           Sort by
         </label>
         <select
           value={currentSort}
           onChange={(e) => updateParam("sort", e.target.value || null)}
-          className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-400"
+          className="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value="">Default</option>
+          <option value="">Newest Arrivals</option>
           <option value="name">Name (A–Z)</option>
           <option value="price_asc">Price: Low to High</option>
           <option value="price_desc">Price: High to Low</option>
@@ -59,37 +59,34 @@ export default function CatalogFilters({
 
       {/* Category filter */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+        <label className="block text-label-caps text-on-surface-variant mb-3">
           Category
         </label>
-        <div className="space-y-1">
-          <button
-            onClick={() => updateParam("category", null)}
-            className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
-              !currentCategory
-                ? "bg-zinc-900 text-white"
-                : "text-zinc-700 hover:bg-zinc-100"
-            }`}
-          >
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-body-sm text-on-surface cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!currentCategory}
+              onChange={() => updateParam("category", null)}
+              className="accent-primary w-4 h-4"
+            />
             All
-          </button>
+          </label>
           {categories.map((cat) => (
-            <button
+            <label
               key={cat.id}
-              onClick={() =>
-                updateParam(
-                  "category",
-                  currentCategory === cat.slug ? null : cat.slug
-                )
-              }
-              className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                currentCategory === cat.slug
-                  ? "bg-zinc-900 text-white"
-                  : "text-zinc-700 hover:bg-zinc-100"
-              }`}
+              className="flex items-center gap-2 text-body-sm text-on-surface cursor-pointer"
             >
+              <input
+                type="checkbox"
+                checked={currentCategory === cat.slug}
+                onChange={() =>
+                  updateParam("category", currentCategory === cat.slug ? null : cat.slug)
+                }
+                className="accent-primary w-4 h-4"
+              />
               {cat.name}
-            </button>
+            </label>
           ))}
         </div>
       </div>
@@ -97,37 +94,37 @@ export default function CatalogFilters({
       {/* Material filter */}
       {materials.length > 0 && (
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+          <label className="block text-label-caps text-on-surface-variant mb-3">
             Material
           </label>
-          <div className="space-y-1">
-            <button
-              onClick={() => updateParam("material", null)}
-              className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                !currentMaterial
-                  ? "bg-zinc-900 text-white"
-                  : "text-zinc-700 hover:bg-zinc-100"
-              }`}
-            >
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-body-sm text-on-surface cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!currentMaterial}
+                onChange={() => updateParam("material", null)}
+                className="accent-primary w-4 h-4"
+              />
               All
-            </button>
+            </label>
             {materials.map((mat) => (
-              <button
+              <label
                 key={mat.id}
-                onClick={() =>
-                  updateParam(
-                    "material",
-                    currentMaterial === String(mat.id) ? null : String(mat.id)
-                  )
-                }
-                className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                  currentMaterial === String(mat.id)
-                    ? "bg-zinc-900 text-white"
-                    : "text-zinc-700 hover:bg-zinc-100"
-                }`}
+                className="flex items-center gap-2 text-body-sm text-on-surface cursor-pointer"
               >
+                <input
+                  type="checkbox"
+                  checked={currentMaterial === String(mat.id)}
+                  onChange={() =>
+                    updateParam(
+                      "material",
+                      currentMaterial === String(mat.id) ? null : String(mat.id)
+                    )
+                  }
+                  className="accent-primary w-4 h-4"
+                />
                 {mat.name}
-              </button>
+              </label>
             ))}
           </div>
         </div>
@@ -136,8 +133,8 @@ export default function CatalogFilters({
       {/* Color filter */}
       {colors.length > 0 && (
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
-            Color
+          <label className="block text-label-caps text-on-surface-variant mb-3">
+            Color Palette
           </label>
           <div className="flex flex-wrap gap-2">
             {colors.map((col) => (
@@ -152,8 +149,8 @@ export default function CatalogFilters({
                 }
                 className={`w-7 h-7 rounded-full border-2 transition-all ${
                   currentColor === String(col.id)
-                    ? "border-zinc-900 scale-110"
-                    : "border-zinc-300 hover:border-zinc-500"
+                    ? "border-primary scale-110"
+                    : "border-outline-variant hover:border-primary"
                 }`}
                 style={{ backgroundColor: col.hex_code }}
               />

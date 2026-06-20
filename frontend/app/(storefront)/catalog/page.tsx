@@ -47,13 +47,29 @@ export default async function CatalogPage({ searchParams }: PageProps) {
   const { items: products, total } = productsData;
   const totalPages = Math.ceil(total / limit);
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 mb-8">Catalog</h1>
+  const categoryName = categories.find((c) => c.slug === categorySlug)?.name;
 
-      <div className="flex flex-col lg:flex-row gap-8">
+  return (
+    <div className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-(--spacing-margin-mobile) md:py-16">
+      {/* Breadcrumb */}
+      <nav className="text-body-sm text-on-surface-variant mb-6">
+        <Link href="/" className="hover:text-primary transition-colors">
+          Home
+        </Link>
+        <span className="mx-2">/</span>
+        <span className="text-on-surface">{categoryName ?? "All Products"}</span>
+      </nav>
+
+      <h1 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface mb-2">
+        {categoryName ? `The ${categoryName} Collection` : "All Products"}
+      </h1>
+      <p className="text-body-md text-on-surface-variant mb-10 max-w-2xl">
+        Elevate your everyday with sustainably sourced, premium woven textiles.
+      </p>
+
+      <div className="flex flex-col lg:flex-row gap-(--spacing-gutter-desktop)">
         {/* Filters sidebar — needs client interactivity */}
-        <Suspense fallback={<div className="w-60 shrink-0" />}>
+        <Suspense fallback={<div className="w-full lg:w-56 shrink-0" />}>
           <CatalogFilters
             categories={categories}
             materials={materials}
@@ -63,18 +79,17 @@ export default async function CatalogPage({ searchParams }: PageProps) {
 
         {/* Product grid */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-zinc-500 mb-6">
-            {total} {total === 1 ? "product" : "products"}
-            {categorySlug ? ` in "${categorySlug}"` : ""}
+          <p className="text-body-sm text-on-surface-variant mb-6">
+            Showing {products.length} of {total} {total === 1 ? "item" : "items"}
           </p>
 
           {products.length === 0 ? (
-            <div className="py-20 text-center text-zinc-500">
-              <p className="text-lg">No products found.</p>
-              <p className="text-sm mt-2">Try adjusting your filters.</p>
+            <div className="py-20 text-center text-on-surface-variant">
+              <p className="text-title-sm">No products found.</p>
+              <p className="text-body-sm mt-2">Try adjusting your filters.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-(--spacing-gutter-desktop)">
               {products.map((product) => {
                 const primaryImage =
                   product.images.find((img) => img.is_primary) ?? product.images[0];
@@ -86,9 +101,9 @@ export default async function CatalogPage({ searchParams }: PageProps) {
                   <Link
                     key={product.id}
                     href={`/catalog/${product.slug}`}
-                    className="group rounded-2xl border border-zinc-200 overflow-hidden hover:border-zinc-400 transition-colors bg-white"
+                    className="group block"
                   >
-                    <div className="relative aspect-square overflow-hidden bg-zinc-100">
+                    <div className="relative aspect-square overflow-hidden rounded-md bg-surface-container mb-3">
                       {primaryImage ? (
                         <Image
                           src={primaryImage.url}
@@ -98,24 +113,17 @@ export default async function CatalogPage({ searchParams }: PageProps) {
                           sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-zinc-300 text-5xl">
+                        <div className="w-full h-full flex items-center justify-center text-outline text-5xl">
                           🧵
                         </div>
                       )}
                     </div>
-                    <div className="p-4">
-                      <p className="text-xs text-zinc-400 uppercase tracking-wider mb-1">
-                        {product.category.name}
+                    <h3 className="text-title-sm text-on-surface">{product.name}</h3>
+                    {lowestPrice !== null && (
+                      <p className="text-price-lg text-on-surface-variant mt-1">
+                        {formatPrice(lowestPrice)}
                       </p>
-                      <h3 className="font-semibold text-zinc-900 group-hover:text-zinc-700 transition-colors line-clamp-1">
-                        {product.name}
-                      </h3>
-                      {lowestPrice !== null && (
-                        <p className="mt-1 text-sm font-medium text-zinc-700">
-                          From {formatPrice(lowestPrice)}
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </Link>
                 );
               })}
@@ -124,7 +132,7 @@ export default async function CatalogPage({ searchParams }: PageProps) {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-10 flex items-center justify-center gap-2">
+            <div className="mt-12 flex items-center justify-center gap-2">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
                 const pageParams = new URLSearchParams();
                 if (categorySlug) pageParams.set("category", categorySlug);
@@ -137,10 +145,10 @@ export default async function CatalogPage({ searchParams }: PageProps) {
                   <Link
                     key={p}
                     href={`/catalog?${pageParams.toString()}`}
-                    className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
+                    className={`w-9 h-9 flex items-center justify-center rounded text-body-sm transition-colors ${
                       p === page
-                        ? "bg-zinc-900 text-white"
-                        : "border border-zinc-200 text-zinc-700 hover:bg-zinc-100"
+                        ? "bg-primary text-on-primary"
+                        : "border border-outline-variant text-on-surface-variant hover:border-primary"
                     }`}
                   >
                     {p}

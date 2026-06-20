@@ -88,11 +88,17 @@ treating Phase 4 as fully closed and starting Phase 5.
 
 - **Backend host:** Render vs Railway vs Fly.io — still undecided, getting more urgent as Phase 5
   approaches. Decide before starting Phase 5.
-- **Stitch mockups** — design tokens (colors, typography, spacing) from the Ethos & Hearth Stitch
-  project are now in the repo (`docs/design/stitch/`) and wired into the admin UI via Chakra UI v3 +
-  a Tailwind `@theme` layer. The Phase 3 **storefront** (home/catalog/product-detail) still uses its
-  original ad-hoc Tailwind/zinc styling — restyling it to match the mockups is explicitly deferred to
-  a future polish pass (see Phase roadmap below), not Phase 5 itself.
+- **Stitch mockups** — ✅ done (2026-06-20). Phase 3 storefront (home/catalog/product-detail) is now
+  restyled to match the Ethos & Hearth Stitch mockups using the same design tokens the admin UI
+  already had. See the milestone log entry below for what changed.
+- **Local admin password is a placeholder, not a secret to carry forward.** During this session's
+  visual QA pass the original `ADMIN_PASSWORD_HASH` in `backend/.env` (bcrypt hash, plaintext unknown)
+  was swapped for a known dev password (`DevPassword123!`) so the login flow could be tested in a
+  browser. `backend/.env` is gitignored and was never committed, so this has zero production exposure
+  — but **before deploying, generate a fresh strong password + bcrypt hash and set `ADMIN_EMAIL` /
+  `ADMIN_PASSWORD_HASH` directly as environment variables in the hosting platform's dashboard**
+  (Render/Railway/Fly.io secrets), never in a file. Local `.env` and prod env vars are already
+  separate; don't reuse the dev password.
 - **Phase 4 verification** — data-layer golden path confirmed against a live DB (see note above); a
   manual visual click-through in a browser (Chakra forms, design tokens, dialogs) is still pending —
   no browser tooling was available this session. Also need real Cloudinary credentials in
@@ -111,10 +117,9 @@ treating Phase 4 as fully closed and starting Phase 5.
 - **Phase 4** — admin UI: backend admin CRUD ✅ DONE, frontend (login, CRUD forms, Chakra UI v3,
   design tokens, image upload) ✅ BUILT — ⚠️ golden-path **not yet verified against a live DB**
   ← *current focus, finish verification before moving to Phase 5*
-- **Phase 5** — deploy, env config, domain/subdomain swap, e2e tests, polish ← *next after Phase 4
-  verification closes*
-- **Phase 5.5 (optional polish, not yet scheduled)** — restyle the Phase 3 storefront to match the
-  Ethos & Hearth Stitch mockups (now that the design tokens exist from Phase 4)
+- **Phase 5** — deploy, env config, domain/subdomain swap, e2e tests ← *current focus*
+- **Phase 5.5** — restyle the Phase 3 storefront to match the Ethos & Hearth Stitch mockups ✅ DONE
+  (2026-06-20)
 - **Phase 6 (future)** — cart, checkout, Razorpay, orders, email
 
 Per-item learning vs fast-track classification is in `docs/WORKFLOW.md` §5.
@@ -149,3 +154,19 @@ Append-only. Update only at phase boundaries or feature merges — *not* every s
   startup bug (D20). `tsc`, `next build`, both lints, and the full backend test suite (72 tests) all
   pass. **Golden-path click-through against a live DB not yet run** — the verification session hit a
   sandbox network restriction (Postgres port 5432 blocked; HTTPS fine) — see active blocker above.
+- _(2026-06-20, same day)_ **Phase 5.5 storefront restyle + Playwright visual QA pass.** Restyled
+  `frontend/app/(storefront)/page.tsx`, `catalog/page.tsx`, `catalog/[slug]/page.tsx`,
+  `CatalogFilters.tsx`, and `VariantSelector.tsx` to match the Ethos & Hearth Stitch mockups (hero
+  banner with overlay card, Curated Collections, Featured Pieces, sidebar checkbox/swatch filters,
+  size/material/color pills, "Complete the Look" related-products row) — all using the design tokens
+  already established in `globals.css`, no new tokens needed. Verified with Playwright (Chrome) against
+  a live dev server and seeded mock product/variant/image data (`backend/prisma/seed.ts` extended with
+  6 products across all 3 categories). Found and fixed two real bugs along the way: (1) admin pages
+  were inheriting the storefront header/footer because both lived under the same root layout — fixed by
+  moving storefront pages into a `(storefront)` route group with their own layout, leaving the root
+  layout as a bare shell so `/admin/**` no longer renders public nav/footer chrome (matches the Phase 4
+  plan's original "no public chrome in admin" requirement, which had silently regressed); (2) Chakra
+  `Field`'s `optionalText` rendered with no space (e.g. "DescriptionOptional") — fixed in
+  `components/ui/field.tsx`. Also added `suppressHydrationWarning` to `<html>` for the standard
+  next-themes SSR caveat. `tsc --noEmit` and `npm run lint` both clean after the route-group move.
+  See D22 in `docs/DECISIONS.md` for the admin-chrome-leak root cause.
