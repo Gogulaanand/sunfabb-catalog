@@ -16,7 +16,10 @@ export class AuthService {
     }
 
     const emailMatches = dto.email === adminEmail;
-    const passwordMatches = await bcrypt.compare(dto.password, adminPasswordHash);
+    const passwordMatches = await bcrypt.compare(
+      dto.password,
+      adminPasswordHash,
+    );
 
     if (!emailMatches || !passwordMatches) {
       throw new UnauthorizedException('Invalid credentials');

@@ -28,23 +28,34 @@ describe('AdminImagesService', () => {
       public_id: 'sunfabb/image',
     };
     const mockStream = { end: jest.fn() };
-    (cloudinary.uploader.upload_stream as jest.Mock).mockImplementation((_, cb) => {
-      cb(null, mockResult);
-      return mockStream;
-    });
+    type CB = (err: null, result: typeof mockResult) => void;
+    (cloudinary.uploader.upload_stream as jest.Mock).mockImplementation(
+      (_: unknown, cb: CB) => {
+        cb(null, mockResult);
+        return mockStream;
+      },
+    );
 
     const result = await service.uploadImage(Buffer.from('fake-image'));
 
-    expect(result).toEqual({ url: mockResult.secure_url, public_id: mockResult.public_id });
+    expect(result).toEqual({
+      url: mockResult.secure_url,
+      public_id: mockResult.public_id,
+    });
   });
 
   it('rejects when cloudinary returns an error', async () => {
     const mockStream = { end: jest.fn() };
-    (cloudinary.uploader.upload_stream as jest.Mock).mockImplementation((_, cb) => {
-      cb(new Error('Cloudinary error'), null);
-      return mockStream;
-    });
+    type CBErr = (err: Error, result: null) => void;
+    (cloudinary.uploader.upload_stream as jest.Mock).mockImplementation(
+      (_: unknown, cb: CBErr) => {
+        cb(new Error('Cloudinary error'), null);
+        return mockStream;
+      },
+    );
 
-    await expect(service.uploadImage(Buffer.from('fake-image'))).rejects.toThrow('Cloudinary error');
+    await expect(
+      service.uploadImage(Buffer.from('fake-image')),
+    ).rejects.toThrow('Cloudinary error');
   });
 });

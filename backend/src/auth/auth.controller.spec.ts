@@ -22,7 +22,10 @@ describe('AuthController', () => {
   it('returns access_token on valid login', async () => {
     mockAuthService.login.mockResolvedValue({ access_token: 'token-123' });
 
-    const result = await controller.login({ email: 'admin@sunfabb.com', password: 'password123' });
+    const result = await controller.login({
+      email: 'admin@sunfabb.com',
+      password: 'password123',
+    });
 
     expect(result).toEqual({ access_token: 'token-123' });
     expect(mockAuthService.login).toHaveBeenCalledWith({

@@ -17,7 +17,10 @@ describe('AuthService', () => {
     process.env.ADMIN_PASSWORD_HASH = '$2b$10$hashedpassword';
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthService, { provide: JwtService, useValue: mockJwtService }],
+      providers: [
+        AuthService,
+        { provide: JwtService, useValue: mockJwtService },
+      ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
@@ -32,10 +35,16 @@ describe('AuthService', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
     mockJwtService.sign.mockReturnValue('signed-token');
 
-    const result = await service.login({ email: 'admin@sunfabb.com', password: 'password123' });
+    const result = await service.login({
+      email: 'admin@sunfabb.com',
+      password: 'password123',
+    });
 
     expect(result).toEqual({ access_token: 'signed-token' });
-    expect(mockJwtService.sign).toHaveBeenCalledWith({ sub: 'admin', email: 'admin@sunfabb.com' });
+    expect(mockJwtService.sign).toHaveBeenCalledWith({
+      sub: 'admin',
+      email: 'admin@sunfabb.com',
+    });
   });
 
   it('throws UnauthorizedException on wrong email', async () => {
