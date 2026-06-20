@@ -14,10 +14,14 @@ export class AdminImagesService {
   uploadImage(buffer: Buffer): Promise<{ url: string; public_id: string }> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
-        .upload_stream({ folder: 'sunfabb', resource_type: 'image' }, (error, result) => {
-          if (error || !result) return reject(error ?? new Error('Upload failed'));
-          resolve({ url: result.secure_url, public_id: result.public_id });
-        })
+        .upload_stream(
+          { folder: 'sunfabb', resource_type: 'image' },
+          (error, result) => {
+            if (error || !result)
+              return reject(new Error(error?.message ?? 'Upload failed'));
+            resolve({ url: result.secure_url, public_id: result.public_id });
+          },
+        )
         .end(buffer);
     });
   }

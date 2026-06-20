@@ -14,7 +14,9 @@ describe('AdminImagesController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AdminImagesController],
-      providers: [{ provide: AdminImagesService, useValue: mockAdminImagesService }],
+      providers: [
+        { provide: AdminImagesService, useValue: mockAdminImagesService },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -30,11 +32,15 @@ describe('AdminImagesController', () => {
     };
     mockAdminImagesService.uploadImage.mockResolvedValue(mockResult);
 
-    const mockFile = { buffer: Buffer.from('fake-data') } as Express.Multer.File;
+    const mockFile = {
+      buffer: Buffer.from('fake-data'),
+    } as Express.Multer.File;
     const result = await controller.upload(mockFile);
 
     expect(result).toEqual(mockResult);
-    expect(mockAdminImagesService.uploadImage).toHaveBeenCalledWith(mockFile.buffer);
+    expect(mockAdminImagesService.uploadImage).toHaveBeenCalledWith(
+      mockFile.buffer,
+    );
   });
 
   it('throws BadRequestException when no file provided', () => {

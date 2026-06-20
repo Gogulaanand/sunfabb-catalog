@@ -7,7 +7,14 @@ export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(dto: FindProductsDto) {
-    const { categorySlug, materialId, colorId, sortBy = 'name', page = 1, limit = 20 } = dto;
+    const {
+      categorySlug,
+      materialId,
+      colorId,
+      sortBy = 'name',
+      page = 1,
+      limit = 20,
+    } = dto;
 
     const where: Record<string, unknown> = { is_active: true };
 
