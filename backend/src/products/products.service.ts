@@ -76,6 +76,52 @@ export class ProductsService {
     return { items, total, page, limit };
   }
 
+  async findAllAdmin(dto: FindProductsDto) {
+    const { categorySlug, sortBy = 'name', page = 1, limit = 20 } = dto;
+
+    const where: Record<string, unknown> = {};
+    if (categorySlug) {
+      where.category = { slug: categorySlug };
+    }
+
+    const include = {
+      category: { select: { name: true, slug: true } },
+      images: { where: { is_primary: true }, take: 1 },
+      variants: {
+        select: { price: true },
+        orderBy: { price: 'asc' as const },
+        take: 1,
+      },
+    };
+
+    if (sortBy === 'price_asc' || sortBy === 'price_desc') {
+      const all = await this.prisma.product.findMany({ where, include });
+      all.sort((a, b) => {
+        const priceA = a.variants[0]?.price ?? 0;
+        const priceB = b.variants[0]?.price ?? 0;
+        return sortBy === 'price_asc' ? priceA - priceB : priceB - priceA;
+      });
+
+      const total = all.length;
+      const skip = (page - 1) * limit;
+      return { items: all.slice(skip, skip + limit), total, page, limit };
+    }
+
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        skip,
+        take: limit,
+        include,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
+  }
+
   findOne(slug: string) {
     return this.prisma.product.findUnique({
       where: { slug },

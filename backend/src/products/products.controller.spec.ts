@@ -22,6 +22,7 @@ const mockProduct = {
 
 const mockProductsService = {
   findAll: jest.fn(),
+  findAllAdmin: jest.fn(),
   findOne: jest.fn(),
   create: jest.fn(),
   update: jest.fn(),
@@ -62,6 +63,24 @@ describe('ProductsController', () => {
 
       expect(result).toEqual(paginatedResult);
       expect(mockProductsService.findAll).toHaveBeenCalledWith(dto);
+    });
+  });
+
+  describe('findAllAdmin', () => {
+    it('returns paginated products including inactive ones', async () => {
+      const paginatedResult = {
+        items: [mockProduct],
+        total: 1,
+        page: 1,
+        limit: 20,
+      };
+      mockProductsService.findAllAdmin.mockResolvedValue(paginatedResult);
+
+      const dto: FindProductsDto = {};
+      const result = await controller.findAllAdmin(dto);
+
+      expect(result).toEqual(paginatedResult);
+      expect(mockProductsService.findAllAdmin).toHaveBeenCalledWith(dto);
     });
   });
 
