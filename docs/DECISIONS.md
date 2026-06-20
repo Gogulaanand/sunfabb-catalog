@@ -213,3 +213,38 @@ mobile app shell, a checkout flow) should get its own route group + layout rathe
 conditional rendering to the root layout — the root layout should stay a minimal shell.
 **Status:** Confirmed (2026-06-20) — verified via Playwright screenshot that `/admin/login` and
 `/admin` no longer render the Sunfabb storefront nav/footer.
+
+### D23 — GOTCHA: Phase 5.5 restyle had no mobile nav and an uncollapsed filter sidebar, found via Stitch mobile mockups
+**Observation:** A mobile-responsive QA pass against three Stitch mobile mockups (Home, Catalog,
+Product Detail — project `3370511650101935244`) at a 390×844 viewport, run with Playwright against
+the live dev servers, found two real layout gaps the desktop-focused Phase 5.5 restyle had missed:
+1. `frontend/app/(storefront)/layout.tsx`'s nav was `hidden sm:flex` with no mobile replacement — below
+   the `sm` breakpoint the entire nav (Bedspreads/Towels/Table Linen/All Products) simply disappeared,
+   leaving no way to navigate categories from a phone. The mockups show a hamburger icon in its place.
+2. `frontend/app/(storefront)/catalog/CatalogFilters.tsx`'s sidebar was `flex-col lg:flex-row` —
+   below `lg` it rendered full-height, fully expanded (Sort, Category, Material, Color Palette) stacked
+   *above* the product grid. Measuring screenshot pixel heights at the same 390px width confirmed it:
+   the catalog page rendered 43% taller than the mockup's catalog screen (4153px vs. ~2910px), almost
+   entirely from filter UI a mobile visitor has to scroll past before seeing a single product.
+**Fix:** Added a `<details>`-based hamburger menu to the storefront header (`sm:hidden`, native
+disclosure, no client JS needed) that lists the same four nav links stacked in a dropdown. Refactored
+`CatalogFilters` to extract its filter markup into a `filterContent` fragment, rendered inside a
+`<details>` "Filter & Sort" disclosure below `lg` (collapsed by default, chevron rotates via
+`group-open:rotate-180`) and as the original always-visible sidebar at `lg+` — both render the same
+JSX, just gated by Tailwind breakpoint visibility classes, so there's no duplicated filter logic.
+**Why this matters:** The Phase 5.5 restyle was verified visually but only at desktop/tablet widths;
+sidebar-pattern layouts in particular (filters, multi-column nav) need an explicit mobile collapse
+strategy, not just `flex-col` reflow — reflowing a sidebar to the top of a narrow viewport without
+collapsing it usually just moves the "wall of UI before content" problem rather than fixing it. Any
+future sidebar-shaped component should default to a `<details>` (or similar zero-JS) disclosure below
+its desktop breakpoint.
+**Not fixed (separate, non-responsive issues, noted for a future session):** the product-detail
+thumbnail strip shows a broken image (alt text bleeding outside its frame) on `embroidered-napkin-set`
+— root cause is a 404 from the seeded Unsplash URL, not a layout bug, and reproduces identically on
+desktop. The Stitch product-detail mockup also has a "Shipping & Returns" section the live page has no
+equivalent content field for (`ProductVariant`/`Product` only has `care_instructions`) — adding it
+would need a schema change, out of scope for a frontend-only QA pass.
+**Status:** Confirmed (2026-06-21) — re-screenshotted all three pages at 390×844 after the fix:
+catalog now shows the product grid immediately with filters collapsed behind a working toggle (chevron
+rotates, content matches the always-open desktop sidebar), and the mobile hamburger menu opens/closes
+correctly on the home page. `tsc --noEmit` and `npm run lint` both clean.

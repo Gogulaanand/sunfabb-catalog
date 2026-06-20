@@ -86,11 +86,37 @@ treating Phase 4 as fully closed and starting Phase 5.
 
 ## Open decisions / blockers
 
-- **Backend host:** Render vs Railway vs Fly.io — still undecided, getting more urgent as Phase 5
-  approaches. Decide before starting Phase 5.
+- **Backend host:** ✅ decided (2026-06-21) — **Render**, free tier to start. Compared against Railway
+  and Fly.io on four criteria for this project's actual scale (single admin, ~100 products, no
+  e-commerce yet):
+  - **Free/cheap tier fit:** Render's free web service tier (750 hrs/mo, 512MB/0.1 CPU, no card
+    required) comfortably covers this scale. Railway no longer has a real free tier — its Hobby plan
+    charges a $5/mo *minimum spend* even at near-zero usage. Fly.io removed free allowances for new
+    signups entirely (2 VM-hr/7-day trial only); realistic pay-as-you-go cost for a small always-on
+    app is $8–25/mo.
+  - **Env var/secrets setup:** Render has a simple dashboard key-value "Environment" tab — fits the
+    9 vars this backend needs (`DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `ADMIN_EMAIL`,
+    `ADMIN_PASSWORD_HASH`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`,
+    `FRONTEND_URL`, `PORT`). Railway is equally easy via its own Variables tab. Fly.io requires the
+    `flyctl` CLI (`fly secrets set`) — no GUI-first option.
+  - **Cold-start behavior:** Render's free tier sleeps after 15 min idle with a 30–60s cold start —
+    acceptable for a low-traffic catalog with no checkout flow yet.
+  - **Deploy-from-GitHub:** Render has native, zero-config GitHub auto-deploy that layers cleanly on
+    top of the existing `.github/workflows/ci.yml` (CI keeps gating lint/tsc/test on every PR; Render
+    redeploys `main` on merge — no new Actions steps needed). Fly.io would need an added
+    `flyctl deploy` CI step to integrate with GitHub.
+  - **Upgrade path:** move to Render's Starter plan ($7/mo, no sleep) once cold starts become
+    unacceptable — e.g. a real public launch, or the future Phase 6 checkout flow needing fast
+    first-byte.
 - **Stitch mockups** — ✅ done (2026-06-20). Phase 3 storefront (home/catalog/product-detail) is now
   restyled to match the Ethos & Hearth Stitch mockups using the same design tokens the admin UI
   already had. See the milestone log entry below for what changed.
+- **Mobile-responsive QA** — ✅ done (2026-06-21). PR #5 (`feature/phase5.5-storefront-restyle`) was
+  restyled and verified at desktop/tablet widths only; a follow-up pass against the Stitch *mobile*
+  mockups (390×844) found and fixed two real gaps — see D23 in `docs/DECISIONS.md`. Not a blocker,
+  just worth knowing: future visual QA passes should check mobile widths from the start, not as an
+  afterthought, since sidebar/nav patterns that "reflow" at narrow widths often need an explicit
+  collapse rather than just stacking.
 - **Local admin password is a placeholder, not a secret to carry forward.** During this session's
   visual QA pass the original `ADMIN_PASSWORD_HASH` in `backend/.env` (bcrypt hash, plaintext unknown)
   was swapped for a known dev password (`DevPassword123!`) so the login flow could be tested in a
@@ -170,3 +196,15 @@ Append-only. Update only at phase boundaries or feature merges — *not* every s
   `components/ui/field.tsx`. Also added `suppressHydrationWarning` to `<html>` for the standard
   next-themes SSR caveat. `tsc --noEmit` and `npm run lint` both clean after the route-group move.
   See D22 in `docs/DECISIONS.md` for the admin-chrome-leak root cause.
+- _(2026-06-21)_ **Mobile-responsive QA pass on PR #5.** Screenshotted home/catalog/product-detail
+  at 390×844 with Playwright and compared against the Stitch *mobile* mockups (project
+  `3370511650101935244`) — the Phase 5.5 restyle had only been checked at desktop/tablet widths.
+  Found and fixed two real gaps: (1) the storefront nav (`frontend/app/(storefront)/layout.tsx`) went
+  from `hidden sm:flex` to fully invisible below `sm` with no replacement — added a `<details>`-based
+  hamburger menu (no client JS) listing the same four links; (2) `CatalogFilters.tsx`'s sidebar
+  rendered fully expanded above the product grid below `lg`, making the catalog page 43% taller than
+  the mockup at the same width — refactored into a shared `filterContent` fragment rendered inside a
+  collapsed-by-default `<details>` "Filter & Sort" disclosure on mobile and the original always-open
+  sidebar at `lg+`. See D23 in `docs/DECISIONS.md` for full detail, including two non-responsive
+  issues found but intentionally not fixed (a broken seed image, a mockup content section with no
+  backing data field). `tsc --noEmit` and `npm run lint` both clean.

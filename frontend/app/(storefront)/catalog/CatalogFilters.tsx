@@ -38,8 +38,8 @@ export default function CatalogFilters({
   const currentColor = searchParams.get("color") ?? "";
   const currentSort = searchParams.get("sort") ?? "";
 
-  return (
-    <aside className="w-full lg:w-56 shrink-0 space-y-8">
+  const filterContent = (
+    <>
       {/* Sort */}
       <div>
         <label className="block text-label-caps text-on-surface-variant mb-2">
@@ -158,6 +158,29 @@ export default function CatalogFilters({
           </div>
         </div>
       )}
+    </>
+  );
+
+  return (
+    <aside className="w-full lg:w-56 shrink-0">
+      <details className="lg:hidden mb-6 group">
+        <summary className="flex items-center justify-between cursor-pointer py-3 px-4 border border-outline-variant rounded-md text-label-caps text-on-surface list-none">
+          <span>Filter & Sort</span>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="text-on-surface-variant transition-transform group-open:rotate-180"
+          >
+            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </summary>
+        <div className="space-y-8 pt-6">{filterContent}</div>
+      </details>
+      <div className="hidden lg:block space-y-8">{filterContent}</div>
     </aside>
   );
 }

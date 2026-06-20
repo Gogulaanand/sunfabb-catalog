@@ -29,6 +29,51 @@ export default function StorefrontLayout({
               All Products
             </Link>
           </nav>
+
+          <details className="sm:hidden relative">
+            <summary
+              className="list-none cursor-pointer p-2 -mr-2 flex items-center justify-center"
+              aria-label="Open menu"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="text-on-surface"
+              >
+                <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
+              </svg>
+            </summary>
+            <nav className="absolute right-0 top-full mt-2 w-48 bg-surface border border-outline-variant rounded-md shadow-lg py-2 flex flex-col z-40 text-label-caps text-on-surface-variant">
+              <Link
+                href="/catalog?category=bedspreads"
+                className="px-4 py-3 hover:text-primary hover:bg-surface-container-low transition-colors"
+              >
+                Bedspreads
+              </Link>
+              <Link
+                href="/catalog?category=towels"
+                className="px-4 py-3 hover:text-primary hover:bg-surface-container-low transition-colors"
+              >
+                Towels
+              </Link>
+              <Link
+                href="/catalog?category=table-linen"
+                className="px-4 py-3 hover:text-primary hover:bg-surface-container-low transition-colors"
+              >
+                Table Linen
+              </Link>
+              <Link
+                href="/catalog"
+                className="px-4 py-3 hover:text-primary hover:bg-surface-container-low transition-colors"
+              >
+                All Products
+              </Link>
+            </nav>
+          </details>
         </div>
       </header>
       <main className="flex-1">{children}</main>
