@@ -30,3 +30,7 @@ Thumbs.db
 
 # Local session-state scratch file — see HANDOFF.md and docs/WORKFLOW.md
 .session-state.md
+.omc/state
+.omc/state/sessions/*
+.omc/sessions/*
+backend/.omc/state/*
