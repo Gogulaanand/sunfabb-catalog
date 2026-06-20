@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { CategoriesController } from './categories.controller.js';
 import { CategoriesService } from './categories.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 
 const mockCategory = {
   id: 'uuid-1',
@@ -15,6 +16,9 @@ const mockCategory = {
 const mockCategoriesService = {
   findAll: jest.fn(),
   findOne: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+  remove: jest.fn(),
 };
 
 describe('CategoriesController', () => {
@@ -28,7 +32,10 @@ describe('CategoriesController', () => {
       providers: [
         { provide: CategoriesService, useValue: mockCategoriesService },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<CategoriesController>(CategoriesController);
   });
@@ -60,6 +67,47 @@ describe('CategoriesController', () => {
       await expect(controller.findOne('nonexistent')).rejects.toThrow(
         NotFoundException,
       );
+    });
+  });
+
+  describe('create', () => {
+    it('creates a category', async () => {
+      const dto = { name: 'Towels', slug: 'towels' };
+      mockCategoriesService.create.mockResolvedValue({
+        ...mockCategory,
+        ...dto,
+      });
+
+      const result = await controller.create(dto);
+
+      expect(result).toEqual({ ...mockCategory, ...dto });
+      expect(mockCategoriesService.create).toHaveBeenCalledWith(dto);
+    });
+  });
+
+  describe('update', () => {
+    it('updates a category', async () => {
+      const dto = { name: 'Updated Bedspreads' };
+      mockCategoriesService.update.mockResolvedValue({
+        ...mockCategory,
+        ...dto,
+      });
+
+      const result = await controller.update('uuid-1', dto);
+
+      expect(result).toEqual({ ...mockCategory, ...dto });
+      expect(mockCategoriesService.update).toHaveBeenCalledWith('uuid-1', dto);
+    });
+  });
+
+  describe('remove', () => {
+    it('removes a category', async () => {
+      mockCategoriesService.remove.mockResolvedValue(mockCategory);
+
+      const result = await controller.remove('uuid-1');
+
+      expect(result).toEqual(mockCategory);
+      expect(mockCategoriesService.remove).toHaveBeenCalledWith('uuid-1');
     });
   });
 });

@@ -6,6 +6,8 @@ import { ColorsModule } from './colors/colors.module.js';
 import { ProductsModule } from './products/products.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { AdminImagesModule } from './admin/images/admin-images.module.js';
+import { VariantsModule } from './variants/variants.module.js';
+import { ImagesModule } from './images/images.module.js';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { AdminImagesModule } from './admin/images/admin-images.module.js';
     ProductsModule,
     AuthModule,
     AdminImagesModule,
+    VariantsModule,
+    ImagesModule,
   ],
 })
 export class AppModule {}

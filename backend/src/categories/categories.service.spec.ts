@@ -15,6 +15,9 @@ const mockPrisma = {
   category: {
     findMany: jest.fn(),
     findUnique: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
   },
 };
 
@@ -73,6 +76,46 @@ describe('CategoriesService', () => {
       const result = await service.findOne('nonexistent');
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('create', () => {
+    it('creates a category', async () => {
+      const dto = { name: 'Towels', slug: 'towels' };
+      mockPrisma.category.create.mockResolvedValue({ ...mockCategory, ...dto });
+
+      const result = await service.create(dto);
+
+      expect(result).toEqual({ ...mockCategory, ...dto });
+      expect(mockPrisma.category.create).toHaveBeenCalledWith({ data: dto });
+    });
+  });
+
+  describe('update', () => {
+    it('updates a category', async () => {
+      const dto = { name: 'Updated Bedspreads' };
+      mockPrisma.category.update.mockResolvedValue({ ...mockCategory, ...dto });
+
+      const result = await service.update('uuid-1', dto);
+
+      expect(result).toEqual({ ...mockCategory, ...dto });
+      expect(mockPrisma.category.update).toHaveBeenCalledWith({
+        where: { id: 'uuid-1' },
+        data: dto,
+      });
+    });
+  });
+
+  describe('remove', () => {
+    it('deletes a category', async () => {
+      mockPrisma.category.delete.mockResolvedValue(mockCategory);
+
+      const result = await service.remove('uuid-1');
+
+      expect(result).toEqual(mockCategory);
+      expect(mockPrisma.category.delete).toHaveBeenCalledWith({
+        where: { id: 'uuid-1' },
+      });
     });
   });
 });
