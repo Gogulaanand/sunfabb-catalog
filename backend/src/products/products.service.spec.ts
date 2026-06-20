@@ -175,6 +175,59 @@ describe('ProductsService', () => {
     });
   });
 
+  describe('findAllAdmin', () => {
+    it('returns paginated products including inactive ones', async () => {
+      mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
+      mockPrisma.product.count.mockResolvedValue(1);
+
+      const dto: FindProductsDto = {};
+      const result = await service.findAllAdmin(dto);
+
+      expect(result).toEqual({
+        items: [mockProduct],
+        total: 1,
+        page: 1,
+        limit: 20,
+      });
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {}, skip: 0, take: 20 }),
+      );
+    });
+
+    it('filters by categorySlug', async () => {
+      mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
+      mockPrisma.product.count.mockResolvedValue(1);
+
+      const dto: FindProductsDto = { categorySlug: 'bedspreads' };
+      await service.findAllAdmin(dto);
+
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { category: { slug: 'bedspreads' } },
+        }),
+      );
+    });
+
+    it('sorts by price in application code', async () => {
+      const cheap = {
+        ...mockProduct,
+        id: 'cuid-2',
+        variants: [{ price: 100000 }],
+      };
+      const expensive = {
+        ...mockProduct,
+        id: 'cuid-3',
+        variants: [{ price: 500000 }],
+      };
+      mockPrisma.product.findMany.mockResolvedValue([expensive, cheap]);
+
+      const dto: FindProductsDto = { sortBy: 'price_asc' };
+      const result = await service.findAllAdmin(dto);
+
+      expect(result.items).toEqual([cheap, expensive]);
+    });
+  });
+
   describe('findOne', () => {
     it('returns product with variants and images when found', async () => {
       const fullProduct = { ...mockProduct, variants: [], images: [] };

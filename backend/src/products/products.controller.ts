@@ -27,6 +27,12 @@ export class ProductsController {
     return this.productsService.findAll(dto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('admin')
+  findAllAdmin(@Query() dto: FindProductsDto) {
+    return this.productsService.findAllAdmin(dto);
+  }
+
   @Get(':slug')
   async findOne(@Param('slug') slug: string) {
     const product = await this.productsService.findOne(slug);
