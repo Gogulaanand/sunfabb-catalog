@@ -63,6 +63,13 @@ Future: Razorpay (payments, India-first) · Resend (email)
 9. Follow the **Controller → Service → DTO** pattern in every NestJS module. Prisma is injected via a
    shared `PrismaService`.
 10. REST conventions: plural nouns, correct verbs, correct status codes, pagination on list endpoints.
+11. **Validate data crossing a boundary; don't cast it.** Any data entering the app from outside (backend
+    API responses on the frontend, third-party payloads) must be validated against the expected shape at
+    the boundary — never assumed via a TypeScript `as` cast. Don't hand-maintain a duplicate of a type
+    that lives authoritatively elsewhere (e.g. a Prisma model); derive or validate it so the two can't
+    silently drift. (Added 2026-06-21 after an audit found three silent storefront bugs from this — D30.)
+12. **Fail fast on required config.** Required secrets/credentials/env vars must throw at startup if
+    missing. Never fall back to a default for anything security-sensitive. (Added 2026-06-21 — D31.)
 
 ## Commands (valid once scaffolded)
 
