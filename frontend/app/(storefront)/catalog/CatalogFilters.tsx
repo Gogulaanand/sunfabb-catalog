@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import type { Category, Material, Color } from "@/lib/api";
+import { useCatalogTransition } from "./CatalogTransitionContext";
 
 interface CatalogFiltersProps {
   categories: Category[];
@@ -17,6 +18,7 @@ export default function CatalogFilters({
 }: CatalogFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { startCatalogTransition } = useCatalogTransition();
 
   const updateParam = useCallback(
     (key: string, value: string | null) => {
@@ -28,9 +30,11 @@ export default function CatalogFilters({
       }
       // Reset to page 1 when filter changes
       params.delete("page");
-      router.push(`/catalog?${params.toString()}`);
+      startCatalogTransition(() => {
+        router.push(`/catalog?${params.toString()}`);
+      });
     },
-    [router, searchParams]
+    [router, searchParams, startCatalogTransition]
   );
 
   const currentCategory = searchParams.get("category") ?? "";

@@ -277,3 +277,16 @@ This was always broken but invisible locally since `npm run start:dev` (ts-node 
 exercises the compiled `dist/` output — it only surfaced on Render's first real production boot
 (`Error: Cannot find module '.../dist/main'`). See PR #7.
 **Status:** Locked.
+
+### D27 — Convention: every storefront image must use `fill` + a sized/aspect-ratio container
+**Decision:** Any `next/image` usage on storefront surfaces (`/`, `/catalog`, `/catalog/[slug]`) must
+use `fill` inside a container with an explicit size (fixed height, e.g. `h-[640px]`) or aspect ratio
+(e.g. `aspect-square`, `aspect-[3/4]`), plus a `sizes` prop matching the container's real rendered
+width. Never let an image's intrinsic dimensions determine layout box size.
+**Why:** This is why CLS measured 0.00 on both `/` and `/catalog` in the Phase 5.5.1 Web Vitals
+baseline (`.omc/plans/2026-06-21-phase-web-vitals-optimization.md`) — every existing image already
+followed this pattern, reserving layout space before the image loads. The hero image was the one gap
+(`fill` with no `sizes`), fixed in the same phase. Without this convention, a future image added
+without a sized container would silently regress CLS.
+**Status:** Locked. *Numbered D27, not D24, because D24–D26 exist on the not-yet-merged
+`feature/phase5-deploy` branch — renumber if merge order changes and a collision results.*

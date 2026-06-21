@@ -28,6 +28,10 @@ export default function RootLayout({
       className={`${playfairDisplay.variable} ${inter.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+      </head>
       <body className="min-h-full bg-surface text-on-surface font-body">{children}</body>
     </html>
   );

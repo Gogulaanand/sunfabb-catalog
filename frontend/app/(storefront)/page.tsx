@@ -3,7 +3,7 @@ import Image from "next/image";
 import { getCategories, getProducts, formatPrice } from "@/lib/api";
 
 const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1600&q=80";
+  "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1920&q=75";
 
 export default async function HomePage() {
   const [categories, featured] = await Promise.all([
@@ -20,6 +20,7 @@ export default async function HomePage() {
           alt="Linen bedspread styled in a sun-lit bedroom"
           fill
           priority
+          sizes="100vw"
           className="object-cover"
         />
         <div className="absolute inset-0 bg-on-surface/10" />
