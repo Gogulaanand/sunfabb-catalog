@@ -249,7 +249,7 @@ catalog now shows the product grid immediately with filters collapsed behind a w
 rotates, content matches the always-open desktop sidebar), and the mobile hamburger menu opens/closes
 correctly on the home page. `tsc --noEmit` and `npm run lint` both clean.
 
-### D24 — Convention: every storefront image must use `fill` + a sized/aspect-ratio container
+### D27 — Convention: every storefront image must use `fill` + a sized/aspect-ratio container
 **Decision:** Any `next/image` usage on storefront surfaces (`/`, `/catalog`, `/catalog/[slug]`) must
 use `fill` inside a container with an explicit size (fixed height, e.g. `h-[640px]`) or aspect ratio
 (e.g. `aspect-square`, `aspect-[3/4]`), plus a `sizes` prop matching the container's real rendered
@@ -259,4 +259,5 @@ baseline (`.omc/plans/2026-06-21-phase-web-vitals-optimization.md`) — every ex
 followed this pattern, reserving layout space before the image loads. The hero image was the one gap
 (`fill` with no `sizes`), fixed in the same phase. Without this convention, a future image added
 without a sized container would silently regress CLS.
-**Status:** Locked.
+**Status:** Locked. *Numbered D27, not D24, because D24–D26 exist on the not-yet-merged
+`feature/phase5-deploy` branch — renumber if merge order changes and a collision results.*
