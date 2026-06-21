@@ -17,7 +17,7 @@ vi.mock("./actions", () => ({
 }));
 
 const categories = [
-  { id: 1, name: "Bedspreads", slug: "bedspreads", description: "Cozy", image_url: null },
+  { id: "cat-1", name: "Bedspreads", slug: "bedspreads", description: "Cozy", image_url: null },
 ];
 
 function renderClient() {

@@ -1,40 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { formatPrice, type ProductVariant, type Color, type Material } from "@/lib/api";
+import { formatPrice, type ProductVariant } from "@/lib/api";
 
 interface VariantSelectorProps {
   variants: ProductVariant[];
 }
 
 export default function VariantSelector({ variants }: VariantSelectorProps) {
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     variants[0]?.id ?? null
   );
 
   const selectedVariant = variants.find((v) => v.id === selectedVariantId) ?? variants[0];
 
-  // Collect unique sizes, materials, colors
+  // Collect unique sizes, materials, colors. The material/color embedded on a
+  // variant has no id (the backend only selects name/hex_code there — see
+  // lib/api.ts), so dedupe by name, which is unique per Material/Color row.
   const sizes = Array.from(
     new Map(
-      variants.filter((v) => v.size).map((v) => [v.size!, v.size!])
+      variants.filter((v) => v.size).map((v) => [v.size, v.size])
     ).values()
   );
 
   const materials = Array.from(
-    new Map(
-      variants
-        .filter((v) => v.material)
-        .map((v) => [v.material!.id, v.material!] as [number, Material])
-    ).values()
+    new Map(variants.map((v) => [v.material.name, v.material])).values()
   );
 
   const colors = Array.from(
-    new Map(
-      variants
-        .filter((v) => v.color)
-        .map((v) => [v.color!.id, v.color!] as [number, Color])
-    ).values()
+    new Map(variants.map((v) => [v.color.name, v.color])).values()
   );
 
   return (
@@ -60,10 +54,8 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
                     const match = variants.find(
                       (v) =>
                         v.size === size &&
-                        (selectedVariant?.color?.id === undefined ||
-                          v.color?.id === selectedVariant.color?.id) &&
-                        (selectedVariant?.material?.id === undefined ||
-                          v.material?.id === selectedVariant.material?.id)
+                        v.color.name === selectedVariant?.color.name &&
+                        v.material.name === selectedVariant?.material.name
                     );
                     if (match) setSelectedVariantId(match.id);
                   }}
@@ -87,18 +79,16 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
           <p className="text-label-caps text-on-surface-variant mb-2">Material</p>
           <div className="flex flex-wrap gap-2">
             {materials.map((mat) => {
-              const isSelected = selectedVariant?.material?.id === mat.id;
+              const isSelected = selectedVariant?.material.name === mat.name;
               return (
                 <button
-                  key={mat.id}
+                  key={mat.name}
                   onClick={() => {
                     const match = variants.find(
                       (v) =>
-                        v.material?.id === mat.id &&
-                        (selectedVariant?.size === undefined ||
-                          v.size === selectedVariant.size) &&
-                        (selectedVariant?.color?.id === undefined ||
-                          v.color?.id === selectedVariant.color?.id)
+                        v.material.name === mat.name &&
+                        v.size === selectedVariant?.size &&
+                        v.color.name === selectedVariant?.color.name
                     );
                     if (match) setSelectedVariantId(match.id);
                   }}
@@ -129,19 +119,17 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
           </p>
           <div className="flex flex-wrap gap-2">
             {colors.map((col) => {
-              const isSelected = selectedVariant?.color?.id === col.id;
+              const isSelected = selectedVariant?.color.name === col.name;
               return (
                 <button
-                  key={col.id}
+                  key={col.name}
                   title={col.name}
                   onClick={() => {
                     const match = variants.find(
                       (v) =>
-                        v.color?.id === col.id &&
-                        (selectedVariant?.size === undefined ||
-                          v.size === selectedVariant.size) &&
-                        (selectedVariant?.material?.id === undefined ||
-                          v.material?.id === selectedVariant.material?.id)
+                        v.color.name === col.name &&
+                        v.size === selectedVariant?.size &&
+                        v.material.name === selectedVariant?.material.name
                     );
                     if (match) setSelectedVariantId(match.id);
                   }}
@@ -150,7 +138,7 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
                       ? "border-primary scale-110 ring-2 ring-primary-container ring-offset-1"
                       : "border-outline-variant hover:border-primary"
                   }`}
-                  style={{ backgroundColor: col.hex_code }}
+                  style={{ backgroundColor: col.hex_code ?? undefined }}
                 />
               );
             })}
@@ -161,7 +149,7 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
       {/* Stock status */}
       {selectedVariant && (
         <p className="text-body-sm text-on-surface-variant">
-          {selectedVariant.stock > 0 ? (
+          {selectedVariant.stock_quantity > 0 ? (
             <span className="text-tertiary font-medium">In stock</span>
           ) : (
             <span className="text-error font-medium">Out of stock</span>

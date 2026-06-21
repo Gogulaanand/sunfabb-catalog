@@ -39,7 +39,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const sortedImages = [...product.images].sort((a, b) => {
     if (a.is_primary && !b.is_primary) return -1;
     if (!a.is_primary && b.is_primary) return 1;
-    return a.display_order - b.display_order;
+    return a.sort_order - b.sort_order;
   });
 
   const primaryImage = sortedImages[0];

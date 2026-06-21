@@ -11,10 +11,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 const categories = [
-  { id: 1, name: "Bedspreads", slug: "bedspreads", description: null, image_url: null },
+  { id: "cat-1", name: "Bedspreads", slug: "bedspreads", description: null, image_url: null },
 ];
-const materials = [{ id: 1, name: "Cotton" }];
-const colors = [{ id: 1, name: "Indigo", hex_code: "#3F51B5" }];
+const materials = [{ id: "mat-1", name: "Cotton" }];
+const colors = [{ id: "col-1", name: "Indigo", hex_code: "#3F51B5" }];
 
 function renderFilters() {
   return render(
