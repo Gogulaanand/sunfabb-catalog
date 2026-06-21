@@ -125,7 +125,7 @@ jobs:
           npx playwright install --with-deps chromium
 
       - name: Run e2e suite
-        run: npm run test:e2e
+        run: npx playwright test --config=e2e/playwright.config.ts e2e/specs/golden-path.spec.ts
 
       - name: Upload Playwright report on failure
         if: failure()
@@ -137,6 +137,25 @@ jobs:
             test-results/
             /tmp/backend.log
             /tmp/frontend.log
+          retention-days: 7
+
+      # Non-blocking: visual baselines need a few green CI runs before they're
+      # trustworthy (font rendering, image-load timing). Promote to a required
+      # check once proven stable — see Phase 5.7 plan, Step 7.
+      - name: Run visual regression suite (non-blocking)
+        id: visual
+        continue-on-error: true
+        run: npx playwright test --config=e2e/playwright.config.ts e2e/specs/visual-regression.spec.ts --update-snapshots=missing
+
+      - name: Upload visual regression report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression-report
+          path: |
+            playwright-report/
+            test-results/
+            e2e/specs/visual-regression.spec.ts-snapshots/
           retention-days: 7
 
   frontend:
