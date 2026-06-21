@@ -11,7 +11,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     if (!databaseUrl) throw new Error('DATABASE_URL is not set');
 
     // pg 8.21+ treats sslmode=require as verify-full when a connection string is passed.
-    // Parsing the URL manually lets us set ssl directly and bypass that.
+    // Parsing the URL manually lets us set ssl directly and bypass that. Only enable it when
+    // the URL actually asks for it (Neon does; a plain local/CI Postgres doesn't support SSL
+    // at all and errors out if we force it).
     const dbUrl = new URL(databaseUrl);
     const adapter = new PrismaPg({
       host: dbUrl.hostname,
@@ -19,7 +21,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
       user: decodeURIComponent(dbUrl.username),
       password: decodeURIComponent(dbUrl.password),
       database: dbUrl.pathname.slice(1),
-      ssl: { rejectUnauthorized: false },
+      ssl: dbUrl.searchParams.get('sslmode') === 'require' ? { rejectUnauthorized: false } : undefined,
     });
     this.client = new PrismaClient({ adapter });
   }
