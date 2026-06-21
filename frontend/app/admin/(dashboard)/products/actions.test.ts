@@ -158,7 +158,11 @@ describe("product server actions", () => {
     const result = await uploadAndAddImageAction("1", "royal-bedspread", file, { is_primary: true });
 
     expect(result).toEqual({ ok: true, data: undefined });
-    expect(addImage).toHaveBeenCalledWith("1", { is_primary: true, url: "https://cdn/x.jpg" });
+    expect(addImage).toHaveBeenCalledWith("1", {
+      is_primary: true,
+      url: "https://cdn/x.jpg",
+      public_id: "x",
+    });
   });
 
   it("uploadAndAddImageAction surfaces an upload failure without calling addImage", async () => {
