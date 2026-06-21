@@ -1,6 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 
+export class CloudinaryUploadError extends Error {
+  constructor(
+    message: string,
+    public readonly httpCode?: number,
+  ) {
+    super(message);
+  }
+}
+
 @Injectable()
 export class AdminImagesService {
   constructor() {
@@ -18,7 +27,12 @@ export class AdminImagesService {
           { folder: 'sunfabb', resource_type: 'image' },
           (error, result) => {
             if (error || !result)
-              return reject(new Error(error?.message ?? 'Upload failed'));
+              return reject(
+                new CloudinaryUploadError(
+                  error?.message ?? 'Upload failed',
+                  error?.http_code,
+                ),
+              );
             resolve({ url: result.secure_url, public_id: result.public_id });
           },
         )

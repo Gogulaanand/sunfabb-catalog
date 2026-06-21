@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AdminImagesService } from './admin-images.service.js';
+import {
+  AdminImagesService,
+  CloudinaryUploadError,
+} from './admin-images.service.js';
 
 jest.mock('cloudinary', () => ({
   v2: {
@@ -44,18 +47,23 @@ describe('AdminImagesService', () => {
     });
   });
 
-  it('rejects when cloudinary returns an error', async () => {
+  it('rejects with a CloudinaryUploadError carrying the http_code', async () => {
     const mockStream = { end: jest.fn() };
-    type CBErr = (err: Error, result: null) => void;
+    type CBErr = (
+      err: { message: string; http_code: number },
+      result: null,
+    ) => void;
     (cloudinary.uploader.upload_stream as jest.Mock).mockImplementation(
       (_: unknown, cb: CBErr) => {
-        cb(new Error('Cloudinary error'), null);
+        cb({ message: 'Invalid image file', http_code: 400 }, null);
         return mockStream;
       },
     );
 
     await expect(
       service.uploadImage(Buffer.from('fake-image')),
-    ).rejects.toThrow('Cloudinary error');
+    ).rejects.toMatchObject(
+      new CloudinaryUploadError('Invalid image file', 400),
+    );
   });
 });

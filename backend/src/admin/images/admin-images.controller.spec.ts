@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { AdminImagesController } from './admin-images.controller.js';
-import { AdminImagesService } from './admin-images.service.js';
+import {
+  AdminImagesService,
+  CloudinaryUploadError,
+} from './admin-images.service.js';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
 
 const mockAdminImagesService = { uploadImage: jest.fn() };
@@ -43,9 +46,32 @@ describe('AdminImagesController', () => {
     );
   });
 
-  it('throws BadRequestException when no file provided', () => {
-    expect(() =>
+  it('throws BadRequestException when no file provided', async () => {
+    await expect(
       controller.upload(undefined as unknown as Express.Multer.File),
-    ).toThrow(BadRequestException);
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('maps a Cloudinary 4xx error to BadRequestException', async () => {
+    mockAdminImagesService.uploadImage.mockRejectedValue(
+      new CloudinaryUploadError('Invalid image file', 400),
+    );
+    const mockFile = {
+      buffer: Buffer.from('fake-data'),
+    } as Express.Multer.File;
+
+    await expect(controller.upload(mockFile)).rejects.toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('rethrows a Cloudinary 5xx error as-is', async () => {
+    const serverError = new CloudinaryUploadError('Service unavailable', 503);
+    mockAdminImagesService.uploadImage.mockRejectedValue(serverError);
+    const mockFile = {
+      buffer: Buffer.from('fake-data'),
+    } as Express.Multer.File;
+
+    await expect(controller.upload(mockFile)).rejects.toBe(serverError);
   });
 });

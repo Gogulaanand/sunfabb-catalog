@@ -9,7 +9,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
-import { AdminImagesService } from './admin-images.service.js';
+import {
+  AdminImagesService,
+  CloudinaryUploadError,
+} from './admin-images.service.js';
 
 @Controller('admin/images')
 @UseGuards(JwtAuthGuard)
@@ -18,8 +21,19 @@ export class AdminImagesController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
-  upload(@UploadedFile() file: Express.Multer.File) {
+  async upload(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file provided');
-    return this.adminImagesService.uploadImage(file.buffer);
+    try {
+      return await this.adminImagesService.uploadImage(file.buffer);
+    } catch (err) {
+      if (
+        err instanceof CloudinaryUploadError &&
+        err.httpCode &&
+        err.httpCode < 500
+      ) {
+        throw new BadRequestException(err.message);
+      }
+      throw err;
+    }
   }
 }
