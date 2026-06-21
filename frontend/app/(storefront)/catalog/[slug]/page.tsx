@@ -4,8 +4,20 @@ import Link from "next/link";
 import { getProduct, getProducts, formatPrice } from "@/lib/api";
 import VariantSelector from "./VariantSelector";
 
+export const revalidate = 30;
+
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const { items } = await getProducts({ limit: 100 }).catch(() => ({
+    items: [],
+    total: 0,
+    page: 1,
+    limit: 100,
+  }));
+  return items.map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps) {
