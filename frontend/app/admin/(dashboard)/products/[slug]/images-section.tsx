@@ -17,14 +17,20 @@ export function ImagesSection({ product }: { product: AdminProduct }) {
     if (files.length === 0) return;
     setUploading(true);
     setError(null);
-    const result = await uploadAndAddImageAction(product.id, product.slug, files[0], {
-      sort_order: product.images.length,
-      is_primary: product.images.length === 0,
-    });
+
+    const startingSortOrder = product.images.length;
+    const errors: string[] = [];
+    for (const [index, file] of files.entries()) {
+      const result = await uploadAndAddImageAction(product.id, product.slug, file, {
+        sort_order: startingSortOrder + index,
+        is_primary: startingSortOrder === 0 && index === 0,
+      });
+      if (!result.ok) errors.push(result.error);
+    }
+
     setUploading(false);
-    if (!result.ok) {
-      setError(result.error);
-      return;
+    if (errors.length > 0) {
+      setError(errors.join("; "));
     }
     router.refresh();
   }
@@ -37,7 +43,7 @@ export function ImagesSection({ product }: { product: AdminProduct }) {
 
       <FileUpload.Root
         accept={["image/png", "image/jpeg", "image/webp"]}
-        maxFiles={1}
+        maxFiles={10}
         onFileAccept={(details) => handleFileChange(details.files)}
         mb="4"
       >
@@ -47,7 +53,7 @@ export function ImagesSection({ product }: { product: AdminProduct }) {
             <Icon>
               <LuUpload />
             </Icon>
-            Upload image
+            Upload images
           </Button>
         </FileUpload.Trigger>
       </FileUpload.Root>
