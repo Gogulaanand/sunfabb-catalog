@@ -78,3 +78,6 @@ jobs:
 
       - name: Type-check
         run: npx tsc --noEmit
+
+      - name: Unit tests with coverage
+        run: npm run test:cov

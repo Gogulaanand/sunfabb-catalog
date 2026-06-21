@@ -91,6 +91,21 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "coverageThreshold": {
+      "global": {
+        "branches": 60,
+        "functions": 60,
+        "lines": 60,
+        "statements": 60
+      },
+      "src/categories/categories.service.ts": { "branches": 70, "functions": 90, "lines": 90, "statements": 90 },
+      "src/materials/materials.service.ts": { "branches": 70, "functions": 90, "lines": 90, "statements": 90 },
+      "src/colors/colors.service.ts": { "branches": 70, "functions": 90, "lines": 90, "statements": 90 },
+      "src/products/products.service.ts": { "branches": 70, "functions": 90, "lines": 90, "statements": 90 },
+      "src/variants/variants.service.ts": { "branches": 70, "functions": 90, "lines": 90, "statements": 90 },
+      "src/images/images.service.ts": { "branches": 70, "functions": 90, "lines": 90, "statements": 90 },
+      "src/auth/auth.service.ts": { "branches": 70, "functions": 90, "lines": 90, "statements": 90 }
+    }
   }
 }
