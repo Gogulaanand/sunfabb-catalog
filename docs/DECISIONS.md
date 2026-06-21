@@ -249,6 +249,35 @@ catalog now shows the product grid immediately with filters collapsed behind a w
 rotates, content matches the always-open desktop sidebar), and the mobile hamburger menu opens/closes
 correctly on the home page. `tsc --noEmit` and `npm run lint` both clean.
 
+### D24 — Branch-state verification: trust content diffs over history diffs after a rebase
+**Decision:** When checking whether a branch's work has landed on `main`, use a two-dot content diff
+(`git diff main otherBranch`) as the source of truth, not ancestor/history checks (`git merge-base
+--is-ancestor`) or three-dot diffs.
+**Why:** During Phase 5 deploy prep, `git merge-base --is-ancestor` and a three-dot diff both
+suggested PR #5's 136 files (Phase 4 frontend + Phase 5.5 restyle) were missing from `main` — a false
+alarm. The branches had been rebased after merging, changing commit SHAs without changing content. A
+two-dot diff against the actual branch tips showed `main` already had equivalent content (1 trivial
+`package-lock.json` line of drift). History-based checks (ancestry, three-dot diff) are unreliable
+after rebases; only a direct content diff tells you what's actually missing.
+**Status:** Locked — process note for future merge-state checks.
+
+### D25 — Render now requires a card on file even for the free tier
+**Decision:** Added a payment method to the Render account before provisioning, despite staying on
+the free plan.
+**Why:** Render's billing policy changed since the original Phase 4 hosting decision (see the
+"Backend host" note in HANDOFF.md) — `create_web_service` returned an explicit 402 Payment Required
+until a card was added. No cost was incurred; this is purely an account-verification gate now.
+**Status:** Locked — informational, no plan change.
+
+### D26 — `start:prod` script path bug (dist/main → dist/src/main)
+**Decision:** Fixed `backend/package.json`'s `start:prod` from `node dist/main` to `node dist/src/main`.
+**Why:** `nest-cli.json` sets `sourceRoot: "src"`, and with `prisma.config.ts` + `prisma/seed.ts` also
+under TypeScript's compiled root, `tsc`/`nest build` emits to `dist/src/main.js`, not `dist/main.js`.
+This was always broken but invisible locally since `npm run start:dev` (ts-node via Nest CLI) never
+exercises the compiled `dist/` output — it only surfaced on Render's first real production boot
+(`Error: Cannot find module '.../dist/main'`). See PR #7.
+**Status:** Locked.
+
 ### D27 — Convention: every storefront image must use `fill` + a sized/aspect-ratio container
 **Decision:** Any `next/image` usage on storefront surfaces (`/`, `/catalog`, `/catalog/[slug]`) must
 use `fill` inside a container with an explicit size (fixed height, e.g. `h-[640px]`) or aspect ratio
