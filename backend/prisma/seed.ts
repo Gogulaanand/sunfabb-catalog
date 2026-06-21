@@ -7,6 +7,8 @@ if (!databaseUrl) throw new Error('DATABASE_URL is not set');
 
 // pg.Pool with a connectionString passes through pg-connection-string, which in pg 8.21+
 // treats sslmode=require as verify-full. Parsing manually bypasses that and lets us set ssl directly.
+// Only enable it when the URL actually asks for it (Neon does; a plain local/CI Postgres doesn't
+// support SSL at all and errors out if we force it).
 const dbUrl = new URL(databaseUrl);
 const adapter = new PrismaPg({
   host: dbUrl.hostname,
@@ -14,7 +16,10 @@ const adapter = new PrismaPg({
   user: decodeURIComponent(dbUrl.username),
   password: decodeURIComponent(dbUrl.password),
   database: dbUrl.pathname.slice(1),
-  ssl: { rejectUnauthorized: false },
+  ssl:
+    dbUrl.searchParams.get('sslmode') === 'require'
+      ? { rejectUnauthorized: false }
+      : undefined,
 });
 const prisma = new PrismaClient({ adapter });
 

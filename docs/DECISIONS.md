@@ -319,3 +319,20 @@ container as a separate "migrations apply cleanly from scratch" check, decoupled
 DB expecting it to work under plain Jest — it will hit this exact wasm/dynamic-import wall. Use
 Playwright against a live server for that need instead.
 **Status:** Locked — process note for future backend test work.
+
+### D29 — GOTCHA: `PrismaService`/`seed.ts` unconditionally forced SSL, breaking plain (non-Neon) Postgres
+**Observation:** The Phase 5.7 Playwright e2e CI job's "migrate and seed" step failed against the
+job's Postgres service container with `Error opening a TLS connection: The server does not support
+SSL connections` — a real bug, not a CI quirk. `backend/src/prisma/prisma.service.ts` and
+`backend/prisma/seed.ts` both hardcoded `ssl: { rejectUnauthorized: false }` on the `PrismaPg`
+adapter unconditionally (added per D-prior-Neon-pooler-fix, written only against Neon, which always
+requires SSL). Plain Postgres — the CI service container, and any future local-without-Neon setup —
+doesn't speak TLS at all and the connection fails outright.
+**Fix:** Made `ssl` conditional on the connection string actually requesting it:
+`dbUrl.searchParams.get('sslmode') === 'require' ? { rejectUnauthorized: false } : undefined`. Neon
+URLs already carry `?sslmode=require`, so production/dev behavior is unchanged; a plain
+`postgresql://postgres:postgres@localhost:5432/db` (no `sslmode`) now connects without forcing TLS.
+**Why this matters:** Any future code path that constructs its own `PrismaPg` adapter (rather than
+injecting `PrismaService`) needs the same conditional — don't copy the old unconditional `ssl: {...}`
+pattern from git history.
+**Status:** Locked.
