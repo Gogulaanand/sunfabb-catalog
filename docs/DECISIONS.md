@@ -290,3 +290,32 @@ followed this pattern, reserving layout space before the image loads. The hero i
 without a sized container would silently regress CLS.
 **Status:** Locked. *Numbered D27, not D24, because D24–D26 exist on the not-yet-merged
 `feature/phase5-deploy` branch — renumber if merge order changes and a collision results.*
+
+### D28 — GOTCHA: Prisma 7's wasm query compiler can't load under Jest/ts-jest (CJS), so DB-backed e2e tests can't run through Nest's `TestingModule`
+**Observation:** While wiring `npm run test:e2e` into CI (Phase 5.7), `test/app.e2e-spec.ts` (boots the
+real `AppModule`, including `PrismaService`) failed with `TypeError: A dynamic import callback was
+invoked without --experimental-vm-modules`, thrown from `generated/prisma/internal/class.ts`'s
+`getRuntime`. Also found and fixed a smaller, separate bug on the way: `test/jest-e2e.json` was
+missing the `^(\.{1,2}/.*)\.js$` → extensionless moduleNameMapper that the unit-test Jest config
+already had, so `app.e2e-spec.ts` couldn't even resolve `./prisma/prisma.module.js`'s relative
+import — masked until now because PR #6 only ever ran `test:e2e -- test/compression.e2e-spec.ts`
+(a single self-contained file with no DB dependency), never the full e2e suite.
+**Root cause:** Prisma 7's architecture (confirmed via Prisma's own docs) has no native binary query
+engine at all anymore — query compilation is Rust-compiled-to-wasm, loaded via a runtime
+`await import(...)`. Jest's CJS test environment (`ts-jest` without ESM mode) throws on any dynamic
+`import()` unless run with `NODE_OPTIONS=--experimental-vm-modules` *and* a full ESM-mode Jest/
+ts-jest setup (`"type": "module"`, a custom `.mjs` resolver, hybrid-module `tsconfig`). That's a
+project-wide module-system migration, not a one-line config fix, and risks destabilizing the working
+unit-test suite (which deliberately mocks the generated Prisma client, see `__mocks__/prisma-client`)
+and the Nest build.
+**Decision:** Don't migrate the backend to ESM/`--experimental-vm-modules` to make this work. Real,
+DB-backed end-to-end coverage comes from the Phase 5.7 Playwright suite instead (Step 6) — it drives
+the actual built app as a running HTTP server (`node dist/src/main.js`, real `import()` support, no
+Jest CJS transform in the way) rather than booting the app through Nest's `TestingModule`. Jest e2e
+(`test/*.e2e-spec.ts`) stays scoped to self-contained specs with no real Prisma client init
+(e.g. `compression.e2e-spec.ts`); CI runs `prisma migrate deploy` against a fresh Postgres service
+container as a separate "migrations apply cleanly from scratch" check, decoupled from Jest entirely.
+**Why this matters:** Don't add a second `*.e2e-spec.ts` file that boots `AppModule` against a real
+DB expecting it to work under plain Jest — it will hit this exact wasm/dynamic-import wall. Use
+Playwright against a live server for that need instead.
+**Status:** Locked — process note for future backend test work.
