@@ -21,7 +21,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
       user: decodeURIComponent(dbUrl.username),
       password: decodeURIComponent(dbUrl.password),
       database: dbUrl.pathname.slice(1),
-      ssl: dbUrl.searchParams.get('sslmode') === 'require' ? { rejectUnauthorized: false } : undefined,
+      ssl:
+        dbUrl.searchParams.get('sslmode') === 'require'
+          ? { rejectUnauthorized: false }
+          : undefined,
     });
     this.client = new PrismaClient({ adapter });
   }
