@@ -38,10 +38,10 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Price */}
       {selectedVariant && (
-        <p className="text-2xl font-semibold text-zinc-900">
+        <p className="text-price-lg text-on-surface">
           {formatPrice(selectedVariant.price)}
         </p>
       )}
@@ -49,7 +49,7 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
       {/* Size */}
       {sizes.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-zinc-700 mb-2">Size</p>
+          <p className="text-label-caps text-on-surface-variant mb-2">Size</p>
           <div className="flex flex-wrap gap-2">
             {sizes.map((size) => {
               const isSelected = selectedVariant?.size === size;
@@ -67,10 +67,10 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
                     );
                     if (match) setSelectedVariantId(match.id);
                   }}
-                  className={`px-4 py-1.5 rounded-full border text-sm font-medium transition-colors ${
+                  className={`px-4 py-1.5 rounded border text-body-sm transition-colors ${
                     isSelected
-                      ? "bg-zinc-900 border-zinc-900 text-white"
-                      : "border-zinc-300 text-zinc-700 hover:border-zinc-500"
+                      ? "bg-primary border-primary text-on-primary"
+                      : "border-outline-variant text-on-surface hover:border-primary"
                   }`}
                 >
                   {size}
@@ -84,7 +84,7 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
       {/* Material */}
       {materials.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-zinc-700 mb-2">Material</p>
+          <p className="text-label-caps text-on-surface-variant mb-2">Material</p>
           <div className="flex flex-wrap gap-2">
             {materials.map((mat) => {
               const isSelected = selectedVariant?.material?.id === mat.id;
@@ -102,10 +102,10 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
                     );
                     if (match) setSelectedVariantId(match.id);
                   }}
-                  className={`px-4 py-1.5 rounded-full border text-sm font-medium transition-colors ${
+                  className={`px-4 py-1.5 rounded border text-body-sm transition-colors ${
                     isSelected
-                      ? "bg-zinc-900 border-zinc-900 text-white"
-                      : "border-zinc-300 text-zinc-700 hover:border-zinc-500"
+                      ? "bg-primary border-primary text-on-primary"
+                      : "border-outline-variant text-on-surface hover:border-primary"
                   }`}
                 >
                   {mat.name}
@@ -119,10 +119,10 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
       {/* Color */}
       {colors.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-zinc-700 mb-2">
+          <p className="text-label-caps text-on-surface-variant mb-2">
             Color
             {selectedVariant?.color ? (
-              <span className="ml-2 font-normal text-zinc-500">
+              <span className="ml-2 text-on-surface-variant/70">
                 — {selectedVariant.color.name}
               </span>
             ) : null}
@@ -147,8 +147,8 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
                   }}
                   className={`w-8 h-8 rounded-full border-2 transition-all ${
                     isSelected
-                      ? "border-zinc-900 scale-110 ring-2 ring-zinc-400 ring-offset-1"
-                      : "border-zinc-300 hover:border-zinc-500"
+                      ? "border-primary scale-110 ring-2 ring-primary-container ring-offset-1"
+                      : "border-outline-variant hover:border-primary"
                   }`}
                   style={{ backgroundColor: col.hex_code }}
                 />
@@ -160,11 +160,11 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
 
       {/* Stock status */}
       {selectedVariant && (
-        <p className="text-sm text-zinc-500">
+        <p className="text-body-sm text-on-surface-variant">
           {selectedVariant.stock > 0 ? (
-            <span className="text-green-600 font-medium">In stock</span>
+            <span className="text-tertiary font-medium">In stock</span>
           ) : (
-            <span className="text-red-500 font-medium">Out of stock</span>
+            <span className="text-error font-medium">Out of stock</span>
           )}
         </p>
       )}

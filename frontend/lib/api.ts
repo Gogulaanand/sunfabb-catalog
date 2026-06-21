@@ -41,6 +41,7 @@ export interface Product {
   name: string;
   slug: string;
   description: string | null;
+  care_instructions: string | null;
   category: Category;
   variants: ProductVariant[];
   images: ProductImage[];
