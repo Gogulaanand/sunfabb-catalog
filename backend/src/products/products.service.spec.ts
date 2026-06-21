@@ -23,6 +23,14 @@ const mockPrisma = {
     findMany: jest.fn(),
     count: jest.fn(),
     findUnique: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+  },
+  productVariant: {
+    create: jest.fn(),
+  },
+  productImage: {
+    create: jest.fn(),
   },
 };
 
@@ -167,6 +175,59 @@ describe('ProductsService', () => {
     });
   });
 
+  describe('findAllAdmin', () => {
+    it('returns paginated products including inactive ones', async () => {
+      mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
+      mockPrisma.product.count.mockResolvedValue(1);
+
+      const dto: FindProductsDto = {};
+      const result = await service.findAllAdmin(dto);
+
+      expect(result).toEqual({
+        items: [mockProduct],
+        total: 1,
+        page: 1,
+        limit: 20,
+      });
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {}, skip: 0, take: 20 }),
+      );
+    });
+
+    it('filters by categorySlug', async () => {
+      mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
+      mockPrisma.product.count.mockResolvedValue(1);
+
+      const dto: FindProductsDto = { categorySlug: 'bedspreads' };
+      await service.findAllAdmin(dto);
+
+      expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { category: { slug: 'bedspreads' } },
+        }),
+      );
+    });
+
+    it('sorts by price in application code', async () => {
+      const cheap = {
+        ...mockProduct,
+        id: 'cuid-2',
+        variants: [{ price: 100000 }],
+      };
+      const expensive = {
+        ...mockProduct,
+        id: 'cuid-3',
+        variants: [{ price: 500000 }],
+      };
+      mockPrisma.product.findMany.mockResolvedValue([expensive, cheap]);
+
+      const dto: FindProductsDto = { sortBy: 'price_asc' };
+      const result = await service.findAllAdmin(dto);
+
+      expect(result.items).toEqual([cheap, expensive]);
+    });
+  });
+
   describe('findOne', () => {
     it('returns product with variants and images when found', async () => {
       const fullProduct = { ...mockProduct, variants: [], images: [] };
@@ -191,6 +252,91 @@ describe('ProductsService', () => {
       const result = await service.findOne('nonexistent');
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('create', () => {
+    it('creates a product', async () => {
+      const dto = {
+        name: 'New Towel',
+        slug: 'new-towel',
+        category_id: 'cuid-cat-1',
+      };
+      mockPrisma.product.create.mockResolvedValue({ ...mockProduct, ...dto });
+
+      const result = await service.create(dto);
+
+      expect(result).toEqual({ ...mockProduct, ...dto });
+      expect(mockPrisma.product.create).toHaveBeenCalledWith({ data: dto });
+    });
+  });
+
+  describe('update', () => {
+    it('updates a product', async () => {
+      const dto = { name: 'Updated Bedspread' };
+      mockPrisma.product.update.mockResolvedValue({ ...mockProduct, ...dto });
+
+      const result = await service.update('cuid-1', dto);
+
+      expect(result).toEqual({ ...mockProduct, ...dto });
+      expect(mockPrisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'cuid-1' },
+        data: dto,
+      });
+    });
+  });
+
+  describe('remove', () => {
+    it('soft-deletes a product by setting is_active to false', async () => {
+      mockPrisma.product.update.mockResolvedValue({
+        ...mockProduct,
+        is_active: false,
+      });
+
+      const result = await service.remove('cuid-1');
+
+      expect(result).toEqual({ ...mockProduct, is_active: false });
+      expect(mockPrisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'cuid-1' },
+        data: { is_active: false },
+      });
+    });
+  });
+
+  describe('addVariant', () => {
+    it('creates a variant linked to the product', async () => {
+      const dto = {
+        material_id: 'cuid-mat-1',
+        color_id: 'cuid-col-1',
+        size: 'Queen',
+        price: 250000,
+        stock_quantity: 10,
+        sku: 'BED-Q-WHT',
+      };
+      const created = { id: 'cuid-var-1', product_id: 'cuid-1', ...dto };
+      mockPrisma.productVariant.create.mockResolvedValue(created);
+
+      const result = await service.addVariant('cuid-1', dto);
+
+      expect(result).toEqual(created);
+      expect(mockPrisma.productVariant.create).toHaveBeenCalledWith({
+        data: { ...dto, product_id: 'cuid-1' },
+      });
+    });
+  });
+
+  describe('addImage', () => {
+    it('creates an image linked to the product', async () => {
+      const dto = { url: 'https://res.cloudinary.com/test/image.jpg' };
+      const created = { id: 'cuid-img-1', product_id: 'cuid-1', ...dto };
+      mockPrisma.productImage.create.mockResolvedValue(created);
+
+      const result = await service.addImage('cuid-1', dto);
+
+      expect(result).toEqual(created);
+      expect(mockPrisma.productImage.create).toHaveBeenCalledWith({
+        data: { ...dto, product_id: 'cuid-1' },
+      });
     });
   });
 });

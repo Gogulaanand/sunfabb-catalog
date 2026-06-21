@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { FindProductsDto } from './dto/find-products.dto.js';
+import { CreateProductDto } from './dto/create-product.dto.js';
+import { UpdateProductDto } from './dto/update-product.dto.js';
+import { CreateVariantDto } from './dto/create-variant.dto.js';
+import { CreateProductImageDto } from './dto/create-product-image.dto.js';
 
 @Injectable()
 export class ProductsService {
@@ -72,6 +76,52 @@ export class ProductsService {
     return { items, total, page, limit };
   }
 
+  async findAllAdmin(dto: FindProductsDto) {
+    const { categorySlug, sortBy = 'name', page = 1, limit = 20 } = dto;
+
+    const where: Record<string, unknown> = {};
+    if (categorySlug) {
+      where.category = { slug: categorySlug };
+    }
+
+    const include = {
+      category: { select: { name: true, slug: true } },
+      images: { where: { is_primary: true }, take: 1 },
+      variants: {
+        select: { price: true },
+        orderBy: { price: 'asc' as const },
+        take: 1,
+      },
+    };
+
+    if (sortBy === 'price_asc' || sortBy === 'price_desc') {
+      const all = await this.prisma.product.findMany({ where, include });
+      all.sort((a, b) => {
+        const priceA = a.variants[0]?.price ?? 0;
+        const priceB = b.variants[0]?.price ?? 0;
+        return sortBy === 'price_asc' ? priceA - priceB : priceB - priceA;
+      });
+
+      const total = all.length;
+      const skip = (page - 1) * limit;
+      return { items: all.slice(skip, skip + limit), total, page, limit };
+    }
+
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        skip,
+        take: limit,
+        include,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
+  }
+
   findOne(slug: string) {
     return this.prisma.product.findUnique({
       where: { slug },
@@ -86,6 +136,33 @@ export class ProductsService {
         },
         images: { orderBy: { sort_order: 'asc' } },
       },
+    });
+  }
+
+  create(dto: CreateProductDto) {
+    return this.prisma.product.create({ data: dto });
+  }
+
+  update(id: string, dto: UpdateProductDto) {
+    return this.prisma.product.update({ where: { id }, data: dto });
+  }
+
+  remove(id: string) {
+    return this.prisma.product.update({
+      where: { id },
+      data: { is_active: false },
+    });
+  }
+
+  addVariant(productId: string, dto: CreateVariantDto) {
+    return this.prisma.productVariant.create({
+      data: { ...dto, product_id: productId },
+    });
+  }
+
+  addImage(productId: string, dto: CreateProductImageDto) {
+    return this.prisma.productImage.create({
+      data: { ...dto, product_id: productId },
     });
   }
 }

@@ -123,3 +123,128 @@ Small, frequent commits make it easy to understand what changed and revert safel
 breaks. PRs create a natural checkpoint to review what was built before it becomes permanent.
 This is standard professional practice worth building as a habit from day one.
 **Status:** Locked.
+
+### D17 — Price sort done in application code, not via Prisma `orderBy`
+**Decision:** `GET /products?sortBy=price_asc|price_desc` fetches matching rows and sorts by the
+cheapest active variant's price in JS, instead of a Prisma-level `orderBy`.
+**Why:** Prisma's generated `ProductOrderByWithRelationInput` only supports `_count` for ordering by
+a to-many relation (`ProductVariant[]`) — not `_min`/`_max` on a scalar field like `price`. This
+compiles fine under ESLint but fails `tsc --noEmit`, so it surfaced as a CI-only failure. Sorting in
+app code is acceptable per D14 (catalog stays ≤100 rows). **Do not "fix" this by reverting to a
+Prisma-level orderBy on a relation aggregate of a scalar field** — it isn't supported by this Prisma
+version's generated types.
+**Status:** Locked. See `backend/src/products/products.service.ts`.
+
+### D18 — GOTCHA: GitHub Actions silently skips `pull_request` CI when the PR has merge conflicts
+**Observation:** A PR's CI (triggered via `on: pull_request`) does not just fail when the PR's
+`mergeable_state` is `"dirty"` (unresolved conflicts with its base branch) — **no workflow run is
+created at all** (`total_count: 0` via the Actions API). It looks identical to CI being stuck, with no
+error to point at.
+**Why this matters:** With stacked feature branches (Phase 2 branched off Phase 1, etc.), pushing a
+fix to an earlier branch in the stack can leave a later branch's PR in a conflicted state, silently
+killing its CI. If a PR's checks aren't updating after a push, check `mergeable_state` via
+`gh api repos/<owner>/<repo>/pulls/<n> --jq .mergeable_state` before assuming CI is broken.
+**Fix:** merge/rebase the base branch's changes into the head branch to resolve `dirty` → CI resumes
+immediately on the next push.
+**Status:** Recorded as a gotcha, not a decision to revisit.
+
+### D19 — Added `GET /products/admin`, a JWT-guarded endpoint that lists products including inactive
+**Decision:** Added a new guarded route (`backend/src/products/products.controller.ts` +
+`products.service.ts: findAllAdmin`) that returns products regardless of `is_active`, with the same
+filter/sort/pagination shape as the public `findAll`.
+**Why:** The public `GET /products` hard-codes `where: { is_active: true }` with no override — there
+was no way for the Phase 4 admin product list to ever show deactivated products, even though the
+admin UI plan explicitly requires "active + inactive" visibility (soft-deleted products must stay
+manageable). This was discovered while building the Phase 4 frontend, not anticipated in the original
+Phase 4 backend commit.
+**Status:** Locked. Covered by tests in `products.service.spec.ts` / `products.controller.spec.ts`.
+
+### D20 — GOTCHA: Prisma 7's `prisma-client` generator can emit an ESM-ambiguous client under NestJS's CJS build
+**Observation:** `nest start --watch` failed immediately with
+`ReferenceError: exports is not defined in ES module scope` inside the generated
+`dist/generated/prisma/client.js`, even though the root `package.json` has no `"type"` field (defaults
+to CommonJS) and `tsc` emitted CJS syntax (`exports.x = ...`) into that file. Node's loader still
+routed it through the ESM path (`loadESMFromCJS` in the stack trace), breaking the app on startup.
+**Fix:** Added `moduleFormat = "cjs"` to the `generator client { ... }` block in
+`backend/prisma/schema.prisma`, then re-ran `npx prisma generate`. This pins the generator's output
+format explicitly instead of relying on format inference, which resolved the crash.
+**Why this matters:** This will resurface on any fresh clone / fresh `node_modules` install until the
+schema change is committed — `npx prisma generate` alone (without the schema edit) does not fix it.
+**Status:** Confirmed (2026-06-20) — verified against a live Neon query (`GET /categories` → 200) from
+an unrestricted network. The fix holds.
+
+### D21 — GOTCHA: Node's Happy Eyeballs (`autoSelectFamily`) times out connecting to Neon's pooler on networks with no IPv6 route
+**Observation:** Every Prisma query against Neon failed with
+`PrismaClientKnownRequestError: ETIMEDOUT`, even though `nc` and `curl` could reach the same
+hostname/port instantly and `npx prisma db pull` (Rust engine, separate network stack) connected
+fine. Root cause: the Neon pooler hostname resolves to 3 IPv4 + 3 IPv6 addresses. Node 20+'s default
+`autoSelectFamily` (Happy Eyeballs) races connections across both families; on a network with no IPv6
+route (`EHOSTUNREACH` on every AAAA address), the race logic stalls long enough to time out the IPv4
+attempts too, even though a direct connection to a literal IPv4 address succeeds in under a second.
+This is a Node networking quirk, not a Neon, Prisma, or sandbox issue — it had nothing to do with the
+"sandboxed environment" hypothesis from the prior verification attempt.
+**Fix:** Added `setDefaultAutoSelectFamily(false)` at the top of `backend/src/main.ts` (Node's
+documented escape hatch, available since Node 19.4/18.18), restoring sequential single-family
+resolution. Also added `import 'dotenv/config'` to `main.ts` — previously only `prisma.config.ts`
+(used by the Prisma CLI) loaded `.env`; the actual NestJS app had no `.env` loading at all and only
+ever worked when `DATABASE_URL` etc. happened to be exported in the parent shell.
+**Why this matters:** Will resurface on any machine/CI/host without a working IPv6 route trying to
+reach a DNS-round-robined Postgres endpoint (common for managed Postgres providers like Neon, RDS,
+Supabase). Worth keeping in mind for Phase 5 deploy targets (Render/Railway/Fly.io) — confirm their
+network has IPv6 egress, or rely on this fix.
+**Status:** Confirmed (2026-06-20) — verified against a live DB query with no manual env exports, full
+test suite (72 tests) still passing after the `main.ts` changes.
+
+### D22 — GOTCHA: admin pages inherited the storefront header/footer because both lived under one root layout
+**Observation:** While visually QA-ing the Phase 4 admin UI against the Stitch mockups, the public
+storefront nav and footer rendered above/below `/admin/login` and every other `/admin/**` page —
+directly contradicting the Phase 4 plan's own acceptance criterion ("uses a layout distinct from
+storefront header/footer, no public nav/cart chrome"). Root cause: `frontend/app/layout.tsx` (the root
+layout, which every route including `/admin/**` inherits) rendered the storefront `<header>`/`<footer>`
+directly, and Next.js App Router layouts always wrap their children — there was no route-level escape
+hatch for `/admin` to opt out.
+**Fix:** Moved the storefront pages (`page.tsx`, `catalog/`) into a `(storefront)` route group with
+their own `(storefront)/layout.tsx` carrying the header/footer; the root `app/layout.tsx` is now a bare
+`<html>/<body>` shell with just font variables. Route groups don't affect URL paths, so `/`, `/catalog`,
+`/catalog/[slug]` are unchanged. `/admin/**` now only gets `app/admin/layout.tsx`'s Chakra `Provider`,
+with no storefront chrome.
+**Why this matters:** Any future top-level section that needs different chrome (e.g. a future
+mobile app shell, a checkout flow) should get its own route group + layout rather than adding
+conditional rendering to the root layout — the root layout should stay a minimal shell.
+**Status:** Confirmed (2026-06-20) — verified via Playwright screenshot that `/admin/login` and
+`/admin` no longer render the Sunfabb storefront nav/footer.
+
+### D23 — GOTCHA: Phase 5.5 restyle had no mobile nav and an uncollapsed filter sidebar, found via Stitch mobile mockups
+**Observation:** A mobile-responsive QA pass against three Stitch mobile mockups (Home, Catalog,
+Product Detail — project `3370511650101935244`) at a 390×844 viewport, run with Playwright against
+the live dev servers, found two real layout gaps the desktop-focused Phase 5.5 restyle had missed:
+1. `frontend/app/(storefront)/layout.tsx`'s nav was `hidden sm:flex` with no mobile replacement — below
+   the `sm` breakpoint the entire nav (Bedspreads/Towels/Table Linen/All Products) simply disappeared,
+   leaving no way to navigate categories from a phone. The mockups show a hamburger icon in its place.
+2. `frontend/app/(storefront)/catalog/CatalogFilters.tsx`'s sidebar was `flex-col lg:flex-row` —
+   below `lg` it rendered full-height, fully expanded (Sort, Category, Material, Color Palette) stacked
+   *above* the product grid. Measuring screenshot pixel heights at the same 390px width confirmed it:
+   the catalog page rendered 43% taller than the mockup's catalog screen (4153px vs. ~2910px), almost
+   entirely from filter UI a mobile visitor has to scroll past before seeing a single product.
+**Fix:** Added a `<details>`-based hamburger menu to the storefront header (`sm:hidden`, native
+disclosure, no client JS needed) that lists the same four nav links stacked in a dropdown. Refactored
+`CatalogFilters` to extract its filter markup into a `filterContent` fragment, rendered inside a
+`<details>` "Filter & Sort" disclosure below `lg` (collapsed by default, chevron rotates via
+`group-open:rotate-180`) and as the original always-visible sidebar at `lg+` — both render the same
+JSX, just gated by Tailwind breakpoint visibility classes, so there's no duplicated filter logic.
+**Why this matters:** The Phase 5.5 restyle was verified visually but only at desktop/tablet widths;
+sidebar-pattern layouts in particular (filters, multi-column nav) need an explicit mobile collapse
+strategy, not just `flex-col` reflow — reflowing a sidebar to the top of a narrow viewport without
+collapsing it usually just moves the "wall of UI before content" problem rather than fixing it. Any
+future sidebar-shaped component should default to a `<details>` (or similar zero-JS) disclosure below
+its desktop breakpoint.
+**Not fixed (separate, non-responsive issues, noted for a future session):** the product-detail
+thumbnail strip shows a broken image (alt text bleeding outside its frame) on `embroidered-napkin-set`
+— root cause is a 404 from the seeded Unsplash URL, not a layout bug, and reproduces identically on
+desktop. The Stitch product-detail mockup also has a "Shipping & Returns" section the live page has no
+equivalent content field for (`ProductVariant`/`Product` only has `care_instructions`) — adding it
+would need a schema change, out of scope for a frontend-only QA pass.
+**Status:** Confirmed (2026-06-21) — re-screenshotted all three pages at 390×844 after the fix:
+catalog now shows the product grid immediately with filters collapsed behind a working toggle (chevron
+rotates, content matches the always-open desktop sidebar), and the mobile hamburger menu opens/closes
+correctly on the home page. `tsc --noEmit` and `npm run lint` both clean.
