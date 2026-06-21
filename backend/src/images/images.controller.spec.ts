@@ -8,6 +8,7 @@ const mockImage = {
   product_id: 'cuid-1',
   variant_id: null,
   url: 'https://res.cloudinary.com/test/image.jpg',
+  public_id: 'sunfabb/image',
   alt_text: null,
   sort_order: 0,
   is_primary: false,

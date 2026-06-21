@@ -230,6 +230,7 @@ export function deleteVariant(id: string): Promise<AdminProductVariant> {
 
 export interface ImageInput {
   url: string;
+  public_id?: string;
   alt_text?: string;
   sort_order?: number;
   is_primary?: boolean;
