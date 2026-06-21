@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const playfairDisplay = Playfair_Display({
@@ -32,7 +33,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://images.unsplash.com" />
       </head>
-      <body className="min-h-full bg-surface text-on-surface font-body">{children}</body>
+      <body className="min-h-full bg-surface text-on-surface font-body">
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
