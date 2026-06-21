@@ -13,21 +13,73 @@ datasource db {
 }
 
 model Category {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
-  slug        String   @unique
+  slug        String    @unique
   description String?
   image_url   String?
-  created_at  DateTime @default(now())
+  created_at  DateTime  @default(now())
+
+  products Product[]
 }
 
 model Material {
   id   String @id @default(uuid())
   name String @unique
+
+  variants ProductVariant[]
 }
 
 model Color {
   id       String  @id @default(uuid())
   name     String  @unique
   hex_code String?
+
+  variants ProductVariant[]
+}
+
+model Product {
+  id                String   @id @default(uuid())
+  name              String
+  slug              String   @unique
+  description       String?
+  care_instructions String?
+  category_id       String
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  category Category        @relation(fields: [category_id], references: [id])
+  variants ProductVariant[]
+  images   ProductImage[]
+}
+
+model ProductVariant {
+  id             String  @id @default(uuid())
+  product_id     String
+  material_id    String
+  color_id       String
+  size           String
+  price          Int
+  stock_quantity Int     @default(0)
+  sku            String  @unique
+  is_active      Boolean @default(true)
+
+  product  Product      @relation(fields: [product_id], references: [id])
+  material Material     @relation(fields: [material_id], references: [id])
+  color    Color        @relation(fields: [color_id], references: [id])
+  images   ProductImage[]
+}
+
+model ProductImage {
+  id         String  @id @default(uuid())
+  product_id String
+  variant_id String?
+  url        String
+  alt_text   String?
+  sort_order Int     @default(0)
+  is_primary Boolean @default(false)
+
+  product Product         @relation(fields: [product_id], references: [id])
+  variant ProductVariant? @relation(fields: [variant_id], references: [id])
 }

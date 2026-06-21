@@ -7,6 +7,15 @@ Read this at the start of every session along with `CLAUDE.md` and `HANDOFF.md`.
 
 ---
 
+## LEARNING MODE: DISABLED
+
+**All items are currently treated as Fast track regardless of their L/F tag.**
+Do not ask the user to predict outcomes, walk through code explanations, or
+pause for teaching moments. Build correctly and quickly; let the code and
+commit messages speak for themselves. Re-enable by removing this section.
+
+---
+
 ## 1. The mental model
 
 This project has two kinds of work:
@@ -85,14 +94,12 @@ session prompt anyway (see §7).
 
 The main session acts as orchestrator. Its job is to:
 
-- Read `HANDOFF.md`, identify the next bounded unit, and classify it (learning vs fast)
-- For learning units: stay in the main thread, explain, ask the user to predict,
-  walk through generated code
-- For fast units: spawn parallel agents (see §6), review their output, commit
+- Read `HANDOFF.md`, identify the next bounded unit
+- Spawn parallel agents (see §6) where tasks are independent, review their output, commit
 - At the end: update `HANDOFF.md`, commit, summarise
 
-The orchestrator never silently builds large changes. It either teaches them or
-delegates them — never both, never neither.
+The orchestrator never silently builds large changes without review. It delegates
+them to agents or batches them, then reviews output before committing.
 
 ---
 
@@ -252,13 +259,8 @@ OUTPUT:
 - ❌ **Don't have one giant session that builds the whole backend.** Break it.
 - ❌ **Don't spawn parallel agents on tasks with sequential dependencies.** (e.g. don't
   build Products and Variants in parallel — Variants needs Products done first.)
-- ❌ **Don't auto-build through multiple L-tagged items in one session** without
-  user confirmation between each. That's the original failure mode this workflow exists
-  to prevent.
 - ❌ **Don't update `HANDOFF.md` halfway through a session.** Only at the end,
   reflecting what was actually completed.
-- ❌ **Don't skip the "predict-before-run" step on L items.** That's where the
-  learning happens.
 - ❌ **Don't let an agent run for >20 messages without reviewing its work.**
 
 ---
@@ -270,12 +272,10 @@ OUTPUT:
 - [ ] Read `HANDOFF.md` (phase-level state)
 - [ ] Read `.session-state.md` if present (fine-grained next-step detail)
 - [ ] Confirm the bounded scope of this session (one thing, with a clear done condition)
-- [ ] Classify each task as L or F (table in §5)
 - [ ] Restate the plan to the user; get confirmation
 
 **During the session:**
-- [ ] L items: explain → predict → confirm → build → walk through
-- [ ] F items: spawn agent or batch-edit, review, commit
+- [ ] Spawn agent or batch-edit, review, commit
 - [ ] Commit per meaningful unit (don't accumulate)
 
 **At session end:**
