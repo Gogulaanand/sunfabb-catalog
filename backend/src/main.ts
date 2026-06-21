@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { setDefaultAutoSelectFamily } from 'net';
+import compression from 'compression';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module.js';
@@ -15,6 +16,8 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
   });
+
+  app.use(compression());
 
   app.useGlobalPipes(
     new ValidationPipe({

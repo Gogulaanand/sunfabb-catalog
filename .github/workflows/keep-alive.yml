@@ -1,0 +1,19 @@
+name: Keep Backend Alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    name: Ping backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl categories endpoint
+        run: |
+          if [ -z "${{ secrets.BACKEND_URL }}" ]; then
+            echo "BACKEND_URL secret is not set yet — skipping (set it once the Render backend is deployed)."
+            exit 0
+          fi
+          curl -fsS --max-time 60 "${{ secrets.BACKEND_URL }}/categories" -o /dev/null
