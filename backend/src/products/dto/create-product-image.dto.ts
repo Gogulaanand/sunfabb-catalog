@@ -13,6 +13,10 @@ export class CreateProductImageDto {
 
   @IsOptional()
   @IsString()
+  public_id?: string;
+
+  @IsOptional()
+  @IsString()
   alt_text?: string;
 
   @IsOptional()

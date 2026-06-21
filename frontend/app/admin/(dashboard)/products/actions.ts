@@ -100,11 +100,15 @@ export async function uploadAndAddImageAction(
   productId: string,
   slug: string,
   file: File,
-  options: Omit<ImageInput, "url">,
+  options: Omit<ImageInput, "url" | "public_id">,
 ): Promise<ActionResult<void>> {
   try {
     const uploaded = await uploadImage(file);
-    await addImage(productId, { ...options, url: uploaded.url });
+    await addImage(productId, {
+      ...options,
+      url: uploaded.url,
+      public_id: uploaded.public_id,
+    });
     revalidatePath(`/admin/products/${slug}`);
     return { ok: true, data: undefined };
   } catch (err) {
