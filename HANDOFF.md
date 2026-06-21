@@ -21,16 +21,15 @@ is a browsable catalog with a hidden single-admin UI.
 
 ## Where we are
 
-- **Phase:** 0 done. Phases 1–3 built and CI-green, **awaiting merge** (stacked PRs). Phase 4 backend
-  **and** frontend (admin UI) both built, and golden-path data layer now verified against a live DB —
-  see note above; a manual visual click-through is still recommended before fully closing Phase 4.
-- **Current branch:** `feature/phase4-admin-ui` (stacked on phase3 → phase2 → phase1 → main)
-- **Open PRs (merge in this order — branches are stacked):**
-  - PR #1 `feature/categories-vertical-slice` → `main` — Phase 1 backend (categories/materials/colors/products read API)
-  - PR #2 `feature/phase2-admin-auth` → PR #1's branch — Phase 2 (JWT auth, Cloudinary upload)
-  - PR #3 `feature/phase3-storefront` → PR #2's branch — Phase 3 (Next.js storefront: home/catalog/product pages)
-  - *(not yet opened)* `feature/phase4-admin-ui` → PR #3's branch — Phase 4 backend admin CRUD +
-    frontend admin UI (committed, not pushed)
+- **Phase:** 0–4 done. Phase 5 (deploy + domain swap) substantially done — see milestone log below.
+  Phase 5.5/5.5.1 status: Phase 5.5 (storefront restyle) confirmed on `main`. Phase 5.5.1 (Web Vitals
+  optimizations + keep-alive workflow, PR #6) is **intentionally deferred**, not merged — revisit
+  before the next infra-focused session.
+- **Current focus:** investigating reported navigation slowness (post-first-load, between sections/
+  pages) on the live deployed site, plus adding Vercel Speed Insights for real-user monitoring.
+- **Live URLs:** frontend `https://sunfabb.com` (Vercel project `sunfabb-storefront`), backend
+  `https://sunfabb-backend.onrender.com` (Render, free tier). Old personal homepage relocated to
+  `https://home.sunfabb.com` (Vercel project `website`).
 - **Database:** Neon, schema synced through `ProductVariant`/`ProductImage` (full schema from `docs/PLAN.md` §4)
 
 For the exact next session scope and any in-flight notes, see local `.session-state.md`.
@@ -130,6 +129,18 @@ treating Phase 4 as fully closed and starting Phase 5.
   no browser tooling was available this session. Also need real Cloudinary credentials in
   `backend/.env` to test image upload (currently blank, fails with `cloud_name is disabled`). Full
   checklist: `docs/PRE_PHASE5_VERIFICATION.md`.
+- **Render free tier now requires a card on file** (changed since the original Render decision was
+  made) — added 2026-06-21, no cost incurred yet on free tier.
+- **PR #6 (Web Vitals optimizations + keep-alive.yml) still not on `main`.** Deferred during Phase 5
+  deploy; the live site currently runs pre-optimization code, so Render free-tier cold starts are
+  unmitigated. Re-run the Phase 5.5.1 live-vs-localhost Web Vitals comparison once this lands — see
+  PR #7 for the partial comparison done without it.
+- **Old homepage (`website` Vercel project, now at `home.sunfabb.com`) has a pre-existing broken
+  deployment and an expired wildcard cert** (`*.sunfabb.com`, expired June 2021). Discovered during
+  the Phase 5 domain swap, unrelated to and out of scope for the catalog project — needs separate
+  attention.
+- **Reported: navigation feels slow after first page load and when moving between sections.** Not
+  yet root-caused. Next session's focus — see prompt logged for this in the milestone entry below.
 
 ---
 
@@ -143,7 +154,8 @@ treating Phase 4 as fully closed and starting Phase 5.
 - **Phase 4** — admin UI: backend admin CRUD ✅ DONE, frontend (login, CRUD forms, Chakra UI v3,
   design tokens, image upload) ✅ BUILT — ⚠️ golden-path **not yet verified against a live DB**
   ← *current focus, finish verification before moving to Phase 5*
-- **Phase 5** — deploy, env config, domain/subdomain swap, e2e tests ← *current focus*
+- **Phase 5** — deploy, env config, domain/subdomain swap, e2e tests ✅ DONE (2026-06-21, core deploy);
+  e2e tests not yet added — deferred
 - **Phase 5.5** — restyle the Phase 3 storefront to match the Ethos & Hearth Stitch mockups ✅ DONE
   (2026-06-20)
 - **Phase 6 (future)** — cart, checkout, Razorpay, orders, email
@@ -208,3 +220,15 @@ Append-only. Update only at phase boundaries or feature merges — *not* every s
   sidebar at `lg+`. See D23 in `docs/DECISIONS.md` for full detail, including two non-responsive
   issues found but intentionally not fixed (a broken seed image, a mockup content section with no
   backing data field). `tsc --noEmit` and `npm run lint` both clean.
+- _(2026-06-21)_ **Phase 5 deploy + domain swap complete.** Backend deployed to Render
+  (`sunfabb-backend`, free tier), frontend to Vercel (`sunfabb-storefront`). Found and fixed a real
+  bug: `backend/package.json`'s `start:prod` pointed at `dist/main` but `nest build` (with
+  `sourceRoot: "src"`) outputs to `dist/src/main` — never caught locally since dev only used
+  `start:dev`. Fixed in PR #7. Domain swap done: `sunfabb.com` apex moved from the old personal
+  homepage project to the storefront; old homepage preserved at `home.sunfabb.com`. CORS verified
+  working with the live origin. Also corrected a branch-state misunderstanding: PR #5 looked like it
+  hadn't reached `main` under a naive history diff (due to an earlier rebase), but a content-level
+  diff confirmed it actually had — see D24. PR #6 (Web Vitals + keep-alive) intentionally deferred,
+  not merged. Live Web Vitals captured and compared to the Phase 5.5.1 localhost baseline in PR #7's
+  description; `/catalog` LCP regressed 187ms→385ms live (real SSR→Render round trip, invisible on
+  localhost) while still warm — true cold-start behavior remains unmeasured until keep-alive ships.
