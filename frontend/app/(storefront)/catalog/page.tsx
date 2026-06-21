@@ -10,6 +10,8 @@ import {
   type ProductsQuery,
 } from "@/lib/api";
 import CatalogFilters from "./CatalogFilters";
+import CatalogPendingGrid from "./CatalogPendingGrid";
+import { CatalogTransitionProvider } from "./CatalogTransitionContext";
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -67,6 +69,7 @@ export default async function CatalogPage({ searchParams }: PageProps) {
         Elevate your everyday with sustainably sourced, premium woven textiles.
       </p>
 
+      <CatalogTransitionProvider>
       <div className="flex flex-col lg:flex-row gap-(--spacing-gutter-desktop)">
         {/* Filters sidebar — needs client interactivity */}
         <Suspense fallback={<div className="w-full lg:w-56 shrink-0" />}>
@@ -78,6 +81,7 @@ export default async function CatalogPage({ searchParams }: PageProps) {
         </Suspense>
 
         {/* Product grid */}
+        <CatalogPendingGrid>
         <div className="flex-1 min-w-0">
           <p className="text-body-sm text-on-surface-variant mb-6">
             Showing {products.length} of {total} {total === 1 ? "item" : "items"}
@@ -158,7 +162,9 @@ export default async function CatalogPage({ searchParams }: PageProps) {
             </div>
           )}
         </div>
+        </CatalogPendingGrid>
       </div>
+      </CatalogTransitionProvider>
     </div>
   );
 }
