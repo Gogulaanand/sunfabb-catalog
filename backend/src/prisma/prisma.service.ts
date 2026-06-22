@@ -48,6 +48,17 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return this.client.productImage;
   }
 
+  // Phase 6 — e-commerce models
+  get customer() {
+    return this.client.customer;
+  }
+  get address() {
+    return this.client.address;
+  }
+  get emailToken() {
+    return this.client.emailToken;
+  }
+
   async onModuleInit() {
     await this.client.$connect();
   }
