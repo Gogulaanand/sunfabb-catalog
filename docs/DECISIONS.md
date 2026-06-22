@@ -389,3 +389,71 @@ fine only for genuinely optional, non-security config (e.g. `JWT_EXPIRES_IN ?? '
 Removed both `?? 'dev-secret'` fallbacks. Added `JWT_SECRET` to the Playwright e2e CI job's env block
 (`.github/workflows/ci.yml`) since it boots a real `start:prod` server that now refuses to boot without
 it — the local backend/Jest unit-test job already had it set and needed no change.
+
+---
+
+## Phase 6 — e-commerce (decisions locked at milestone 6.0)
+
+These resolve the open decisions C1–C10 in `.omc/plans/2026-06-21-phase6-ecommerce.md` §9 that need no
+external input. C5 (PII erasure), C10 (GST rates/invoice format), C8 (CSRF) and the externally-gated
+items remain open and are decided at their milestone.
+
+### D32 — Customer auth is a SEPARATE principal from the single admin (does not reopen D10) [C6]
+**Decision:** Phase 6 adds customer accounts (register / login / verify / reset, saved addresses, order
+history) as a wholly separate authentication domain from the single admin. Distinct secret
+(`CUSTOMER_JWT_SECRET`), distinct cookie name, distinct guard, distinct Passport strategy. A customer
+token must never satisfy an admin guard, and vice-versa — enforced by a test on every `/admin/**` route.
+The session mechanism mirrors the admin httpOnly-cookie JWT for consistency and learning continuity
+(rather than adopting Auth.js/NextAuth); the secret is resolved fail-fast via a `getCustomerJwtSecret()`
+single source, mirroring `backend/src/auth/jwt-secret.ts` (D31).
+**Why:** D10 ("single admin, no role system") is about *not* building roles/permissions on the admin
+actor — it is **not** a ban on a second actor type. Customers are a different principal, not an admin
+role, so this extends rather than violates D10. Sharing a secret/guard between admin and customers would
+be a privilege-escalation hole.
+**Status:** Locked (6.0).
+
+### D33 — Email verification + password-reset tokens are stored hashed, single-use, short-TTL
+**Decision:** The `EmailToken` table stores a **hash** of the token (`token_hash`), never the raw value;
+tokens are single-use (`used_at`) with a short expiry (`expires_at`). The reset response is identical
+whether or not the email exists (no account enumeration). One `EmailToken` table, typed by
+`EmailTokenType` (`VERIFY_EMAIL` / `PASSWORD_RESET`).
+**Why:** A leaked DB must not yield usable reset/verify links; reuse and enumeration are standard auth
+attack vectors. Mirrors the fail-loud posture of D31.
+**Status:** Locked (6.0).
+
+### D34 — Hybrid cart; price is never trusted from the client [C1]
+**Decision:** Server-side `Cart`/`CartItem` for logged-in customers + a Zustand client store, merged
+into the server cart on login. **`CartItem` stores no price** — unit price and stock are re-read from
+`ProductVariant` at `/checkout/quote` and order creation. The Razorpay order amount is always computed
+server-side from that re-read.
+**Why:** A persisted cart matches the "accounts now" choice and survives devices. Storing or trusting
+a client-supplied price is the classic e-commerce tampering vector (see §7.1 of the plan); the server must
+be the sole price authority.
+**Status:** Locked (6.0).
+
+### D35 — HSN code lives on `Product`, not `ProductVariant` [C4]
+**Decision:** GST `hsn_code` is a nullable field on `Product` (a design has one HSN that its size/colour
+variants share). `OrderItem` snapshots `hsn_code` at order time so an invoice is reproducible even if the
+product's HSN is later edited.
+**Why:** For home textiles, HSN classification is per design, not per size/colour. Putting it on `Product`
+avoids duplicating the same code across every variant. Revisit only if variants ever need distinct HSNs.
+**Status:** Locked (6.0).
+
+### D36 — Order numbers `SF-{FY}-{6-digit sequence}`; invoice numbers are a separate gap-free series [C2]
+**Decision:** Customer-facing order numbers follow `SF-{financial-year}-{zero-padded sequence}` (e.g.
+`SF-2026-000123`), generated server-side, unique. **GST invoice numbers are a distinct, sequential,
+gap-free series per financial year** (a legal GST requirement) — implemented as a per-FY counter row
+incremented inside the order-confirmation transaction, *not* derived from the order number. An order can
+exist (e.g. `PENDING_PAYMENT`, `CANCELLED`) without ever consuming an invoice number.
+**Why:** Order numbers can have gaps (cancelled/abandoned); invoice numbers legally cannot. Coupling them
+would either leak gaps into the invoice series or block order creation. The exact rate/format details
+remain open under C10 pending the owner's accountant.
+**Status:** Locked (6.0) for the numbering mechanism; C10 (rates/format) still open.
+
+### D37 — Customer passwords hashed with argon2id (bcrypt ≥ 12 fallback) [C7]
+**Decision:** Hash customer passwords with **argon2id**; fall back to bcrypt (cost ≥ 12) only if the
+argon2 native module proves awkward to build on Render. Never reversible, never logged.
+**Why:** argon2id is the current OWASP-recommended password KDF (memory-hard, GPU-resistant). The admin
+side already uses bcrypt; allowing the bcrypt fallback keeps deploys unblocked if the native build is a
+problem on the free tier.
+**Status:** Locked (6.0).
