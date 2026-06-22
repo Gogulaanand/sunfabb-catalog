@@ -76,6 +76,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sunfabb_e2e
       # Test-only credentials, never used outside this ephemeral CI database.
+      JWT_SECRET: test-only-ci-jwt-secret
       ADMIN_EMAIL: admin@sunfabb.com
       ADMIN_PASSWORD_HASH: "$2b$10$9CEKsC6jEirw8PyvwAlFcOCzalNHsvy9tSki0DyeOSqYUxt/BzrgW"
       E2E_ADMIN_PASSWORD: TestPassword123!

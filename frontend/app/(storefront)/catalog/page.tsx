@@ -26,8 +26,8 @@ export default async function CatalogPage({ searchParams }: PageProps) {
   const params = await searchParams;
 
   const categorySlug = typeof params.category === "string" ? params.category : undefined;
-  const materialId = typeof params.material === "string" ? Number(params.material) : undefined;
-  const colorId = typeof params.color === "string" ? Number(params.color) : undefined;
+  const materialId = typeof params.material === "string" ? params.material : undefined;
+  const colorId = typeof params.color === "string" ? params.color : undefined;
   const sortBy = (typeof params.sort === "string" ? params.sort : undefined) as
     | ProductsQuery["sortBy"]
     | undefined;

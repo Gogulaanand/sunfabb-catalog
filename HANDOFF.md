@@ -144,6 +144,73 @@ treating Phase 4 as fully closed and starting Phase 5.
 
 ---
 
+## ✅ Audit findings (2026-06-21) — fixed same day, see D30/D31
+
+A retrospective audit of every phase (scaffold → current `main`) against the hard rules and
+`docs/DECISIONS.md` found the **backend genuinely solid** (no raw SQL, full JWT-guard coverage on every
+write, integer-paise money, soft deletes, global ValidationPipe all verified clean). The real damage was
+concentrated in one file — `frontend/lib/api.ts` had drifted from the actual API contract. Root-cause
+writeups are in `docs/DECISIONS.md` D30 (contract drift) and D31 (secret fallback); generic preventions
+added as CLAUDE.md rules 11–12 and `frontend/AGENTS.md`. All fixed on `fix/storefront-api-contract`:
+
+- ✅ **Critical — product detail always showed "Out of stock."** Fixed: `lib/api.ts` now types the field
+  `stock_quantity` to match the backend; `VariantSelector.tsx` reads `selectedVariant.stock_quantity`.
+- ✅ **Critical — catalog material/color filters returned zero products.** Fixed: dropped the `Number()`
+  coercion in `catalog/page.tsx`; `materialId`/`colorId` are typed `string` end-to-end in `lib/api.ts`.
+- ✅ **Should-fix — storefront type layer was wrong at the root** (`lib/api.ts`). Fixed: every interface
+  now mirrors the real payload (uuid string ids throughout) and is validated at the fetch boundary with
+  `zod` instead of an `as` cast — a future contract drift now throws loudly instead of silently shipping
+  `undefined`. Also surfaced and fixed a related bug this validation work caught: `VariantSelector.tsx`
+  deduped a variant's material/color by `.id`, but that nested shape has no `id` (only `name`) — every
+  product's color options were silently collapsing to one swatch. Now dedupes by `name`. See D30.
+- ✅ **Should-fix — image secondary sort was inert.** Fixed: `catalog/[slug]/page.tsx` now sorts by
+  `sort_order` (was `display_order`, always `undefined`).
+- ✅ **Should-fix — `JWT_SECRET ?? 'dev-secret'` fallback.** Fixed: both `auth.module.ts` and
+  `jwt.strategy.ts` now call a shared `getJwtSecret()` (`backend/src/auth/jwt-secret.ts`) that throws at
+  boot if unset; no fallback. See D31.
+
+**Notes (not blockers):** lookup tables (`categories`/`materials`/`colors`) hard-delete with no FK guard —
+out of the soft-delete rule's "products/variants" scope, fine at this scale but throws a raw 500 on a
+referenced row; `findAllAdmin` silently ignores the material/color filters the public list supports. The
+two `images` modules (`src/images` delete, `src/admin/images` upload) are **not** duplicated and both are
+JWT-guarded — verified, no action needed.
+
+**Ready-to-paste prompt for the fix session:**
+
+```
+Fix the storefront API-contract bugs found in the 2026-06-21 audit. Read these first: HANDOFF.md
+"Open audit findings", docs/DECISIONS.md D30–D31, and CLAUDE.md rules 11–12 + frontend/AGENTS.md.
+Work on a new branch off main: fix/storefront-api-contract.
+
+Fixes:
+1. Correct frontend/lib/api.ts to match the real backend payload (backend/prisma/schema.prisma is
+   the source of truth): `id` is a uuid string (not number) on every interface; ProductVariant
+   `stock` → `stock_quantity`; ProductImage `display_order` → `sort_order`; ProductsQuery
+   `materialId`/`colorId` → string.
+2. catalog/page.tsx:29-30 — remove the Number() coercion on params.material/params.color; pass the
+   uuid strings straight through.
+3. Update consumers: VariantSelector.tsx (stock_quantity) and catalog/[slug]/page.tsx:42
+   (sort_order). Grep the storefront for `.stock`, `.display_order`, and numeric-id assumptions to
+   catch any others.
+4. Harden auth: make JWT_SECRET required — throw at boot if unset (mirror the DATABASE_URL guard in
+   prisma.service.ts) in both auth.module.ts and jwt.strategy.ts; remove the 'dev-secret' fallback.
+   Keep JWT_EXPIRES_IN's default.
+
+Prevention (implement, per CLAUDE.md rule 11 — generic, not just these fields): stop casting
+res.json() in lib/api.ts. Add zod (`npm i zod` in frontend/) and parse each response against a
+schema mirroring the backend, OR add a shared typed fixture mirroring the real payload and assert
+against it. Then fix lib/api.test.ts so its mocks use the REAL shape (uuid string ids,
+stock_quantity, sort_order) — the current mocks use id:1 and would mask the bug. Add a test that
+fails when a response is missing an expected field.
+
+Verify before claiming done: in frontend/, `npm run lint && npx tsc --noEmit && npm run test` all
+green; confirm (via test or manually) that a product with stock shows "In stock" and that a
+material filter returns products. Commit per D16 (small commits, feature branch, PR to main). Then
+flip DECISIONS.md D30/D31 Status from "Open" to "Fixed" and tick these HANDOFF.md audit items.
+```
+
+---
+
 ## Phased roadmap
 
 - **Phase 0** — scaffold, DB, CI skeleton ✅ DONE

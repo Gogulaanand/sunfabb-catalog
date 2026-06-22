@@ -156,7 +156,7 @@ export default function CatalogFilters({
                     ? "border-primary scale-110"
                     : "border-outline-variant hover:border-primary"
                 }`}
-                style={{ backgroundColor: col.hex_code }}
+                style={{ backgroundColor: col.hex_code ?? undefined }}
               />
             ))}
           </div>

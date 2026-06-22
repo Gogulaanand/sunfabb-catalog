@@ -336,3 +336,56 @@ URLs already carry `?sslmode=require`, so production/dev behavior is unchanged; 
 injecting `PrismaService`) needs the same conditional — don't copy the old unconditional `ssl: {...}`
 pattern from git history.
 **Status:** Locked.
+
+### D30 — GOTCHA: hand-written storefront API types + `as` casts silently drifted from the real backend payload
+**Observation:** A retrospective audit (2026-06-21) found `frontend/lib/api.ts` describes a *different
+shape* than the backend actually returns, and because every fetch helper casts the JSON
+(`return res.json() as Promise<Product>`) instead of validating it, `tsc` **and** the unit tests both
+stayed green while three real, user-facing bugs shipped:
+- `ProductVariant.stock` (api.ts) vs `stock_quantity` (Prisma schema) → `selectedVariant.stock` is always
+  `undefined`, so every product-detail page reads "Out of stock" (`VariantSelector.tsx:164`).
+- `id: number` (api.ts) vs uuid `String` ids (schema) → `catalog/page.tsx:29-30` does `Number(uuid)` =
+  `NaN`, sent as `materialId=NaN`, so material/color filtering returns zero products.
+- `ProductImage.display_order` (api.ts) vs `sort_order` (schema) → image secondary sort is a `NaN` no-op
+  (`catalog/[slug]/page.tsx:42`).
+**Root cause:** Two independent copies of one contract (the Prisma model and the hand-written frontend
+interface) with nothing keeping them in sync, plus an `as` cast at the fetch boundary that tells the
+compiler "trust me" instead of checking. The existing tests can't catch it because they mock the response
+shape themselves (`api.test.ts:95` even mocks `id: 1`), so they encode the *same* wrong assumption.
+`admin-api.ts` happens to be correct, which is why only the storefront is affected.
+**Prevention (generic, not bug-specific — see CLAUDE.md rule 11 and `frontend/AGENTS.md`):**
+1. Don't hand-maintain a second copy of a type that already exists authoritatively on the backend —
+   derive it (generate from the API) or validate against it at runtime.
+2. Never consume an external response via a bare `as` cast. Parse/validate at the boundary so a shape
+   mismatch fails loudly (in a test or at runtime) instead of surfacing as `undefined` three layers later.
+3. A test that mocks a backend response must mock the *real* shape — keep one shared fixture/factory that
+   mirrors the actual payload, so a contract change breaks every test at once rather than none of them.
+**Status:** Fixed (2026-06-21) — `lib/api.ts` rewritten with `zod` schemas mirroring the real backend
+payload (uuid string ids, `stock_quantity`, `sort_order`, plus the narrower `{name, slug}` category and
+`{name[, hex_code]}` material/color shapes actually nested in product responses — distinct from the
+full lookup-table shapes returned by `/categories`, `/materials`, `/colors`). Every fetch helper now
+parses the response through its schema instead of `as`-casting `res.json()`, so a future contract
+drift throws immediately instead of surfacing as `undefined` deep in a component. `lib/api.test.ts`
+fixtures rewritten to the real shapes, with tests asserting on `stock_quantity`/`sort_order` and a
+missing-field case that fails parsing. Also found and fixed a related latent bug surfaced by the new
+validation: `VariantSelector.tsx` deduped a product's materials/colors by `.id`, but the nested
+material/color on a variant has no `id` field (only `name`, see above) — every variant's material/color
+silently collapsed to a single Map entry, so a product with multiple colors only ever showed one color
+swatch. Fixed by deduping on `name` (unique per `Material`/`Color` row) instead.
+
+### D31 — GOTCHA: required secrets must fail fast, never fall back to a default
+**Observation:** The same 2026-06-21 audit found both the JWT signer (`auth/auth.module.ts:13`) and
+verifier (`auth/strategies/jwt.strategy.ts:11`) default to `process.env.JWT_SECRET ?? 'dev-secret'`. If
+`JWT_SECRET` is ever unset in production, the app signs *and* verifies admin tokens with a hardcoded,
+public string — anyone could forge a valid admin JWT and reach every guarded write endpoint. The fallback
+also *masks* the misconfiguration: the app boots and "works" instead of refusing to start.
+**Prevention (generic — see CLAUDE.md rule 12):** A required secret/credential must have no fallback.
+Read it once at boot, throw if missing (mirror the `DATABASE_URL` guard already in
+`prisma.service.ts:11`), and let a single source own it so signer and verifier can't drift. Defaults are
+fine only for genuinely optional, non-security config (e.g. `JWT_EXPIRES_IN ?? '24h'`, `PORT`).
+**Status:** Fixed (2026-06-21) — added `backend/src/auth/jwt-secret.ts` (`getJwtSecret()`, throws if
+`JWT_SECRET` is unset) as the single source both `auth.module.ts`'s `JwtModule.register` and
+`jwt.strategy.ts`'s `secretOrKey` now call, so signer and verifier can't drift onto different values.
+Removed both `?? 'dev-secret'` fallbacks. Added `JWT_SECRET` to the Playwright e2e CI job's env block
+(`.github/workflows/ci.yml`) since it boots a real `start:prod` server that now refuses to boot without
+it — the local backend/Jest unit-test job already had it set and needed no change.
