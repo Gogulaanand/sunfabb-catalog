@@ -17,6 +17,13 @@ const BCRYPT_COST = 12;
 const VERIFY_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1h
 
+// Computed once. login() compares against this when the email is unknown so a
+// request always pays bcrypt time — closes the enumeration timing oracle (M4).
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
+  randomBytes(16).toString('hex'),
+  BCRYPT_COST,
+);
+
 type EmailTokenType = 'VERIFY_EMAIL' | 'PASSWORD_RESET';
 
 export interface SafeCustomer {
@@ -83,12 +90,16 @@ export class CustomerAuthService {
       where: { email },
     })) as CustomerRow | null;
 
-    // Generic failure for every path — never reveal whether the email exists.
-    if (!customer || !customer.is_active) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    const ok = await bcrypt.compare(dto.password, customer.password_hash);
-    if (!ok) {
+    // Always run exactly one bcrypt comparison — against the real hash when the
+    // account exists and is active, otherwise a dummy — so response time can't
+    // distinguish "email exists" from "doesn't" (M4). Message stays generic.
+    const hash =
+      customer && customer.is_active
+        ? customer.password_hash
+        : DUMMY_PASSWORD_HASH;
+    const ok = await bcrypt.compare(dto.password, hash);
+
+    if (!customer || !customer.is_active || !ok) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -144,6 +155,17 @@ export class CustomerAuthService {
       where: { id: record.customer_id },
       data: { password_hash },
     });
+    // Invalidate any other outstanding reset tokens for this customer so a
+    // second leaked link can't be redeemed after a successful reset (M2,
+    // partial — full JWT session revocation is tracked under D38).
+    await this.prisma.emailToken.updateMany({
+      where: {
+        customer_id: record.customer_id,
+        type: 'PASSWORD_RESET',
+        used_at: null,
+      },
+      data: { used_at: new Date() },
+    });
     return { ok: true };
   }
 
@@ -187,23 +209,32 @@ export class CustomerAuthService {
     await send(raw);
   }
 
-  // Validate + single-use consume. Returns the matched record or throws.
+  // Atomic single-use consume. The used_at write is itself gated on
+  // used_at: null AND not-expired, so two concurrent requests can't both redeem
+  // the same token — the DB enforces single-use, not a read-then-write (L1).
   private async consumeToken(
     raw: string,
     type: EmailTokenType,
-  ): Promise<{ id: string; customer_id: string }> {
+  ): Promise<{ customer_id: string }> {
     const token_hash = this.hashToken(raw);
-    const record = (await this.prisma.emailToken.findFirst({
-      where: { token_hash, type, used_at: null },
-    })) as { id: string; customer_id: string; expires_at: Date } | null;
-
-    if (!record || record.expires_at < new Date()) {
-      throw new UnauthorizedException('Invalid or expired token');
-    }
-    await this.prisma.emailToken.update({
-      where: { id: record.id },
+    const consumed = await this.prisma.emailToken.updateMany({
+      where: {
+        token_hash,
+        type,
+        used_at: null,
+        expires_at: { gt: new Date() },
+      },
       data: { used_at: new Date() },
     });
+    if (consumed.count === 0) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+    const record = (await this.prisma.emailToken.findFirst({
+      where: { token_hash, type },
+    })) as { customer_id: string } | null;
+    if (!record) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
     return record;
   }
 }

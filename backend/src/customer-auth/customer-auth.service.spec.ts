@@ -25,6 +25,7 @@ const mockPrisma = {
     create: jest.fn(),
     findFirst: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
   },
 };
 
@@ -184,61 +185,43 @@ describe('CustomerAuthService', () => {
   });
 
   describe('token consumption (reset / verify)', () => {
-    it('rejects an expired reset token without changing the password', async () => {
-      mockPrisma.emailToken.findFirst.mockResolvedValue({
-        id: 't1',
-        customer_id: 'cust-1',
-        type: 'PASSWORD_RESET',
-        used_at: null,
-        expires_at: new Date(Date.now() - 1000),
-      });
+    it('rejects an expired or unmatched reset token (atomic consume matches 0 rows)', async () => {
+      mockPrisma.emailToken.updateMany.mockResolvedValue({ count: 0 });
 
       await expect(
         service.resetPassword('rawtoken', 'newpassword'),
       ).rejects.toBeInstanceOf(UnauthorizedException);
       expect(mockPrisma.customer.update).not.toHaveBeenCalled();
+
+      // Atomic consume gates on used_at: null (+ not-expired), keyed by the
+      // sha256 hash of the raw token — never the raw token itself.
+      const consume = firstArg<{
+        where: { token_hash: string; used_at: null };
+      }>(mockPrisma.emailToken.updateMany);
+      expect(consume.where.token_hash).toBe(sha('rawtoken'));
+      expect(consume.where.used_at).toBeNull();
     });
 
-    it('rejects an unknown/used token', async () => {
-      mockPrisma.emailToken.findFirst.mockResolvedValue(null);
-      await expect(
-        service.resetPassword('rawtoken', 'newpassword'),
-      ).rejects.toBeInstanceOf(UnauthorizedException);
-    });
-
-    it('consumes a valid reset token: looks it up by hash, marks it used, updates the password', async () => {
+    it('consumes a valid reset token, updates the password, and invalidates sibling reset tokens', async () => {
+      mockPrisma.emailToken.updateMany.mockResolvedValue({ count: 1 });
       mockPrisma.emailToken.findFirst.mockResolvedValue({
-        id: 't1',
         customer_id: 'cust-1',
-        type: 'PASSWORD_RESET',
-        used_at: null,
-        expires_at: new Date(Date.now() + 60_000),
       });
-      mockPrisma.emailToken.update.mockResolvedValue({});
       mockPrisma.customer.update.mockResolvedValue({});
 
       const res = await service.resetPassword('rawtoken', 'newpassword');
       expect(res).toEqual({ ok: true });
-
-      const lookup = firstArg<{ where: { token_hash: string } }>(
-        mockPrisma.emailToken.findFirst,
-      );
-      expect(lookup.where.token_hash).toBe(sha('rawtoken'));
-      expect(mockPrisma.emailToken.update).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { id: 't1' } }),
-      );
       expect(mockPrisma.customer.update).toHaveBeenCalledTimes(1);
+      // updateMany called twice: once to consume the token, once to invalidate
+      // any other outstanding reset tokens for the customer (M2).
+      expect(mockPrisma.emailToken.updateMany).toHaveBeenCalledTimes(2);
     });
 
     it('verifies an email with a valid token', async () => {
+      mockPrisma.emailToken.updateMany.mockResolvedValue({ count: 1 });
       mockPrisma.emailToken.findFirst.mockResolvedValue({
-        id: 'v1',
         customer_id: 'cust-1',
-        type: 'VERIFY_EMAIL',
-        used_at: null,
-        expires_at: new Date(Date.now() + 60_000),
       });
-      mockPrisma.emailToken.update.mockResolvedValue({});
       mockPrisma.customer.update.mockResolvedValue({});
 
       const res = await service.verifyEmail('rawtoken');

@@ -18,16 +18,28 @@ export class EmailService {
   }
 
   sendVerificationEmail(to: string, token: string): Promise<void> {
-    this.logger.log(
-      `[stub] verify-email → ${to}: ${this.link('/account/verify-email', token)}`,
-    );
+    this.logLink('verify-email', to, this.link('/account/verify-email', token));
     return Promise.resolve();
   }
 
   sendPasswordResetEmail(to: string, token: string): Promise<void> {
-    this.logger.log(
-      `[stub] password-reset → ${to}: ${this.link('/account/reset-password', token)}`,
+    this.logLink(
+      'password-reset',
+      to,
+      this.link('/account/reset-password', token),
     );
     return Promise.resolve();
+  }
+
+  // Never log a raw token link in production — that would be a credential leak.
+  // The real Resend integration (6.7) replaces this stub entirely.
+  private logLink(kind: string, to: string, url: string): void {
+    if (process.env.NODE_ENV === 'production') {
+      this.logger.warn(
+        `EmailService stub invoked in production (${kind} → ${to}); no email sent. Wire Resend (6.7).`,
+      );
+    } else {
+      this.logger.log(`[stub] ${kind} → ${to}: ${url}`);
+    }
   }
 }

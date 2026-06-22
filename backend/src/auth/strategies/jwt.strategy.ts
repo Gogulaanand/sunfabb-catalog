@@ -10,6 +10,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: getJwtSecret(),
+      // Pin the algorithm to our HMAC (defence in depth against
+      // algorithm-confusion).
+      algorithms: ['HS256'],
     });
   }
 
