@@ -25,10 +25,11 @@ is a browsable catalog with a hidden single-admin UI.
   hardening + Playwright e2e). The 2026-06-21 audit fixes (D30/D31) merged as PR #16. **Phase 6
   (e-commerce) is now in progress** — see the "Phase 6 — e-commerce (IN PROGRESS)" section below.
   *(Earlier notes about nav-slowness / deferred PR #6 are stale — both landed: PR #9 ISR + Speed
-  Insights, PR #6 Web Vitals.)*
-- **Current focus:** Phase 6.1 (customer accounts). Backend done + security-reviewed and committed on
-  PR #18 (stacked on 6.0's PR #17). **Next session: the 6.1 frontend** — ready-to-paste prompt is in the
-  Phase 6 section below.
+  Insights, PR #6 Web Vitals.)* **Phase 6.1 frontend complete** (2026-06-25) — see milestone log.
+- **Current focus:** Phase 6.1 (customer accounts) is **fully done** — backend (PR #18) + frontend
+  (PR #19, stacked on #18), both security-reviewed/browser-verified. **Next session is open** — see the
+  "Where to go next" prompt in the Phase 6 section below for an exploration-first session rather than a
+  pre-picked task.
 - **Live URLs:** frontend `https://sunfabb.com` (Vercel project `sunfabb-storefront`), backend
   `https://sunfabb-backend.onrender.com` (Render, free tier). Old personal homepage relocated to
   `https://home.sunfabb.com` (Vercel project `website`).
@@ -225,7 +226,7 @@ itemized tax, Shiprocket courier, Razorpay test-mode-first (live gated on KYC).
 | # | Milestone | Status |
 |---|---|---|
 | 6.0 | Foundations — schema (10 models incl. `WebhookEvent` idempotency ledger), migration, ADRs D32–D37, `.env.example` | ✅ **done** — PR #17 |
-| 6.1 | Customer accounts & auth (backend) — separate `customer-jwt` principal, addresses CRUD (IDOR-safe), email-token verify/reset, throttler, security-reviewed | ✅ **backend done** — PR #18 (stacked on #17); **frontend = next session** |
+| 6.1 | Customer accounts & auth — separate `customer-jwt` principal, addresses CRUD (IDOR-safe), email-token verify/reset, throttler, security-reviewed (backend); `(shop)/account` route group, deny-by-default middleware, zod-validated client (frontend) | ✅ **done** — backend PR #18, frontend PR #19 (stacked on #18), browser-verified golden path |
 | 6.2 | Cart (server `Cart`/`CartItem` + Zustand, merge-on-login, price re-read) | ⬜ todo |
 | 6.3 | Checkout & orders (totals engine, `Order`/`OrderItem` snapshots, stock reserve/release, state machine) | ⬜ todo |
 | 6.4 | Razorpay payments (test) — Orders API, dual signature verify, webhook + idempotency | ⬜ todo (needs Razorpay test keys) |
@@ -256,32 +257,49 @@ login (M4), sibling-reset-token invalidation (M2-partial), `HS256` pin (L2), ver
   `sunfabb.com` (6.7). **GST** GSTIN + HSN codes + rates from your accountant (6.5).
 - Local dev: a `CUSTOMER_JWT_SECRET` was added to your gitignored `backend/.env` so `start:dev` boots.
 
-### ▶️ Ready-to-paste prompt to start the 6.1 FRONTEND (next session)
+### ✅ 6.1 frontend — done (2026-06-25)
+Built on `feature/phase6.1-frontend` (PR #19, stacked on #18): `(shop)/account` route group with its
+own layout; register/login/forgot-password/reset-password/verify-email pages; account dashboard
+(profile + address CRUD + order-history placeholder); deny-by-default `/account/**` middleware with a
+separate `customer_token` cookie from `admin_token`; server-only zod-validated `lib/customer-api.ts`.
+Browser-verified the full golden path (register → dashboard → address add/edit/delete → logout → deny
+holds → login → verify-email via logged dev link → forgot/reset-password via logged dev link → login
+with new password). Found and fixed a real bug along the way: the address-edit form spread the full
+`Address` object (incl. `id`/`customer_id`/`created_at`/`updated_at`) into the update payload, which
+the backend DTO's whitelist correctly rejected — fixed by picking only `AddressInput` fields when
+seeding the edit form. Also found the dev backend was being served by a **stale `dist/src/main`
+process** left over from before this code existed — a reminder to check `lsof -i :3000` /
+`ps -p <pid> -o lstart,command` before trusting a "port already in use" error, rather than assuming the
+running process matches the current code.
+
+### ▶️ Where to go next (next session) — explore, don't pre-commit
+6.2 (cart) is the obvious next milestone in the table below, but the **6.1 security hardening
+backlog** (below) has a hard "must land before 6.3 (checkout)" item (D38 session revocation), and
+several owner-side prerequisites (Razorpay/Shiprocket/Resend/GST accounts) are still missing and will
+block 6.4–6.7 whenever they're reached. Worth a short triage pass before committing to 6.2 outright.
+
+**Ready-to-paste exploration prompt:**
 ```
-Build the Phase 6.1 FRONTEND (Next.js customer UI). Read first: HANDOFF.md "Phase 6 — e-commerce",
-.omc/plans/2026-06-21-phase6-ecommerce.md (§4 API, §7 security), docs/DECISIONS.md D32–D38, and
-CLAUDE.md rules 11–12. The 6.1 BACKEND is already done on branch feature/phase6.1-customer-auth
-(PR #18) — endpoints under /auth/customer (register, login, logout, me, verify-email,
-forgot-password, reset-password) and /me/addresses (GET/POST/PATCH/DELETE). Work on a new branch
-feature/phase6.1-frontend stacked on feature/phase6.1-customer-auth.
+Help me decide what to work on next. Read first: HANDOFF.md in full (especially "Phase 6 —
+e-commerce", the milestone table, the "6.1 security hardening backlog", and "Owner prerequisites for
+later milestones"), .omc/plans/2026-06-21-phase6-ecommerce.md, and docs/DECISIONS.md D32–D38.
 
-Build:
-1. A new (shop)/account route group with its own layout, separate from the (storefront) and admin
-   groups (see D22 — give it its own route group, don't touch the root layout).
-2. Pages: register, login, forgot-password, reset-password, verify-email, and an account dashboard
-   (profile + saved addresses CRUD + a placeholder order-history section).
-3. A deny-by-default middleware for /account/** that redirects unauthenticated users to login —
-   MIRROR the existing admin middleware + server-only client pattern (frontend/lib/admin-api.ts,
-   frontend/app/admin). Customer JWT goes in a SEPARATE httpOnly cookie from the admin cookie; the
-   backend reads it as a Bearer token (mirror how admin-api forwards the admin JWT).
-4. A server-only customer-api.ts that calls the backend and VALIDATES every response with zod at the
-   boundary (CLAUDE.md rule 11 / D30) — do NOT `as`-cast res.json(). Mirror frontend/lib/api.ts.
-5. Tests for the api client (zod parse incl. a missing-field failure) + a deny-by-default redirect test.
+Phase 6.0 and 6.1 (backend + frontend, customer accounts/auth/addresses) are done and merged via PRs
+#17/#18/#19. Nothing is currently in progress.
 
-Verify before done: in frontend/, npm run lint && npx tsc --noEmit && npm run test all green. Use a
-real browser pass if a tool is available. Commit per D16; PR stacked on #18. Note: email verify/reset
-links are logged by the backend EmailService stub (dev) until Resend lands in 6.7 — use the logged
-link to test those flows. Do NOT build cart/checkout (that's 6.2+).
+Lay out the realistic options for the next session, with tradeoffs — at minimum consider:
+1. Starting 6.2 (cart) — confirm it doesn't have any prerequisite I'm missing.
+2. Tackling the D38 session-revocation gap now (it's flagged "must land before 6.3" — is it worth
+   doing early rather than letting it block checkout later?), and what else is in the 6.1 hardening
+   backlog that's cheap to clear now vs genuinely fine to defer.
+3. Anything that's actually blocked on me providing a vendor account/credential (Razorpay, Shiprocket,
+   Resend, GST details) — flag these explicitly so I know what to go set up in parallel, even if we're
+   not building that milestone yet.
+4. Any non-Phase-6 maintenance worth a look — e.g. anything stale in the "Open decisions / blockers"
+   section of HANDOFF.md that's been sitting unresolved.
+
+Don't start building anything yet — give me a recommendation with reasoning, then wait for me to
+confirm scope before writing code.
 ```
 
 ---
@@ -300,9 +318,11 @@ link to test those flows. Do NOT build cart/checkout (that's 6.2+).
   e2e tests not yet added — deferred
 - **Phase 5.5** — restyle the Phase 3 storefront to match the Ethos & Hearth Stitch mockups ✅ DONE
   (2026-06-20)
-- **Phase 6 — e-commerce** ⏳ IN PROGRESS — 6.0 Foundations ✅ (PR #17), 6.1 customer auth backend ✅
-  (PR #18, security-reviewed); 6.1 frontend is next. Full 6.0–6.10 milestone table + hardening backlog
-  in the "Phase 6 — e-commerce (IN PROGRESS)" section above.
+- **Phase 6 — e-commerce** ⏳ IN PROGRESS — 6.0 Foundations ✅ (PR #17), 6.1 customer accounts/auth
+  (backend PR #18 + frontend PR #19) ✅ done and browser-verified; 6.2 (cart) is next, pending a brief
+  triage of the D38 hardening item and owner prerequisites — see "Where to go next" above. Full
+  6.0–6.10 milestone table + hardening backlog in the "Phase 6 — e-commerce (IN PROGRESS)" section
+  above.
 
 Per-item learning vs fast-track classification is in `docs/WORKFLOW.md` §5.
 

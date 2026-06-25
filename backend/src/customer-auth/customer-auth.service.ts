@@ -37,6 +37,7 @@ export interface SafeCustomer {
 interface CustomerRow extends SafeCustomer {
   is_active: boolean;
   password_hash: string;
+  token_version: number;
 }
 
 export interface AuthResult {
@@ -79,7 +80,11 @@ export class CustomerAuthService {
     );
 
     return {
-      access_token: this.signToken(customer.id, customer.email),
+      access_token: this.signToken(
+        customer.id,
+        customer.email,
+        customer.token_version,
+      ),
       customer: this.toSafe(customer),
     };
   }
@@ -104,7 +109,11 @@ export class CustomerAuthService {
     }
 
     return {
-      access_token: this.signToken(customer.id, customer.email),
+      access_token: this.signToken(
+        customer.id,
+        customer.email,
+        customer.token_version,
+      ),
       customer: this.toSafe(customer),
     };
   }
@@ -151,9 +160,11 @@ export class CustomerAuthService {
   ): Promise<{ ok: true }> {
     const record = await this.consumeToken(token, 'PASSWORD_RESET');
     const password_hash = await bcrypt.hash(newPassword, BCRYPT_COST);
+    // Increment token_version so all existing JWTs for this customer are
+    // immediately rejected by CustomerJwtStrategy.validate() (D38, M2).
     await this.prisma.customer.update({
       where: { id: record.customer_id },
-      data: { password_hash },
+      data: { password_hash, token_version: { increment: 1 } },
     });
     // Invalidate any other outstanding reset tokens for this customer so a
     // second leaked link can't be redeemed after a successful reset (M2,
@@ -171,8 +182,8 @@ export class CustomerAuthService {
 
   // ---- internals ----
 
-  private signToken(sub: string, email: string): string {
-    return this.jwtService.sign({ sub, email, typ: 'customer' });
+  private signToken(sub: string, email: string, tokenVersion: number): string {
+    return this.jwtService.sign({ sub, email, typ: 'customer', tokenVersion });
   }
 
   private toSafe(c: CustomerRow): SafeCustomer {

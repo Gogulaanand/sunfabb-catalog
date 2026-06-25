@@ -64,6 +64,7 @@ describe('CustomerAuthService', () => {
         phone: null,
         email_verified: false,
         is_active: true,
+        token_version: 0,
         password_hash: 'ignored',
       });
       mockPrisma.emailToken.create.mockResolvedValue({});
@@ -111,6 +112,7 @@ describe('CustomerAuthService', () => {
         phone: null,
         email_verified: true,
         is_active: true,
+        token_version: 0,
         password_hash,
       });
 
@@ -137,6 +139,7 @@ describe('CustomerAuthService', () => {
         phone: null,
         email_verified: true,
         is_active: true,
+        token_version: 0,
         password_hash,
       });
       await expect(
@@ -153,6 +156,7 @@ describe('CustomerAuthService', () => {
         phone: null,
         email_verified: true,
         is_active: false,
+        token_version: 0,
         password_hash,
       });
       await expect(
@@ -215,6 +219,22 @@ describe('CustomerAuthService', () => {
       // updateMany called twice: once to consume the token, once to invalidate
       // any other outstanding reset tokens for the customer (M2).
       expect(mockPrisma.emailToken.updateMany).toHaveBeenCalledTimes(2);
+    });
+
+    it('increments token_version on password reset so existing JWTs are immediately revoked (D38)', async () => {
+      mockPrisma.emailToken.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.emailToken.findFirst.mockResolvedValue({
+        customer_id: 'cust-1',
+      });
+      mockPrisma.customer.update.mockResolvedValue({});
+
+      await service.resetPassword('rawtoken', 'newpassword');
+
+      const updateArg = firstArg<{
+        where: { id: string };
+        data: { password_hash: string; token_version: { increment: number } };
+      }>(mockPrisma.customer.update);
+      expect(updateArg.data.token_version).toEqual({ increment: 1 });
     });
 
     it('verifies an email with a valid token', async () => {
