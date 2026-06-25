@@ -26,6 +26,12 @@ export function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/account")) {
+    // Gate: redirect the entire /account/** subtree to home when e-commerce is not
+    // yet open to users. Flip ECOMMERCE_ENABLED=true in Vercel env + redeploy to open.
+    if (process.env.ECOMMERCE_ENABLED !== "true") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
     if (PUBLIC_ACCOUNT_PATHS.includes(pathname)) {
       return NextResponse.next();
     }

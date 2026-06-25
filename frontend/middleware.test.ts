@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { middleware } from "./middleware";
 
@@ -11,7 +11,15 @@ function makeRequest(pathname: string, cookies: Record<string, string> = {}) {
 }
 
 describe("middleware", () => {
-  describe("/account/** (deny-by-default)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  describe("/account/** — ECOMMERCE_ENABLED=true (normal account behaviour)", () => {
+    beforeEach(() => {
+      vi.stubEnv("ECOMMERCE_ENABLED", "true");
+    });
+
     it("redirects to /account/login when there is no customer_token cookie", () => {
       const response = middleware(makeRequest("/account"));
       expect(response.status).toBe(307);
@@ -41,7 +49,29 @@ describe("middleware", () => {
     });
   });
 
-  describe("/admin/** (unchanged behavior)", () => {
+  describe("/account/** — ECOMMERCE_ENABLED=false (gate closed)", () => {
+    it.each([
+      "/account",
+      "/account/login",
+      "/account/register",
+      "/account/dashboard",
+      "/account/orders",
+    ])("redirects %s to home regardless of cookies", (path) => {
+      vi.stubEnv("ECOMMERCE_ENABLED", "false");
+      const response = middleware(makeRequest(path, { customer_token: "jwt" }));
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe("http://localhost:3001/");
+    });
+
+    it("also closes the gate when ECOMMERCE_ENABLED is absent", () => {
+      vi.stubEnv("ECOMMERCE_ENABLED", "");
+      const response = middleware(makeRequest("/account/register"));
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe("http://localhost:3001/");
+    });
+  });
+
+  describe("/admin/** (unchanged — unaffected by ECOMMERCE_ENABLED)", () => {
     it("redirects to /admin/login when there is no admin_token cookie", () => {
       const response = middleware(makeRequest("/admin"));
       expect(response.status).toBe(307);
