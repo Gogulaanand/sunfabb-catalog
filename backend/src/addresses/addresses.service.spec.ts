@@ -87,6 +87,43 @@ describe('AddressesService', () => {
     });
   });
 
+  describe('remove', () => {
+    it('deletes an owned address and returns ok', async () => {
+      mockPrisma.address.findFirst.mockResolvedValue({
+        id: 'a1',
+        customer_id: 'cust-1',
+      });
+      mockPrisma.address.delete.mockResolvedValue({});
+
+      const result = await service.remove('cust-1', 'a1');
+
+      expect(result).toEqual({ ok: true });
+      expect(mockPrisma.address.delete).toHaveBeenCalledWith({
+        where: { id: 'a1' },
+      });
+    });
+  });
+
+  describe('update', () => {
+    it('clears any existing default before setting is_default on update', async () => {
+      mockPrisma.address.findFirst.mockResolvedValue({
+        id: 'a1',
+        customer_id: 'cust-1',
+      });
+      mockPrisma.address.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.address.update.mockResolvedValue({ id: 'a1', is_default: true });
+
+      await service.update('cust-1', 'a1', { is_default: true });
+
+      expect(mockPrisma.address.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { customer_id: 'cust-1', is_default: true },
+        }),
+      );
+      expect(mockPrisma.address.update).toHaveBeenCalled();
+    });
+  });
+
   describe('IDOR protection', () => {
     it('returns 404 (not 403) and does not update an address owned by another customer', async () => {
       mockPrisma.address.findFirst.mockResolvedValue(null);

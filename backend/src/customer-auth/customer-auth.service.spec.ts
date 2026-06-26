@@ -165,6 +165,40 @@ describe('CustomerAuthService', () => {
     });
   });
 
+  describe('me', () => {
+    it('returns the safe customer profile (no password_hash) for a valid customer id', async () => {
+      mockPrisma.customer.findUnique.mockResolvedValue({
+        id: 'cust-1',
+        email: 'a@example.com',
+        full_name: 'Alice',
+        phone: null,
+        email_verified: true,
+        is_active: true,
+        token_version: 0,
+        password_hash: 'should-not-appear',
+      });
+
+      const result = await service.me('cust-1');
+
+      expect(result).toEqual({
+        id: 'cust-1',
+        email: 'a@example.com',
+        full_name: 'Alice',
+        phone: null,
+        email_verified: true,
+      });
+      expect(result).not.toHaveProperty('password_hash');
+    });
+
+    it('throws UnauthorizedException when the customer does not exist', async () => {
+      mockPrisma.customer.findUnique.mockResolvedValue(null);
+
+      await expect(service.me('ghost-id')).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+    });
+  });
+
   describe('forgotPassword', () => {
     it('returns ok and sends an email when the account exists', async () => {
       mockPrisma.customer.findUnique.mockResolvedValue({
@@ -183,6 +217,18 @@ describe('CustomerAuthService', () => {
       mockPrisma.customer.findUnique.mockResolvedValue(null);
 
       const res = await service.forgotPassword('ghost@example.com');
+      expect(res).toEqual({ ok: true });
+      expect(mockEmail.sendPasswordResetEmail).not.toHaveBeenCalled();
+    });
+
+    it('returns ok but sends no email when the account is inactive (no enumeration of deactivated accounts)', async () => {
+      mockPrisma.customer.findUnique.mockResolvedValue({
+        id: 'cust-1',
+        email: 'a@example.com',
+        is_active: false,
+      });
+
+      const res = await service.forgotPassword('a@example.com');
       expect(res).toEqual({ ok: true });
       expect(mockEmail.sendPasswordResetEmail).not.toHaveBeenCalled();
     });
@@ -235,6 +281,18 @@ describe('CustomerAuthService', () => {
         data: { password_hash: string; token_version: { increment: number } };
       }>(mockPrisma.customer.update);
       expect(updateArg.data.token_version).toEqual({ increment: 1 });
+    });
+
+    it('throws UnauthorizedException when token row vanishes after atomic consume (race-condition edge case, line 247)', async () => {
+      // updateMany "consumed" the token (count=1) but a concurrent DELETE means
+      // findFirst returns null — still should not succeed.
+      mockPrisma.emailToken.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.emailToken.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.resetPassword('rawtoken', 'newpassword'),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+      expect(mockPrisma.customer.update).not.toHaveBeenCalled();
     });
 
     it('verifies an email with a valid token', async () => {
