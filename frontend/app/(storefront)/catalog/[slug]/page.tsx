@@ -130,7 +130,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
           {/* Variant selector (client component) */}
           {product.variants.length > 0 ? (
-            <VariantSelector variants={product.variants} />
+            <VariantSelector
+              variants={product.variants}
+              productName={product.name}
+              productSlug={product.slug}
+            />
           ) : (
             <p className="text-on-surface-variant text-body-sm">No variants available.</p>
           )}

@@ -13,6 +13,14 @@ export async function POST(request: NextRequest) {
       sameSite: "lax",
       path: "/",
     });
+    // Non-httpOnly indicator so client components can detect logged-in state
+    // without reading the JWT itself (which stays httpOnly for security).
+    response.cookies.set("customer_logged_in", "1", {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
     return response;
   } catch (error) {
     if (error instanceof CustomerApiError) {

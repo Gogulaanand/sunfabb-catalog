@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCartStore } from "@/lib/cart-store";
 
 export default function AccountLoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const cartItems = useCartStore((s) => s.items);
+  const clearCart = useCartStore((s) => s.clearCart);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +33,22 @@ export default function AccountLoginPage() {
         return;
       }
 
-      router.push("/account");
+      // Merge local anonymous cart items into the server cart, then clear local store.
+      if (cartItems.length > 0) {
+        const mergeItems = cartItems.map((i) => ({
+          variantId: i.variantId,
+          quantity: i.quantity,
+        }));
+        await fetch("/api/customer/cart/merge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: mergeItems }),
+        }).catch(() => {/* non-fatal — server cart still accessible */});
+        clearCart();
+      }
+
+      const next = searchParams.get("next") ?? "/account";
+      router.push(next);
       router.refresh();
     } finally {
       setSubmitting(false);
