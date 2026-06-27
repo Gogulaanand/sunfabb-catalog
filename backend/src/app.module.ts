@@ -13,6 +13,8 @@ import { EmailModule } from './email/email.module.js';
 import { CustomerAuthModule } from './customer-auth/customer-auth.module.js';
 import { AddressesModule } from './addresses/addresses.module.js';
 import { CartModule } from './cart/cart.module.js';
+import { CheckoutModule } from './checkout/checkout.module.js';
+import { OrdersModule } from './orders/orders.module.js';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { CartModule } from './cart/cart.module.js';
     CustomerAuthModule,
     AddressesModule,
     CartModule,
+    CheckoutModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}
