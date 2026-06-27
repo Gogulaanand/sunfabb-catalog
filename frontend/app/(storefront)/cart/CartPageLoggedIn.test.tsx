@@ -114,8 +114,9 @@ describe("CartPageLoggedIn", () => {
     );
   });
 
-  it("the Proceed to Checkout button is disabled (Phase 6.3)", () => {
+  it("links Proceed to Checkout to /checkout (Phase 6.3)", () => {
     render(<CartPageLoggedIn initialCart={CART} />);
-    expect(screen.getByRole("button", { name: /Proceed to Checkout/i })).toBeDisabled();
+    const link = screen.getByRole("link", { name: /Proceed to Checkout/i });
+    expect(link).toHaveAttribute("href", "/checkout");
   });
 });
