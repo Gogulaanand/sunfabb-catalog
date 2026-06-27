@@ -70,7 +70,10 @@ describe('CustomerAuthController', () => {
       );
 
       await expect(
-        controller.register({ email: 'dupe@example.com', password: 'secret12' }),
+        controller.register({
+          email: 'dupe@example.com',
+          password: 'secret12',
+        }),
       ).rejects.toBeInstanceOf(ConflictException);
     });
   });
@@ -95,7 +98,9 @@ describe('CustomerAuthController', () => {
     });
 
     it('propagates UnauthorizedException from service on bad credentials', async () => {
-      mockService.login.mockRejectedValue(new UnauthorizedException('Invalid credentials'));
+      mockService.login.mockRejectedValue(
+        new UnauthorizedException('Invalid credentials'),
+      );
 
       await expect(
         controller.login({ email: 'bad@example.com', password: 'wrongpass' }),
@@ -190,7 +195,10 @@ describe('CustomerAuthController', () => {
       );
 
       await expect(
-        controller.resetPassword({ token: 'badtoken', password: 'newpassword1' }),
+        controller.resetPassword({
+          token: 'badtoken',
+          password: 'newpassword1',
+        }),
       ).rejects.toBeInstanceOf(UnauthorizedException);
     });
   });

@@ -111,7 +111,10 @@ describe('AddressesService', () => {
         customer_id: 'cust-1',
       });
       mockPrisma.address.updateMany.mockResolvedValue({ count: 1 });
-      mockPrisma.address.update.mockResolvedValue({ id: 'a1', is_default: true });
+      mockPrisma.address.update.mockResolvedValue({
+        id: 'a1',
+        is_default: true,
+      });
 
       await service.update('cust-1', 'a1', { is_default: true });
 

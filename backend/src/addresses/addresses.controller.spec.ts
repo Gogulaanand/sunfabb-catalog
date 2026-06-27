@@ -26,7 +26,13 @@ const baseDto = {
   pincode: '625001',
 };
 
-const addressRow = { id: 'addr-1', customer_id: 'cust-1', ...baseDto, country: 'India', is_default: false };
+const addressRow = {
+  id: 'addr-1',
+  customer_id: 'cust-1',
+  ...baseDto,
+  country: 'India',
+  is_default: false,
+};
 
 describe('AddressesController', () => {
   let controller: AddressesController;
