@@ -456,4 +456,21 @@ argon2 native module proves awkward to build on Render. Never reversible, never 
 **Why:** argon2id is the current OWASP-recommended password KDF (memory-hard, GPU-resistant). The admin
 side already uses bcrypt; allowing the bcrypt fallback keeps deploys unblocked if the native build is a
 problem on the free tier.
-**Status:** Locked (6.0).
+**Status:** Locked (6.0). *Implemented in 6.1 with `bcryptjs` (pure-JS, cost 12) — the sanctioned bcrypt
+fallback — to avoid a native `argon2` build on Render's free tier; consistent with the admin side.*
+
+### D38 — Customer sessions are stateless JWTs with no server-side revocation — accepted for 6.1, must revisit before checkout
+**Decision:** Customer auth uses a stateless Bearer JWT (7-day TTL) with no session store and no
+token-version claim. A soft-deactivated customer (`is_active=false`) or one who resets their password is
+**not** immediately logged out — their existing token stays valid until it expires. `login`,
+`forgotPassword`, and `resetPassword` all check `is_active`, and a successful reset invalidates the
+customer's *other* outstanding reset tokens (M2), but nothing revokes an already-issued JWT.
+**Why accepted for 6.1:** 6.1 ships accounts + addresses only — no money, no order data exposed yet. The
+proper fix (re-load the customer in `CustomerJwtStrategy.validate()` to check `is_active`, plus a
+`token_version`/`password_changed_at` claim bumped on password change and compared per request) costs a
+DB read per authenticated request and a schema + migration. The 6.1 security review rated this Medium
+(findings M1 + M2), explicitly **not** a blocker for a backend milestone.
+**Must revisit before:** the checkout/orders milestones (6.3+), which expose PII and money. Implement
+session revocation then so deactivation/password-change take effect immediately. Tracked in the
+"Phase 6.1 security hardening backlog" in `HANDOFF.md`.
+**Status:** Accepted tradeoff (6.1). Revisit at/just before 6.3.

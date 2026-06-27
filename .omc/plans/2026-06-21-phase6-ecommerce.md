@@ -1,7 +1,10 @@
 # Phase 6 — Full E-Commerce Build Plan
 
-**Status:** `pending approval` — planning artifact only. No code, migrations, commits, or vendor
-sign-ups have been performed. Approve a milestone before execution begins.
+**Status:** **IN PROGRESS.** 6.0 Foundations ✅ (PR #17) and 6.1 customer-auth backend ✅ (PR #18,
+security-reviewed) are built; the 6.1 frontend is next. Live milestone status, the 6.1 security-hardening
+backlog, and the ready-to-paste frontend handoff prompt are tracked in `HANDOFF.md` → "Phase 6 —
+e-commerce (IN PROGRESS)". Decisions C1/C2/C4/C6/C7 are locked as ADRs D32–D37; D38 records the accepted
+stateless-session tradeoff (revisit before 6.3).
 
 **Date:** 2026-06-21
 **Author:** planning session (`/plan`)

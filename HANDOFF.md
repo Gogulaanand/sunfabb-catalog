@@ -21,16 +21,20 @@ is a browsable catalog with a hidden single-admin UI.
 
 ## Where we are
 
-- **Phase:** 0–4 done. Phase 5 (deploy + domain swap) substantially done — see milestone log below.
-  Phase 5.5/5.5.1 status: Phase 5.5 (storefront restyle) confirmed on `main`. Phase 5.5.1 (Web Vitals
-  optimizations + keep-alive workflow, PR #6) is **intentionally deferred**, not merged — revisit
-  before the next infra-focused session.
-- **Current focus:** investigating reported navigation slowness (post-first-load, between sections/
-  pages) on the live deployed site, plus adding Vercel Speed Insights for real-user monitoring.
+- **Phase:** 0–5 done and merged (incl. 5.5 restyle, 5.5.1 Web Vitals + keep-alive PR #6, 5.7 CI/CD
+  hardening + Playwright e2e). The 2026-06-21 audit fixes (D30/D31) merged as PR #16. **Phase 6
+  (e-commerce) is now in progress** — see the "Phase 6 — e-commerce (IN PROGRESS)" section below.
+  *(Earlier notes about nav-slowness / deferred PR #6 are stale — both landed: PR #9 ISR + Speed
+  Insights, PR #6 Web Vitals.)*
+- **Current focus:** Phase 6.1 (customer accounts). Backend done + security-reviewed and committed on
+  PR #18 (stacked on 6.0's PR #17). **Next session: the 6.1 frontend** — ready-to-paste prompt is in the
+  Phase 6 section below.
 - **Live URLs:** frontend `https://sunfabb.com` (Vercel project `sunfabb-storefront`), backend
   `https://sunfabb-backend.onrender.com` (Render, free tier). Old personal homepage relocated to
   `https://home.sunfabb.com` (Vercel project `website`).
-- **Database:** Neon, schema synced through `ProductVariant`/`ProductImage` (full schema from `docs/PLAN.md` §4)
+- **Database:** Neon. Schema now includes the **full Phase 6 e-commerce models** (Customer, Address,
+  EmailToken, Cart/CartItem, Order/OrderItem, Payment, WebhookEvent, Shipment) — migration
+  `20260622021310_phase6_foundations`, applied to the dev DB.
 
 For the exact next session scope and any in-flight notes, see local `.session-state.md`.
 
@@ -211,6 +215,77 @@ flip DECISIONS.md D30/D31 Status from "Open" to "Fixed" and tick these HANDOFF.m
 
 ---
 
+## Phase 6 — e-commerce (IN PROGRESS)
+
+Full plan + scope decisions: **`.omc/plans/2026-06-21-phase6-ecommerce.md`**. Decisions locked so far:
+ADRs **D32–D38** in `docs/DECISIONS.md`. Owner's scope choices: full customer accounts, GST-registered
+itemized tax, Shiprocket courier, Razorpay test-mode-first (live gated on KYC).
+
+### Milestone status
+| # | Milestone | Status |
+|---|---|---|
+| 6.0 | Foundations — schema (10 models incl. `WebhookEvent` idempotency ledger), migration, ADRs D32–D37, `.env.example` | ✅ **done** — PR #17 |
+| 6.1 | Customer accounts & auth (backend) — separate `customer-jwt` principal, addresses CRUD (IDOR-safe), email-token verify/reset, throttler, security-reviewed | ✅ **backend done** — PR #18 (stacked on #17); **frontend = next session** |
+| 6.2 | Cart (server `Cart`/`CartItem` + Zustand, merge-on-login, price re-read) | ⬜ todo |
+| 6.3 | Checkout & orders (totals engine, `Order`/`OrderItem` snapshots, stock reserve/release, state machine) | ⬜ todo |
+| 6.4 | Razorpay payments (test) — Orders API, dual signature verify, webhook + idempotency | ⬜ todo (needs Razorpay test keys) |
+| 6.5 | GST invoicing — HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | ⬜ todo (needs accountant inputs) |
+| 6.6 | Shipping (Shiprocket) — serviceability/rates, AWB/label, tracking webhook | ⬜ todo (needs Shiprocket acct) |
+| 6.7 | Email (Resend) — replace the `EmailService` stub, verified domain | ⬜ todo (needs Resend domain verify) |
+| 6.8 | Admin order management UI | ⬜ todo |
+| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ⬜ todo |
+| 6.10 | Go-live (gated on Razorpay + Shiprocket KYC, Render Starter) | ⬜ todo |
+
+### 6.1 security hardening backlog (from the 6.1 security review — none block merge)
+Review verdict: **LOW risk, no critical/high.** Applied already: atomic token consume (L1), constant-time
+login (M4), sibling-reset-token invalidation (M2-partial), `HS256` pin (L2), verify-email throttle
+(M3-partial), no raw-token logs in prod (Info-2). **Deferred (do before the money milestones):**
+- **M1 + M2 — session revocation (D38).** Stateless JWT means a deactivated/just-reset customer keeps a
+  valid token until expiry. Re-check `is_active` in `CustomerJwtStrategy.validate()` and add a
+  `token_version`/`password_changed_at` claim. **Must land before 6.3 (checkout).**
+- **M3 — global throttler + Redis store.** Currently opt-in per-route + in-memory (per-instance). Make it
+  an `APP_GUARD` default and back it with Redis before scaling past one Render instance.
+- **L3 — gate sensitive actions on `email_verified`** before order placement (6.3).
+- **L4 — CORS allowlist** if Vercel preview deploys need to call the API.
+- **Info-4 — `npm audit`**: transitive advisories in `hono`/`multer`/`platform-express` (off the auth
+  path; `npm audit fix` clears `hono`).
+
+### Owner prerequisites for later milestones (vendor accounts — I can't create these)
+- **Razorpay** test-mode account → `RAZORPAY_KEY_ID`/`_KEY_SECRET`/`_WEBHOOK_SECRET` (6.4).
+- **Shiprocket** account, sandbox first (6.6); **Resend** account + verified sending domain on
+  `sunfabb.com` (6.7). **GST** GSTIN + HSN codes + rates from your accountant (6.5).
+- Local dev: a `CUSTOMER_JWT_SECRET` was added to your gitignored `backend/.env` so `start:dev` boots.
+
+### ▶️ Ready-to-paste prompt to start the 6.1 FRONTEND (next session)
+```
+Build the Phase 6.1 FRONTEND (Next.js customer UI). Read first: HANDOFF.md "Phase 6 — e-commerce",
+.omc/plans/2026-06-21-phase6-ecommerce.md (§4 API, §7 security), docs/DECISIONS.md D32–D38, and
+CLAUDE.md rules 11–12. The 6.1 BACKEND is already done on branch feature/phase6.1-customer-auth
+(PR #18) — endpoints under /auth/customer (register, login, logout, me, verify-email,
+forgot-password, reset-password) and /me/addresses (GET/POST/PATCH/DELETE). Work on a new branch
+feature/phase6.1-frontend stacked on feature/phase6.1-customer-auth.
+
+Build:
+1. A new (shop)/account route group with its own layout, separate from the (storefront) and admin
+   groups (see D22 — give it its own route group, don't touch the root layout).
+2. Pages: register, login, forgot-password, reset-password, verify-email, and an account dashboard
+   (profile + saved addresses CRUD + a placeholder order-history section).
+3. A deny-by-default middleware for /account/** that redirects unauthenticated users to login —
+   MIRROR the existing admin middleware + server-only client pattern (frontend/lib/admin-api.ts,
+   frontend/app/admin). Customer JWT goes in a SEPARATE httpOnly cookie from the admin cookie; the
+   backend reads it as a Bearer token (mirror how admin-api forwards the admin JWT).
+4. A server-only customer-api.ts that calls the backend and VALIDATES every response with zod at the
+   boundary (CLAUDE.md rule 11 / D30) — do NOT `as`-cast res.json(). Mirror frontend/lib/api.ts.
+5. Tests for the api client (zod parse incl. a missing-field failure) + a deny-by-default redirect test.
+
+Verify before done: in frontend/, npm run lint && npx tsc --noEmit && npm run test all green. Use a
+real browser pass if a tool is available. Commit per D16; PR stacked on #18. Note: email verify/reset
+links are logged by the backend EmailService stub (dev) until Resend lands in 6.7 — use the logged
+link to test those flows. Do NOT build cart/checkout (that's 6.2+).
+```
+
+---
+
 ## Phased roadmap
 
 - **Phase 0** — scaffold, DB, CI skeleton ✅ DONE
@@ -225,7 +300,9 @@ flip DECISIONS.md D30/D31 Status from "Open" to "Fixed" and tick these HANDOFF.m
   e2e tests not yet added — deferred
 - **Phase 5.5** — restyle the Phase 3 storefront to match the Ethos & Hearth Stitch mockups ✅ DONE
   (2026-06-20)
-- **Phase 6 (future)** — cart, checkout, Razorpay, orders, email
+- **Phase 6 — e-commerce** ⏳ IN PROGRESS — 6.0 Foundations ✅ (PR #17), 6.1 customer auth backend ✅
+  (PR #18, security-reviewed); 6.1 frontend is next. Full 6.0–6.10 milestone table + hardening backlog
+  in the "Phase 6 — e-commerce (IN PROGRESS)" section above.
 
 Per-item learning vs fast-track classification is in `docs/WORKFLOW.md` §5.
 
