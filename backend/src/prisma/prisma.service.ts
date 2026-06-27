@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../generated/prisma/client.js';
+import type { Prisma } from '../../generated/prisma/client.js';
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
@@ -63,6 +64,21 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
   get cartItem() {
     return this.client.cartItem;
+  }
+  get order() {
+    return this.client.order;
+  }
+  get orderItem() {
+    return this.client.orderItem;
+  }
+
+  // Interactive transaction passthrough. The callback runs against a transaction
+  // client (every model delegate, minus connection/transaction control methods),
+  // so order creation, stock decrement and cart clearing commit atomically.
+  $transaction<T>(
+    fn: (tx: Prisma.TransactionClient) => Promise<T>,
+  ): Promise<T> {
+    return this.client.$transaction(fn);
   }
 
   async onModuleInit() {
