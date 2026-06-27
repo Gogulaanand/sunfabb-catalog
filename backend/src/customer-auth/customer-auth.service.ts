@@ -177,17 +177,6 @@ export class CustomerAuthService {
       },
       data: { used_at: new Date() },
     });
-    // Invalidate any other outstanding reset tokens for this customer so a
-    // second leaked link can't be redeemed after a successful reset (M2,
-    // partial — full JWT session revocation is tracked under D38).
-    await this.prisma.emailToken.updateMany({
-      where: {
-        customer_id: record.customer_id,
-        type: 'PASSWORD_RESET',
-        used_at: null,
-      },
-      data: { used_at: new Date() },
-    });
     return { ok: true };
   }
 
