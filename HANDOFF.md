@@ -228,7 +228,7 @@ itemized tax, Shiprocket courier, Razorpay test-mode-first (live gated on KYC).
 | 6.0 | Foundations — schema (10 models incl. `WebhookEvent` idempotency ledger), migration, ADRs D32–D37, `.env.example` | ✅ **done** — PR #17 |
 | 6.1 | Customer accounts & auth — separate `customer-jwt` principal, addresses CRUD (IDOR-safe), email-token verify/reset, throttler, security-reviewed (backend); `(shop)/account` route group, deny-by-default middleware, zod-validated client (frontend) | ✅ **done** — backend PR #18, frontend PR #19 (stacked on #18), browser-verified golden path |
 | 6.2 | Cart (server `Cart`/`CartItem` + Zustand, merge-on-login, price re-read) | ⬜ todo |
-| 6.3 | Checkout & orders (totals engine, `Order`/`OrderItem` snapshots, stock reserve/release, state machine) | ⬜ todo |
+| 6.3 | Checkout & orders (totals engine, `Order`/`OrderItem` snapshots, stock reserve/release, state machine) | 🚧 **built** on `feature/phase6.3-checkout` (stacked on 6.2/PR #20) — backend `checkout/`+`orders/`, frontend `/checkout`+`/account/orders`, lint/tsc/tests green both apps, real-DB integration + SSR flow verified (D39). Not merged. |
 | 6.4 | Razorpay payments (test) — Orders API, dual signature verify, webhook + idempotency | ⬜ todo (needs Razorpay test keys) |
 | 6.5 | GST invoicing — HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | ⬜ todo (needs accountant inputs) |
 | 6.6 | Shipping (Shiprocket) — serviceability/rates, AWB/label, tracking webhook | ⬜ todo (needs Shiprocket acct) |
@@ -246,7 +246,12 @@ login (M4), sibling-reset-token invalidation (M2-partial), `HS256` pin (L2), ver
   `token_version`/`password_changed_at` claim. **Must land before 6.3 (checkout).**
 - **M3 — global throttler + Redis store.** Currently opt-in per-route + in-memory (per-instance). Make it
   an `APP_GUARD` default and back it with Redis before scaling past one Render instance.
-- **L3 — gate sensitive actions on `email_verified`** before order placement (6.3).
+- **L3 — gate sensitive actions on `email_verified`** before order placement. **Deliberately NOT added in
+  6.3** — the acceptance criteria (§12 #3) and the task's stated happy-path don't require it, and a hard
+  403-if-unverified gate would silently break "register → add to cart → place order" for an unverified
+  customer. The customer principal already reloads `is_active`/`token_version` per request (D38 closed).
+  Revisit when payments land (6.4): decide whether to block order *placement* or only *payment* on
+  unverified email.
 - **L4 — CORS allowlist** if Vercel preview deploys need to call the API.
 - **Info-4 — `npm audit`**: transitive advisories in `hono`/`multer`/`platform-express` (off the auth
   path; `npm audit fix` clears `hono`).
