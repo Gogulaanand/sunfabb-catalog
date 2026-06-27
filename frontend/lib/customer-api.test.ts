@@ -25,7 +25,13 @@ import {
   updateCartItem,
   removeCartItem,
   mergeCart,
+  getQuote,
+  placeOrder,
+  listOrders,
+  getOrder,
   type Cart,
+  type Quote,
+  type Order,
 } from "./customer-api";
 
 const SAFE_CUSTOMER = {
@@ -219,5 +225,117 @@ describe("customer-api", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain(path);
     expect(init.method ?? "GET").toBe(method);
+  });
+
+  // --- Checkout & Orders ---
+
+  const QUOTE: Quote = {
+    items: [
+      {
+        variantId: "v1",
+        productName: "Classic Bedsheet",
+        variantLabel: "King · White · Cotton",
+        unitPricePaise: 125000,
+        quantity: 2,
+        lineTotalPaise: 250000,
+      },
+    ],
+    subtotalPaise: 250000,
+    shippingPaise: 0,
+    taxPaise: 0,
+    totalPaise: 250000,
+  };
+
+  const ORDER: Order = {
+    id: "o1",
+    order_number: "SF-2026-000001",
+    status: "PENDING_PAYMENT",
+    email: "jane@example.com",
+    subtotal_paise: 250000,
+    shipping_paise: 0,
+    tax_paise: 0,
+    discount_paise: 0,
+    total_paise: 250000,
+    currency: "INR",
+    shipping_address: {
+      full_name: "Jane Doe",
+      phone: "9876543210",
+      line1: "1 MG Road",
+      line2: null,
+      city: "Bengaluru",
+      state: "Karnataka",
+      pincode: "560001",
+      country: "India",
+    },
+    created_at: "2026-06-27T00:00:00.000Z",
+    items: [
+      {
+        id: "oi1",
+        variant_id: "v1",
+        product_name: "Classic Bedsheet",
+        variant_label: "King · White · Cotton",
+        sku: "BDS-KG-WHT-CTN",
+        hsn_code: "6304",
+        unit_price_paise: 125000,
+        quantity: 2,
+        line_total_paise: 250000,
+      },
+    ],
+  };
+
+  it("getQuote POSTs to /checkout/quote and parses the priced quote", async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => QUOTE });
+    const quote = await getQuote();
+    expect(quote).toEqual(QUOTE);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain("/checkout/quote");
+    expect(init.method).toBe("POST");
+  });
+
+  it("placeOrder POSTs to /orders with the addressId and parses the order", async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 201, json: async () => ORDER });
+    const order = await placeOrder({ addressId: "a1" });
+    expect(order).toEqual(ORDER);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain("/orders");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({ addressId: "a1" });
+  });
+
+  it("listOrders GETs /me/orders with pagination params", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ orders: [ORDER], total: 1, page: 2, limit: 10 }),
+    });
+    const result = await listOrders({ page: 2, limit: 10 });
+    expect(result.total).toBe(1);
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toContain("/me/orders?page=2&limit=10");
+  });
+
+  it("getOrder GETs /me/orders/:orderNumber", async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ORDER });
+    const order = await getOrder("SF-2026-000001");
+    expect(order.order_number).toBe("SF-2026-000001");
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toContain("/me/orders/SF-2026-000001");
+  });
+
+  it("getOrder surfaces a 404 as CustomerApiError (another customer's order)", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+      json: async () => ({ message: "Order not found" }),
+    });
+    await expect(getOrder("SF-2026-999999")).rejects.toMatchObject({ status: 404 });
+  });
+
+  it("throws when an order response is missing a required field (zod boundary validation)", async () => {
+    const incomplete: Record<string, unknown> = { ...ORDER };
+    delete incomplete.total_paise;
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => incomplete });
+    await expect(getOrder("SF-2026-000001")).rejects.toThrow();
   });
 });
