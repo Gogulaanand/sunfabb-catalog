@@ -137,6 +137,7 @@ model Customer {
   phone          String?
   email_verified Boolean  @default(false)
   is_active      Boolean  @default(true)
+  token_version  Int      @default(0)
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 

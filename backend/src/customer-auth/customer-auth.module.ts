@@ -6,6 +6,7 @@ import { CustomerAuthController } from './customer-auth.controller.js';
 import { CustomerAuthService } from './customer-auth.service.js';
 import { CustomerJwtStrategy } from './strategies/customer-jwt.strategy.js';
 import { getCustomerJwtSecret } from './customer-jwt-secret.js';
+import { PrismaModule } from '../prisma/prisma.module.js';
 
 // This module's JwtModule is registered with the CUSTOMER secret, so the
 // JwtService injected into CustomerAuthService signs/verifies customer tokens
@@ -13,6 +14,7 @@ import { getCustomerJwtSecret } from './customer-jwt-secret.js';
 @Module({
   imports: [
     PassportModule,
+    PrismaModule,
     JwtModule.register({
       secret: getCustomerJwtSecret(),
       signOptions: {
