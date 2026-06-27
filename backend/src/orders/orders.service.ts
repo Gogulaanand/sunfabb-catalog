@@ -16,6 +16,13 @@ const ORDER_INCLUDE = { items: true } as const;
 
 const MAX_ORDER_NUMBER_RETRIES = 5;
 
+// Order placement does ~6 sequential queries inside one interactive transaction
+// (address check, cart read, per-item stock decrement, order-number count, order
+// create, cart clear). Prisma's default 5s ceiling is too tight for Neon's pooler
+// latency (and free-tier cold starts), so the timeout is raised. At this scale
+// (D14) holding a connection for up to 15s is a non-issue.
+const ORDER_TRANSACTION_TIMEOUT_MS = 15_000;
+
 // Denormalised address snapshot frozen onto the order. Stored as Json, not an FK,
 // so a later edit/delete of the Address never mutates a placed order (§3, D-snapshot).
 function snapshotAddress(address: {
@@ -62,8 +69,9 @@ export class OrdersService {
   async create(customer: CurrentCustomerData, dto: CreateOrderDto) {
     for (let attempt = 0; ; attempt++) {
       try {
-        return await this.prisma.$transaction((tx) =>
-          this.createInTransaction(tx, customer, dto),
+        return await this.prisma.$transaction(
+          (tx) => this.createInTransaction(tx, customer, dto),
+          { timeout: ORDER_TRANSACTION_TIMEOUT_MS },
         );
       } catch (err) {
         if (isUniqueViolation(err) && attempt < MAX_ORDER_NUMBER_RETRIES) {
