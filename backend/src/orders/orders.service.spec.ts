@@ -153,6 +153,42 @@ describe('OrdersService', () => {
       });
     });
 
+    it('decrements stock per line and snapshots every item for a multi-line cart', async () => {
+      mockTx.address.findFirst.mockResolvedValue(ADDRESS);
+      mockTx.cart.findUnique.mockResolvedValue({
+        id: 'cart-1',
+        items: [
+          cartItem(), // v1 × 2 @ 5000 = 10000
+          cartItem({ id: 'v2', price: 2500, sku: 'SKU-2' }), // v2 × 2 @ 2500 = 5000
+        ],
+      });
+      mockTx.productVariant.updateMany.mockResolvedValue({ count: 1 });
+      mockTx.order.count.mockResolvedValue(0);
+      mockTx.order.create.mockResolvedValue({ id: 'order-3', items: [] });
+      mockTx.cartItem.deleteMany.mockResolvedValue({ count: 2 });
+
+      await service.create(CUSTOMER, { addressId: 'addr-1' });
+
+      // one conditional decrement per distinct variant
+      expect(mockTx.productVariant.updateMany).toHaveBeenCalledTimes(2);
+
+      const createCalls = mockTx.order.create.mock.calls as Array<
+        [
+          {
+            data: {
+              subtotal_paise: number;
+              total_paise: number;
+              items: { create: unknown[] };
+            };
+          },
+        ]
+      >;
+      const data = createCalls[0][0].data;
+      expect(data.subtotal_paise).toBe(15000);
+      expect(data.total_paise).toBe(15000);
+      expect(data.items.create).toHaveLength(2);
+    });
+
     it('returns 404 for an address that is not the caller’s (IDOR) and reserves no stock', async () => {
       mockTx.address.findFirst.mockResolvedValue(null);
       await expect(
