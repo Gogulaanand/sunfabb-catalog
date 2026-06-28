@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/lib/cart-store";
 
-export default function AccountLoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cartItems = useCartStore((s) => s.items);
@@ -56,8 +56,7 @@ export default function AccountLoginPage() {
   }
 
   return (
-    <div className="max-w-sm mx-auto">
-      <h1 className="font-display text-headline-md text-on-surface mb-8">Log in</h1>
+    <>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <label className="flex flex-col gap-1.5">
           <span className="text-label-caps text-on-surface-variant">Email</span>
@@ -101,6 +100,17 @@ export default function AccountLoginPage() {
           </Link>
         </p>
       </div>
+    </>
+  );
+}
+
+export default function AccountLoginPage() {
+  return (
+    <div className="max-w-sm mx-auto">
+      <h1 className="font-display text-headline-md text-on-surface mb-8">Log in</h1>
+      <Suspense>
+        <LoginForm />
+      </Suspense>
     </div>
   );
 }
