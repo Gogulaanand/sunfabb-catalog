@@ -277,34 +277,60 @@ process** left over from before this code existed — a reminder to check `lsof 
 `ps -p <pid> -o lstart,command` before trusting a "port already in use" error, rather than assuming the
 running process matches the current code.
 
-### ▶️ Where to go next (next session) — explore, don't pre-commit
-6.2 (cart) is the obvious next milestone in the table below, but the **6.1 security hardening
-backlog** (below) has a hard "must land before 6.3 (checkout)" item (D38 session revocation), and
-several owner-side prerequisites (Razorpay/Shiprocket/Resend/GST accounts) are still missing and will
-block 6.4–6.7 whenever they're reached. Worth a short triage pass before committing to 6.2 outright.
+### ▶️ Where to go next (next session) — Phase 6.4 Razorpay payments (test mode)
+6.2 (cart) is in PR #20 and 6.3 (checkout & orders) is in PR #21 (stacked on #20). 6.3 ends at an order
+in `PENDING_PAYMENT` with the totals engine, `OrderItem` snapshots, conditional stock reservation, the
+`SF-{FY}-{seq}` order number, and the `transition()` state-machine guard all in place (D39 raised the
+order transaction timeout to 15s for Neon latency). **The natural next milestone is 6.4 — Razorpay
+payments (test mode)**, which closes the revenue path: it turns `PENDING_PAYMENT` → `PAID` via a verified
+webhook and uses the `transition()` guard + `WebhookEvent` idempotency ledger that already exist in the
+schema.
 
-**Ready-to-paste exploration prompt:**
+**Prerequisite (owner — do this first):** create a **Razorpay test-mode account** (free, instant — KYC
+only gates *live* keys) and add `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` to
+your gitignored `backend/.env` (and later to Render env). Until these exist, 6.4 can't be exercised
+end-to-end. **Unblocked alternative if you'd rather not touch Razorpay yet:** 6.8 admin order-management
+UI (order list/detail + status change via the 6.3 `transition()` guard) needs no vendor account.
+
+**Branch/worktree:** stack `feature/phase6.4-payments` on `feature/phase6.3-checkout` (or branch off
+`main` once #20 + #21 have merged — preferred, to stop the stack growing). The `agent-002` worktree may
+still be busy; create a fresh worktree if running in parallel.
+
+**Ready-to-paste prompt:**
 ```
-Help me decide what to work on next. Read first: HANDOFF.md in full (especially "Phase 6 —
-e-commerce", the milestone table, the "6.1 security hardening backlog", and "Owner prerequisites for
-later milestones"), .omc/plans/2026-06-21-phase6-ecommerce.md, and docs/DECISIONS.md D32–D38.
+Phase 6.4 — Razorpay payments (test mode). Read first: HANDOFF.md "Phase 6 — e-commerce" + milestone
+table, .omc/plans/2026-06-21-phase6-ecommerce.md §5 (milestone 6.4), §7.1 (payments security), §12
+(acceptance #4), and docs/DECISIONS.md D32–D39 (especially D34 server-side price authority, D36
+order/invoice numbering, D39 transaction-timeout gotcha), plus CLAUDE.md rules 1–12.
 
-Phase 6.0 and 6.1 (backend + frontend, customer accounts/auth/addresses) are done and merged via PRs
-#17/#18/#19. Nothing is currently in progress.
+Context: 6.3 is merged/stacked — Order/OrderItem/Payment/WebhookEvent models exist; orders are created
+in PENDING_PAYMENT with frozen snapshots, stock already reserved (decremented) at order time, and
+OrdersService.transition() enforces the §3.2 state machine. Razorpay is NOT wired yet.
 
-Lay out the realistic options for the next session, with tradeoffs — at minimum consider:
-1. Starting 6.2 (cart) — confirm it doesn't have any prerequisite I'm missing.
-2. Tackling the D38 session-revocation gap now (it's flagged "must land before 6.3" — is it worth
-   doing early rather than letting it block checkout later?), and what else is in the 6.1 hardening
-   backlog that's cheap to clear now vs genuinely fine to defer.
-3. Anything that's actually blocked on me providing a vendor account/credential (Razorpay, Shiprocket,
-   Resend, GST details) — flag these explicitly so I know what to go set up in parallel, even if we're
-   not building that milestone yet.
-4. Any non-Phase-6 maintenance worth a look — e.g. anything stale in the "Open decisions / blockers"
-   section of HANDOFF.md that's been sitting unresolved.
+Build (backend backend/src/payments/ + backend/src/webhooks/):
+- POST /orders should additionally create a Razorpay order (amount = the order's server-computed
+  total_paise, NEVER from the client) and return the rzp order params; persist a Payment row (CREATED).
+- POST /payments/verify (CustomerJwtAuthGuard) — verify the callback signature
+  HMAC_SHA256(razorpay_order_id|razorpay_payment_id, KEY_SECRET); optimistic confirm only.
+- POST /webhooks/razorpay (NO guard; verify X-Razorpay-Signature against RAZORPAY_WEBHOOK_SECRET on the
+  RAW body — configure rawBody in main.ts, the JSON-parsed body breaks the HMAC). The webhook is the
+  source of truth: on payment.captured/order.paid → transition order to PAID (via transition()), set
+  placed_at, mark Payment CAPTURED. On failure → PAYMENT_FAILED and RELEASE the reserved stock
+  (increment stock_quantity back). Dedupe every inbound event via WebhookEvent @@unique[provider,
+  event_id] so retries are no-ops (no double stock change, no double email).
+- Handle the callback-vs-webhook race idempotently (both converge to PAID once).
 
-Don't start building anything yet — give me a recommendation with reasoning, then wait for me to
-confirm scope before writing code.
+Frontend: open Razorpay hosted Checkout from /checkout after POST /orders (card data never touches our
+server — PCI SAQ-A); on success call /payments/verify for optimistic UX, then show the order. Keep the
+order page truthful that PAID is confirmed by the webhook.
+
+Tests (mocked Prisma + mocked Razorpay SDK; DB-backed via Playwright-against-live per D28): valid vs
+tampered signature (callback AND webhook) → tampered = 400 + order stays PENDING_PAYMENT; replayed
+webhook = single effect (stock changed once); payment failure releases stock. This is a security-gated
+milestone — a separate-pass security-reviewer review is an acceptance gate before the PR merges (§7.3).
+
+Verify before PR: cd backend && npm run lint && npx tsc --noEmit && npm run test (all green); same for
+frontend. Then flip the 6.4 row in HANDOFF.md and add the 6.4 ADRs to docs/DECISIONS.md.
 ```
 
 ---
