@@ -2,15 +2,26 @@
 
 import { useState } from "react";
 import { formatPrice, type ProductVariant } from "@/lib/api";
+import { useCartStore } from "@/lib/cart-store";
 
 interface VariantSelectorProps {
   variants: ProductVariant[];
+  productName: string;
+  productSlug: string;
 }
 
-export default function VariantSelector({ variants }: VariantSelectorProps) {
+function isLoggedIn(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.cookie.split(";").some((c) => c.trim().startsWith("customer_logged_in="));
+}
+
+export default function VariantSelector({ variants, productName, productSlug }: VariantSelectorProps) {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
     variants[0]?.id ?? null
   );
+  const [addState, setAddState] = useState<"idle" | "loading" | "added" | "error">("idle");
+
+  const addItem = useCartStore((s) => s.addItem);
 
   const selectedVariant = variants.find((v) => v.id === selectedVariantId) ?? variants[0];
 
@@ -30,6 +41,40 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
   const colors = Array.from(
     new Map(variants.map((v) => [v.color.name, v.color])).values()
   );
+
+  async function handleAddToCart() {
+    if (!selectedVariant) return;
+    setAddState("loading");
+
+    const variantLabel = [selectedVariant.size, selectedVariant.color.name, selectedVariant.material.name]
+      .filter(Boolean)
+      .join(" · ");
+
+    try {
+      if (isLoggedIn()) {
+        const res = await fetch("/api/customer/cart/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ variantId: selectedVariant.id, quantity: 1 }),
+        });
+        if (!res.ok) throw new Error("Server error");
+      } else {
+        addItem({
+          variantId: selectedVariant.id,
+          quantity: 1,
+          productName,
+          productSlug,
+          variantLabel,
+          pricePaise: selectedVariant.price,
+        });
+      }
+      setAddState("added");
+      setTimeout(() => setAddState("idle"), 2000);
+    } catch {
+      setAddState("error");
+      setTimeout(() => setAddState("idle"), 2000);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -155,6 +200,31 @@ export default function VariantSelector({ variants }: VariantSelectorProps) {
             <span className="text-error font-medium">Out of stock</span>
           )}
         </p>
+      )}
+
+      {/* Add to Cart */}
+      {selectedVariant && (
+        <button
+          onClick={handleAddToCart}
+          disabled={addState === "loading" || selectedVariant.stock_quantity === 0}
+          className={`w-full py-3 rounded text-label-caps transition-all ${
+            addState === "added"
+              ? "bg-tertiary text-on-primary"
+              : addState === "error"
+              ? "bg-error text-on-primary"
+              : "bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          }`}
+        >
+          {addState === "loading"
+            ? "Adding…"
+            : addState === "added"
+            ? "Added to Cart ✓"
+            : addState === "error"
+            ? "Failed — try again"
+            : selectedVariant.stock_quantity === 0
+            ? "Out of Stock"
+            : "Add to Cart"}
+        </button>
       )}
     </div>
   );

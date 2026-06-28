@@ -172,3 +172,66 @@ export function updateAddress(id: string, input: Partial<AddressInput>): Promise
 export function deleteAddress(id: string): Promise<{ ok: true }> {
   return request(`/me/addresses/${id}`, okSchema, { method: "DELETE" });
 }
+
+// --- Cart ---
+
+const cartVariantSchema = z.object({
+  id: z.string(),
+  size: z.string(),
+  price: z.number().int(),
+  stock_quantity: z.number().int(),
+  sku: z.string(),
+  is_active: z.boolean(),
+  product: z.object({ id: z.string(), name: z.string(), slug: z.string() }),
+  material: z.object({ name: z.string() }),
+  color: z.object({ name: z.string(), hex_code: z.string().nullable() }),
+});
+
+const cartItemSchema = z.object({
+  id: z.string(),
+  cart_id: z.string(),
+  variant_id: z.string(),
+  quantity: z.number().int(),
+  variant: cartVariantSchema,
+});
+
+const cartSchema = z.object({
+  id: z.string(),
+  customer_id: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  items: z.array(cartItemSchema),
+});
+
+export type CartVariant = z.infer<typeof cartVariantSchema>;
+export type CartItem = z.infer<typeof cartItemSchema>;
+export type Cart = z.infer<typeof cartSchema>;
+
+export function getCart(): Promise<Cart> {
+  return request("/me/cart", cartSchema);
+}
+
+export function addCartItem(variantId: string, quantity: number): Promise<Cart> {
+  return request("/me/cart/items", cartSchema, {
+    method: "POST",
+    body: JSON.stringify({ variantId, quantity }),
+  });
+}
+
+export function updateCartItem(itemId: string, quantity: number): Promise<Cart> {
+  return request(`/me/cart/items/${itemId}`, cartSchema, {
+    method: "PATCH",
+    body: JSON.stringify({ quantity }),
+  });
+}
+
+export function removeCartItem(itemId: string): Promise<{ ok: true }> {
+  return request(`/me/cart/items/${itemId}`, okSchema, { method: "DELETE" });
+}
+
+export function mergeCart(items: { variantId: string; quantity: number }[]): Promise<Cart> {
+  return request("/me/cart/merge", cartSchema, {
+    method: "POST",
+    body: JSON.stringify({ items }),
+  });
+}

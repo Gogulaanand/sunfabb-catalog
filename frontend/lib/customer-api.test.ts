@@ -20,6 +20,12 @@ import {
   createAddress,
   updateAddress,
   deleteAddress,
+  getCart,
+  addCartItem,
+  updateCartItem,
+  removeCartItem,
+  mergeCart,
+  type Cart,
 } from "./customer-api";
 
 const SAFE_CUSTOMER = {
@@ -49,6 +55,34 @@ const ADDRESS = {
   is_default: true,
   created_at: "2026-06-25T00:00:00.000Z",
   updated_at: "2026-06-25T00:00:00.000Z",
+};
+
+const CART_VARIANT = {
+  id: "v1",
+  size: "King",
+  price: 125000,
+  stock_quantity: 10,
+  sku: "BDS-KG-WHT-CTN",
+  is_active: true,
+  product: { id: "p1", name: "Sunfabb Classic Bedsheet", slug: "sunfabb-classic-bedsheet" },
+  material: { name: "Cotton" },
+  color: { name: "White", hex_code: "#FFFFFF" },
+};
+
+const CART: Cart = {
+  id: "cart-1",
+  customer_id: "c1",
+  created_at: "2026-06-25T00:00:00.000Z",
+  updated_at: "2026-06-25T00:00:00.000Z",
+  items: [
+    {
+      id: "item-1",
+      cart_id: "cart-1",
+      variant_id: "v1",
+      quantity: 2,
+      variant: CART_VARIANT,
+    },
+  ],
 };
 
 describe("customer-api", () => {
@@ -133,7 +167,29 @@ describe("customer-api", () => {
     await expect(listAddresses()).rejects.toThrow();
   });
 
+  it("throws when a cart item is missing its variant (zod boundary validation)", async () => {
+    const badCart = {
+      ...CART,
+      items: [{ id: "item-1", cart_id: "cart-1", variant_id: "v1", quantity: 2 }],
+    };
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => badCart });
+
+    await expect(getCart()).rejects.toThrow();
+  });
+
+  it("throws when a cart is missing its items array (zod boundary validation)", async () => {
+    const badCart = { id: CART.id, customer_id: CART.customer_id, created_at: CART.created_at, updated_at: CART.updated_at };
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => badCart });
+
+    await expect(getCart()).rejects.toThrow();
+  });
+
   it.each([
+    ["getCart", () => getCart(), "/me/cart", "GET", CART],
+    ["addCartItem", () => addCartItem("v1", 2), "/me/cart/items", "POST", CART],
+    ["updateCartItem", () => updateCartItem("item-1", 3), "/me/cart/items/item-1", "PATCH", CART],
+    ["removeCartItem", () => removeCartItem("item-1"), "/me/cart/items/item-1", "DELETE", { ok: true }],
+    ["mergeCart", () => mergeCart([{ variantId: "v1", quantity: 1 }]), "/me/cart/merge", "POST", CART],
     ["logout", () => logout(), "/auth/customer/logout", "POST", { ok: true }],
     ["verifyEmail", () => verifyEmail("raw-token"), "/auth/customer/verify-email", "POST", { verified: true }],
     ["forgotPassword", () => forgotPassword("jane@example.com"), "/auth/customer/forgot-password", "POST", { ok: true }],
