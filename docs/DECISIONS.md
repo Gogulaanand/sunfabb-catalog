@@ -473,4 +473,25 @@ DB read per authenticated request and a schema + migration. The 6.1 security rev
 **Must revisit before:** the checkout/orders milestones (6.3+), which expose PII and money. Implement
 session revocation then so deactivation/password-change take effect immediately. Tracked in the
 "Phase 6.1 security hardening backlog" in `HANDOFF.md`.
-**Status:** Accepted tradeoff (6.1). Revisit at/just before 6.3.
+**Status:** Accepted tradeoff (6.1). Revisit at/just before 6.3. *(Implemented in 6.1 already — see
+`CustomerJwtStrategy.validate()`, which reloads the customer and checks `is_active` + `token_version`
+on every request. D38's gap is closed; the order endpoints inherit it via the customer guard.)*
+
+### D39 — Order placement runs in one interactive transaction with a raised 15s timeout [6.3]
+**Decision:** `POST /orders` creates the `Order` + frozen `OrderItem` snapshots, conditionally decrements
+stock (reservation), and clears the cart inside a single `prisma.$transaction(...)` with
+`{ timeout: 15_000 }` — up from Prisma's 5s default. The conditional decrement
+(`updateMany where { id, is_active, stock_quantity >= qty }`, assert `count === 1`) is the race-safe
+oversell guard; the order number (`SF-{FY}-{seq}`, D36) is allocated inside the same tx and retried on a
+unique collision.
+**Why:** Order placement does ~6 sequential round-trips, and Neon's pooler latency (worse on free-tier
+cold starts) intermittently blew past the 5s ceiling, aborting the transaction with Prisma `P2028`
+(*"query cannot be executed on an expired transaction"*). The abort rolled back cleanly (no partial
+order, no leaked stock), so it surfaced as an intermittent 500, not data corruption. Found via a real-DB
+integration test: the first order succeeded in <5s, a later one tripped the timeout. 15s comfortably
+covers the round-trips plus a cold pooler; at this scale (D14) holding a connection that long is a
+non-issue. `PrismaService.$transaction` now forwards an options arg so callers can set the timeout.
+**Why this matters:** Any future multi-query interactive transaction against Neon (payments confirm in
+6.4, invoicing in 6.5) should set an explicit timeout rather than trusting the 5s default — the failure
+is latency-dependent and won't reproduce reliably in fast local/CI runs.
+**Status:** Locked (6.3).
