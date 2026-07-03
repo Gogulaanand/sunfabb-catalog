@@ -29,6 +29,7 @@ import {
   placeOrder,
   listOrders,
   getOrder,
+  verifyPayment,
   type Cart,
   type Quote,
   type Order,
@@ -292,14 +293,60 @@ describe("customer-api", () => {
     expect(init.method).toBe("POST");
   });
 
-  it("placeOrder POSTs to /orders with the addressId and parses the order", async () => {
-    fetchMock.mockResolvedValue({ ok: true, status: 201, json: async () => ORDER });
-    const order = await placeOrder({ addressId: "a1" });
-    expect(order).toEqual(ORDER);
+  const RAZORPAY_PAYMENT = {
+    key: "rzp_test_key",
+    razorpayOrderId: "order_rzp_1",
+    amountPaise: 250000,
+    currency: "INR",
+    orderNumber: "SF-2026-000001",
+  };
+
+  it("placeOrder POSTs to /orders and parses the order + Razorpay checkout params (6.4)", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ order: ORDER, payment: RAZORPAY_PAYMENT }),
+    });
+    const result = await placeOrder({ addressId: "a1" });
+    expect(result.order).toEqual(ORDER);
+    expect(result.payment).toEqual(RAZORPAY_PAYMENT);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain("/orders");
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body as string)).toEqual({ addressId: "a1" });
+  });
+
+  it("verifyPayment POSTs to /payments/verify and parses the confirmed order (§7.1)", async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ORDER });
+    const order = await verifyPayment({
+      razorpayOrderId: "order_rzp_1",
+      razorpayPaymentId: "pay_1",
+      razorpaySignature: "sig",
+    });
+    expect(order).toEqual(ORDER);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain("/payments/verify");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      razorpayOrderId: "order_rzp_1",
+      razorpayPaymentId: "pay_1",
+      razorpaySignature: "sig",
+    });
+  });
+
+  it("verifyPayment surfaces a 400 CustomerApiError on a tampered signature", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ message: "Invalid payment signature" }),
+    });
+    await expect(
+      verifyPayment({
+        razorpayOrderId: "order_rzp_1",
+        razorpayPaymentId: "pay_1",
+        razorpaySignature: "tampered",
+      }),
+    ).rejects.toThrow(CustomerApiError);
   });
 
   it("listOrders GETs /me/orders with pagination params", async () => {

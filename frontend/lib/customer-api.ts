@@ -315,15 +315,39 @@ const ordersListSchema = z.object({
   limit: z.number().int(),
 });
 
+// The hosted-Checkout params returned alongside a newly placed order (6.4). `key`
+// is the Razorpay publishable key id — safe to hand to the browser; amount/order
+// id are server-authoritative (D34 / §7.1), never derived from client input.
+const razorpayCheckoutParamsSchema = z.object({
+  key: z.string(),
+  razorpayOrderId: z.string(),
+  amountPaise: z.number().int(),
+  currency: z.string(),
+  orderNumber: z.string(),
+});
+
+const placeOrderResultSchema = z.object({
+  order: orderSchema,
+  payment: razorpayCheckoutParamsSchema,
+});
+
 export type Quote = z.infer<typeof quoteSchema>;
 export type OrderStatus = z.infer<typeof orderStatusSchema>;
 export type Order = z.infer<typeof orderSchema>;
 export type OrderItem = z.infer<typeof orderItemSchema>;
 export type OrdersList = z.infer<typeof ordersListSchema>;
+export type RazorpayCheckoutParams = z.infer<typeof razorpayCheckoutParamsSchema>;
+export type PlaceOrderResult = z.infer<typeof placeOrderResultSchema>;
 
 export interface PlaceOrderInput {
   addressId: string;
   quoteToken?: string;
+}
+
+export interface VerifyPaymentInput {
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
 }
 
 // Server recomputes subtotal/shipping/tax/total from the live cart (D34) — prices
@@ -332,8 +356,19 @@ export function getQuote(): Promise<Quote> {
   return request("/checkout/quote", quoteSchema, { method: "POST" });
 }
 
-export function placeOrder(input: PlaceOrderInput): Promise<Order> {
-  return request("/orders", orderSchema, {
+export function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
+  return request("/orders", placeOrderResultSchema, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+// Optimistic client confirmation after Razorpay's hosted Checkout succeeds
+// (§7.1) — the webhook remains the source of truth; this just lets the UI show
+// the confirmed order without waiting on webhook delivery. A tampered signature
+// is rejected by the backend as CustomerApiError(400), order stays unpaid.
+export function verifyPayment(input: VerifyPaymentInput): Promise<Order> {
+  return request("/payments/verify", orderSchema, {
     method: "POST",
     body: JSON.stringify(input),
   });

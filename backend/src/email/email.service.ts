@@ -31,6 +31,16 @@ export class EmailService {
     return Promise.resolve();
   }
 
+  // Order confirmation, sent when a payment is confirmed (6.4). Still a stub
+  // until Resend (6.7); logs instead of sending. Callers must never let an
+  // email failure fail the payment webhook (§12 acceptance #7) — this resolves
+  // (and in prod only warns) so a stubbed send can't break the money path.
+  sendOrderConfirmation(to: string, orderNumber: string): Promise<void> {
+    const url = `${process.env.APP_BASE_URL ?? 'http://localhost:3001'}/account/orders/${orderNumber}`;
+    this.logLink('order-confirmation', to, url);
+    return Promise.resolve();
+  }
+
   // Never log a raw token link in production — that would be a credential leak.
   // The real Resend integration (6.7) replaces this stub entirely.
   private logLink(kind: string, to: string, url: string): void {

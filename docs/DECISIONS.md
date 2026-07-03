@@ -495,3 +495,100 @@ non-issue. `PrismaService.$transaction` now forwards an options arg so callers c
 6.4, invoicing in 6.5) should set an explicit timeout rather than trusting the 5s default — the failure
 is latency-dependent and won't reproduce reliably in fast local/CI runs.
 **Status:** Locked (6.3).
+
+### D40 — Razorpay payments: hosted Checkout, dual HMAC verify, webhook-as-source-of-truth, idempotent conditional updates [6.4]
+**Decision:** `POST /orders` now also creates a Razorpay order (`backend/src/payments/`) for the DB
+order's server-computed `total_paise` — never a client-supplied amount (D34) — and returns the hosted
+Checkout params (`key`, `razorpayOrderId`, `amountPaise`, `currency`) alongside the order. The frontend
+opens Razorpay's hosted Checkout (`checkout.razorpay.com/v1/checkout.js` via `next/script`); card/UPI
+data is entered inside Razorpay's own iframe and never reaches our server or DB, keeping the app at PCI-
+DSS **SAQ-A**. Two independent HMAC-SHA256 verifications gate every state change:
+- **Callback** (`POST /payments/verify`, customer-guarded, optimistic UX only):
+  `HMAC_SHA256(razorpay_order_id|razorpay_payment_id, KEY_SECRET)`.
+- **Webhook** (`POST /webhooks/razorpay`, no guard — authenticated by signature, not a session):
+  `HMAC_SHA256(raw_body, WEBHOOK_SECRET)` against `X-Razorpay-Signature`. Requires the **raw** request
+  bytes (`NestFactory.create(AppModule, { rawBody: true })` in `main.ts`) — NestJS's global JSON parser
+  reserialises the body, which changes the bytes and breaks the HMAC.
+
+A tampered or wrong-length signature is rejected as 400 with the order untouched — `timingSafeEqual`
+throws on unequal-length buffers, so `RazorpayService`'s compare helper length-checks first and returns
+`false` rather than letting a garbage signature crash into a 500.
+
+**The webhook is the source of truth** (§7.1); the callback is optimistic UX only. Both — and both of
+Razorpay's `payment.captured`/`order.paid` events for one payment — converge on `PaymentsService
+.confirmPaid()`, which is idempotent via a **conditional `updateMany` on `{status: 'PENDING_PAYMENT'}`**
+(the race-safe equivalent of `OrdersService.transition()`) rather than a read-then-write. Recording
+payment details (`razorpay_payment_id`, `method`, `CAPTURED`) is a **separate, always-idempotent step**
+from the status flip, so whichever path (callback or webhook) wins the race, the payment method still
+gets recorded even though the callback itself never carries it. `WebhookEvent (@@unique[provider,
+event_id])` dedupes every inbound delivery; a row is inserted **before** processing but only marked
+`processed_at` **after** it succeeds, so a crash mid-process is retried by Razorpay (not permanently
+skipped) while remaining safe to reprocess, since `confirmPaid`/`markFailed` are themselves idempotent.
+A charged-amount mismatch against the order's `total_paise` blocks confirmation and logs loudly rather
+than silently trusting the webhook's amount (§7.1 price authority) — enforced on the webhook path even
+when the amount is simply missing from the payload, not just when it's wrong (the callback path has no
+amount by design and stays optimistic; the webhook, as source of truth, must never confirm without one).
+
+**`payment.failed` does NOT flip the order or release stock — it only records the failed attempt.**
+Razorpay's hosted Checkout lets a customer retry a failed attempt against the **same**
+`razorpay_order_id`; a `payment.failed` webhook therefore reflects one failed *attempt*, not a dead
+*order*. An earlier version of this milestone treated any `payment.failed` as order-terminal (flip to
+`PAYMENT_FAILED`, release reserved stock) — a real money/stock-correctness bug caught independently by
+both the `security-reviewer` and `code-reviewer` passes before this shipped: fail attempt 1 → order
+flips `PAYMENT_FAILED`, stock released; customer retries and succeeds → `confirmPaid`'s conditional
+`updateMany WHERE status='PENDING_PAYMENT'` matches nothing (order is already terminal), so the Payment
+row shows `CAPTURED` while the Order stays `PAYMENT_FAILED` — **money charged, order marked failed,
+stock oversold to another customer.** Fixed: `markFailed` now only does a conditional
+`payment.updateMany WHERE razorpay_order_id = ? AND status != 'CAPTURED'` (idempotent, never overwrites
+a payment that already succeeded); it never touches `Order.status` or `ProductVariant.stock_quantity`.
+The only paths that still call the order-terminal `releaseByOrderId` (flip to `PAYMENT_FAILED` + release
+stock) are in `createForOrder`: the Razorpay SDK call itself failing, or — a second gap the code review
+found — the DB write that persists the newly-created Razorpay order's id failing *after* the SDK call
+succeeded (previously unhandled; now wrapped in try/catch with the same compensation). Both are cases
+where the order **structurally cannot ever be paid** (no usable `razorpay_order_id` exists), which is
+categorically different from "one attempt on a live order failed."
+
+**Known deviation from the plan's own acceptance criterion #4 — "payment failure releases reserved
+stock" is no longer literally true, and this is deliberate, not an oversight.** Two distinct scenarios
+both now leave stock locked with no release until 6.9:
+1. **Zero-webhook abandonment** (modal closed, session died — no event ever arrives). This was always
+   plan §9's **C9**, explicitly assigned to milestone 6.9 ("Decide at 6.9... ties into C-Render-plan"),
+   and never in 6.4's scope.
+2. **A `payment.failed` webhook DOES fire, and the customer never retries.** This one *was* 6.4
+   acceptance criterion #4's literal scope — and the fix above deliberately makes it no longer release
+   stock. The alternative (release on `payment.failed` unless a `CAPTURED` payment already exists) does
+   **not** work: at the moment `payment.failed` arrives, a later successful retry hasn't happened yet,
+   so the guard sees no capture, releases anyway, and the subsequent capture strands the order exactly
+   as before. **Event-driven release cannot be made both correct and criterion-#4-compliant** — only a
+   time-based expiry sweep (C9's actual mechanism) can safely distinguish "will never be retried" from
+   "hasn't been retried yet." So satisfying #4 literally would have required either reintroducing the
+   oversell bug, or building C9's full expiry mechanism inside 6.4 — pulling 6.9 forward, not a 6.4-sized
+   fix.
+**The `security-reviewer` pass rated the resulting exposure HIGH** for production (ordinary declined/
+abandoned checkouts, not just abuse, now lock stock indefinitely on a small catalog) — correct in
+production-impact terms. **This is now an explicit open decision for the owner, not a defer-as-usual
+note:** ship 6.4 with acceptance #4's stock-release clause unmet and revisit at 6.9 as planned, or pull a
+minimal expiry-release sweep into 6.4 before its PR opens. See HANDOFF.md "Where to go next" for the
+same decision framed for a resume session.
+
+**Secrets are fail-fast but resolved lazily, not at boot** — a deliberate deviation from D31's pattern.
+`getRazorpayKeyId/KeySecret/WebhookSecret()` throw only when a payment operation is actually attempted,
+not at module construction, so the rest of the app (catalog, admin, customer accounts, cart) still boots
+without Razorpay test keys provisioned. This milestone shipped **code-complete with the Razorpay SDK
+mocked in unit tests** (order creation, both signature verifications — including Razorpay's own
+documented test vector — idempotent confirm/replay/failure-release, all routing) because no Razorpay
+test-mode account existed yet; live hosted-Checkout and webhook delivery, and the §7.3 security-reviewer
+pass, remain to be run once test keys are added.
+**Why:** Matches §7.1's non-negotiables (server price authority, dual verification, webhook source of
+truth, idempotency ledger) and the plan's PCI simplification via hosted Checkout. The conditional-update
+idempotency primitive was chosen over read-then-`transition()` specifically because two concurrent
+deliveries (callback racing the webhook, or Razorpay's own retry) must never double-process — a plain
+read-then-write has a TOCTOU gap a conditional `updateMany` closes.
+**Why this matters:** Any future webhook-driven status change (Shiprocket tracking in 6.6) should reuse
+this pattern — record-then-mark-processed for crash safety, conditional update for the actual state
+transition, never read-then-write for something a retry can hit twice.
+**Status:** Locked (6.4). Code-complete, mocked-test-verified; a mocked-code `security-reviewer` +
+`code-reviewer` pass ran (no live keys available) and found the `payment.failed`-terminal bug above,
+fixed same-session. **Live** hosted-Checkout, live webhook delivery, and a **live**
+`security-reviewer` re-pass against real Razorpay traffic (§7.3's actual acceptance gate) remain pending
+Razorpay test-mode keys (owner prerequisite) before this milestone's PR can open.

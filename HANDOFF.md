@@ -26,10 +26,9 @@ is a browsable catalog with a hidden single-admin UI.
   (e-commerce) is now in progress** — see the "Phase 6 — e-commerce (IN PROGRESS)" section below.
   *(Earlier notes about nav-slowness / deferred PR #6 are stale — both landed: PR #9 ISR + Speed
   Insights, PR #6 Web Vitals.)* **Phase 6.1 frontend complete** (2026-06-25) — see milestone log.
-- **Current focus:** Phase 6.1 (customer accounts) is **fully done** — backend (PR #18) + frontend
-  (PR #19, stacked on #18), both security-reviewed/browser-verified. **Next session is open** — see the
-  "Where to go next" prompt in the Phase 6 section below for an exploration-first session rather than a
-  pre-picked task.
+- **Current focus:** 6.1 (accounts, PR #18/#19), 6.2 (cart, PR #20), 6.3 (checkout & orders, PR #21) done.
+  **6.4 (Razorpay payments) is code-complete** on `feature/phase6.4-payments`, pending Razorpay test
+  keys + a security-reviewer pass before its PR — see "Where to go next" in the Phase 6 section below.
 - **Live URLs:** frontend `https://sunfabb.com` (Vercel project `sunfabb-storefront`), backend
   `https://sunfabb-backend.onrender.com` (Render, free tier). Old personal homepage relocated to
   `https://home.sunfabb.com` (Vercel project `website`).
@@ -229,7 +228,7 @@ itemized tax, Shiprocket courier, Razorpay test-mode-first (live gated on KYC).
 | 6.1 | Customer accounts & auth — separate `customer-jwt` principal, addresses CRUD (IDOR-safe), email-token verify/reset, throttler, security-reviewed (backend); `(shop)/account` route group, deny-by-default middleware, zod-validated client (frontend) | ✅ **done** — backend PR #18, frontend PR #19 (stacked on #18), browser-verified golden path |
 | 6.2 | Cart (server `Cart`/`CartItem` + Zustand, merge-on-login, price re-read) | ⬜ todo |
 | 6.3 | Checkout & orders (totals engine, `Order`/`OrderItem` snapshots, stock reserve/release, state machine) | 🚧 **built** on `feature/phase6.3-checkout` (stacked on 6.2/PR #20) — backend `checkout/`+`orders/`, frontend `/checkout`+`/account/orders`, lint/tsc/tests green both apps, real-DB integration + SSR flow verified (D39). Not merged. |
-| 6.4 | Razorpay payments (test) — Orders API, dual signature verify, webhook + idempotency | ⬜ todo (needs Razorpay test keys) |
+| 6.4 | Razorpay payments (test) — Orders API, dual signature verify, webhook + idempotency | 🚧 **code-complete** on `feature/phase6.4-payments` (stacked on 6.3) — backend `payments/`+`webhooks/`, frontend hosted Checkout in `CheckoutClient`, lint/tsc/tests green both apps (D40). **Acceptance #4's "payment failure releases stock" is knowingly unmet** — owner decision needed, see "Where to go next" below. **Not merged** — live Razorpay test keys + the §7.3 security-reviewer pass are still needed before PR. |
 | 6.5 | GST invoicing — HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | ⬜ todo (needs accountant inputs) |
 | 6.6 | Shipping (Shiprocket) — serviceability/rates, AWB/label, tracking webhook | ⬜ todo (needs Shiprocket acct) |
 | 6.7 | Email (Resend) — replace the `EmailService` stub, verified domain | ⬜ todo (needs Resend domain verify) |
@@ -247,11 +246,10 @@ login (M4), sibling-reset-token invalidation (M2-partial), `HS256` pin (L2), ver
 - **M3 — global throttler + Redis store.** Currently opt-in per-route + in-memory (per-instance). Make it
   an `APP_GUARD` default and back it with Redis before scaling past one Render instance.
 - **L3 — gate sensitive actions on `email_verified`** before order placement. **Deliberately NOT added in
-  6.3** — the acceptance criteria (§12 #3) and the task's stated happy-path don't require it, and a hard
-  403-if-unverified gate would silently break "register → add to cart → place order" for an unverified
-  customer. The customer principal already reloads `is_active`/`token_version` per request (D38 closed).
-  Revisit when payments land (6.4): decide whether to block order *placement* or only *payment* on
-  unverified email.
+  6.3, and still not addressed in 6.4** — payments landed without resolving this; it remains an open
+  decision (block order *placement*, block only *payment*, or leave as-is) rather than a silent no-op.
+  The customer principal already reloads `is_active`/`token_version` per request (D38 closed). Revisit at
+  6.8 (admin order management) or 6.9 (hardening) at the latest.
 - **L4 — CORS allowlist** if Vercel preview deploys need to call the API.
 - **Info-4 — `npm audit`**: transitive advisories in `hono`/`multer`/`platform-express` (off the auth
   path; `npm audit fix` clears `hono`).
@@ -277,61 +275,52 @@ process** left over from before this code existed — a reminder to check `lsof 
 `ps -p <pid> -o lstart,command` before trusting a "port already in use" error, rather than assuming the
 running process matches the current code.
 
-### ▶️ Where to go next (next session) — Phase 6.4 Razorpay payments (test mode)
-6.2 (cart) is in PR #20 and 6.3 (checkout & orders) is in PR #21 (stacked on #20). 6.3 ends at an order
-in `PENDING_PAYMENT` with the totals engine, `OrderItem` snapshots, conditional stock reservation, the
-`SF-{FY}-{seq}` order number, and the `transition()` state-machine guard all in place (D39 raised the
-order transaction timeout to 15s for Neon latency). **The natural next milestone is 6.4 — Razorpay
-payments (test mode)**, which closes the revenue path: it turns `PENDING_PAYMENT` → `PAID` via a verified
-webhook and uses the `transition()` guard + `WebhookEvent` idempotency ledger that already exist in the
-schema.
+### ▶️ Where to go next (next session) — finish 6.4, then Razorpay/admin UI in parallel
+6.2 (cart, PR #20) and 6.3 (checkout & orders, PR #21) are built. **6.4 (Razorpay payments) is now
+code-complete** on `feature/phase6.4-payments` (stacked on `feature/phase6.3-checkout`) — see D40. Built:
+`backend/src/payments/` (Razorpay SDK wrapper, dual HMAC verification, idempotent confirm/fail),
+`backend/src/webhooks/` (`POST /webhooks/razorpay`, raw-body verified, `WebhookEvent`-deduped), `POST
+/orders` now also returns Razorpay Checkout params, and the frontend `CheckoutClient` opens Razorpay's
+hosted Checkout via `next/script` and calls `/payments/verify` on success. Lint/tsc/full test suite green
+in both apps (backend 215 tests incl. 42 new payments/webhooks specs; frontend 165 tests). A same-session
+`security-reviewer` + `code-reviewer` pass (mocked code, no live keys — not the real §7.3 gate) already
+ran and caught a real money/stock bug — `payment.failed` was wrongly order-terminal, fixed; see D40.
+**What's NOT done:** no Razorpay test-mode keys existed this session, so the SDK is mocked throughout —
+live hosted-Checkout, live webhook delivery, and a **live** security-reviewer re-pass (the actual §7.3
+gate) are all still pending.
 
-**Prerequisite (owner — do this first):** create a **Razorpay test-mode account** (free, instant — KYC
-only gates *live* keys) and add `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` to
-your gitignored `backend/.env` (and later to Render env). Until these exist, 6.4 can't be exercised
-end-to-end. **Unblocked alternative if you'd rather not touch Razorpay yet:** 6.8 admin order-management
-UI (order list/detail + status change via the 6.3 `transition()` guard) needs no vendor account.
+**Prerequisite to finish 6.4 (owner — do this first):** create a **Razorpay test-mode account** (free,
+instant — KYC only gates *live* keys) and add `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
+`RAZORPAY_WEBHOOK_SECRET` to your gitignored `backend/.env` (and later to Render env + the CI e2e job's
+env block). Then: run the golden path in a browser (place order → Razorpay hosted Checkout with a
+Razorpay test card → webhook fires → order shows `PAID`), craft a signed test webhook to confirm the
+tampered-signature/replay/failure-release paths for real (not just mocked) — **specifically test a
+failed attempt followed by a successful retry on the same order**, since that's the exact bug already
+found and fixed once — and get the live `security-reviewer` pass before opening the PR.
 
-**Branch/worktree:** stack `feature/phase6.4-payments` on `feature/phase6.3-checkout` (or branch off
-`main` once #20 + #21 have merged — preferred, to stop the stack growing). The `agent-002` worktree may
-still be busy; create a fresh worktree if running in parallel.
+**Decision point surfaced by this session's review — worth your input, and it's an acceptance-criterion
+deviation, not just a deferred nice-to-have:** the plan's own §12 acceptance #4 says "payment failure
+releases reserved stock." The reviewer-caught fix above (correctly) makes that no longer literally true
+for **two** cases, not just the already-known one:
+1. Zero-webhook abandonment (modal closed, session died) — this was always plan §9's C9, assigned to 6.9.
+2. **A `payment.failed` webhook DOES fire and the customer never retries** — this WAS 6.4's literal scope,
+   and it's now also unreleased, because the only way to release safely is a time-based expiry (see D40):
+   releasing right when `payment.failed` arrives would strand a *later* successful retry on the same
+   order, reintroducing the exact oversell bug that was just fixed.
+Net effect: any declined-or-abandoned checkout — not just modal-closes — now locks stock until 6.9. The
+`security-reviewer` rated this HIGH for production (ordinary abandonment, not just abuse, on a small
+catalog). **Decide:** ship 6.4 with acceptance #4's stock-release clause knowingly unmet and close it at
+6.9 as originally planned (cheap now, real stock-visibility exposure until 6.9), or pull a minimal
+expiry-release sweep forward into 6.4 before opening its PR (more work now, closes both cases
+immediately). See D40 for the full reasoning on why event-driven release can't satisfy #4 safely.
 
-**Ready-to-paste prompt:**
-```
-Phase 6.4 — Razorpay payments (test mode). Read first: HANDOFF.md "Phase 6 — e-commerce" + milestone
-table, .omc/plans/2026-06-21-phase6-ecommerce.md §5 (milestone 6.4), §7.1 (payments security), §12
-(acceptance #4), and docs/DECISIONS.md D32–D39 (especially D34 server-side price authority, D36
-order/invoice numbering, D39 transaction-timeout gotcha), plus CLAUDE.md rules 1–12.
+**Unblocked alternative if you'd rather not touch Razorpay yet:** 6.8 admin order-management UI (order
+list/detail + status change via the existing `transition()` guard) needs no vendor account and can be
+built in parallel on its own branch off `feature/phase6.4-payments` or off `main` once the stack merges.
 
-Context: 6.3 is merged/stacked — Order/OrderItem/Payment/WebhookEvent models exist; orders are created
-in PENDING_PAYMENT with frozen snapshots, stock already reserved (decremented) at order time, and
-OrdersService.transition() enforces the §3.2 state machine. Razorpay is NOT wired yet.
-
-Build (backend backend/src/payments/ + backend/src/webhooks/):
-- POST /orders should additionally create a Razorpay order (amount = the order's server-computed
-  total_paise, NEVER from the client) and return the rzp order params; persist a Payment row (CREATED).
-- POST /payments/verify (CustomerJwtAuthGuard) — verify the callback signature
-  HMAC_SHA256(razorpay_order_id|razorpay_payment_id, KEY_SECRET); optimistic confirm only.
-- POST /webhooks/razorpay (NO guard; verify X-Razorpay-Signature against RAZORPAY_WEBHOOK_SECRET on the
-  RAW body — configure rawBody in main.ts, the JSON-parsed body breaks the HMAC). The webhook is the
-  source of truth: on payment.captured/order.paid → transition order to PAID (via transition()), set
-  placed_at, mark Payment CAPTURED. On failure → PAYMENT_FAILED and RELEASE the reserved stock
-  (increment stock_quantity back). Dedupe every inbound event via WebhookEvent @@unique[provider,
-  event_id] so retries are no-ops (no double stock change, no double email).
-- Handle the callback-vs-webhook race idempotently (both converge to PAID once).
-
-Frontend: open Razorpay hosted Checkout from /checkout after POST /orders (card data never touches our
-server — PCI SAQ-A); on success call /payments/verify for optimistic UX, then show the order. Keep the
-order page truthful that PAID is confirmed by the webhook.
-
-Tests (mocked Prisma + mocked Razorpay SDK; DB-backed via Playwright-against-live per D28): valid vs
-tampered signature (callback AND webhook) → tampered = 400 + order stays PENDING_PAYMENT; replayed
-webhook = single effect (stock changed once); payment failure releases stock. This is a security-gated
-milestone — a separate-pass security-reviewer review is an acceptance gate before the PR merges (§7.3).
-
-Verify before PR: cd backend && npm run lint && npx tsc --noEmit && npm run test (all green); same for
-frontend. Then flip the 6.4 row in HANDOFF.md and add the 6.4 ADRs to docs/DECISIONS.md.
-```
+**Branch/worktree:** `feature/phase6.4-payments` already exists, stacked on `feature/phase6.3-checkout`
+(stacked on `feature/phase6.2-cart`, PR #20). The stack is now 3 deep — landing #20 then #21 into `main`
+before opening 6.4's PR keeps the review surface small and stops the stack growing further.
 
 ---
 
@@ -350,10 +339,11 @@ frontend. Then flip the 6.4 row in HANDOFF.md and add the 6.4 ADRs to docs/DECIS
 - **Phase 5.5** — restyle the Phase 3 storefront to match the Ethos & Hearth Stitch mockups ✅ DONE
   (2026-06-20)
 - **Phase 6 — e-commerce** ⏳ IN PROGRESS — 6.0 Foundations ✅ (PR #17), 6.1 customer accounts/auth
-  (backend PR #18 + frontend PR #19) ✅ done and browser-verified; 6.2 (cart) is next, pending a brief
-  triage of the D38 hardening item and owner prerequisites — see "Where to go next" above. Full
-  6.0–6.10 milestone table + hardening backlog in the "Phase 6 — e-commerce (IN PROGRESS)" section
-  above.
+  (backend PR #18 + frontend PR #19) ✅ done and browser-verified; 6.2 (cart, PR #20) and 6.3
+  (checkout & orders, PR #21) built and stacked; 6.4 (Razorpay payments) code-complete on
+  `feature/phase6.4-payments`, pending live test keys + security review before its PR — see "Where to
+  go next" above. Full 6.0–6.10 milestone table + hardening backlog in the "Phase 6 — e-commerce
+  (IN PROGRESS)" section above.
 
 Per-item learning vs fast-track classification is in `docs/WORKFLOW.md` §5.
 
@@ -427,3 +417,30 @@ Append-only. Update only at phase boundaries or feature merges — *not* every s
   not merged. Live Web Vitals captured and compared to the Phase 5.5.1 localhost baseline in PR #7's
   description; `/catalog` LCP regressed 187ms→385ms live (real SSR→Render round trip, invisible on
   localhost) while still warm — true cold-start behavior remains unmeasured until keep-alive ships.
+- _(2026-07-03)_ **Phase 6.4 Razorpay payments built, code-complete (no live keys yet).** On
+  `feature/phase6.4-payments` (stacked on 6.3): backend `payments/` (Razorpay SDK wrapper, dual HMAC
+  signature verification for both the client callback and the webhook, idempotent `confirmPaid`/
+  `markFailed` via conditional `updateMany`) and `webhooks/` (`POST /webhooks/razorpay`, raw-body
+  verified, `WebhookEvent`-deduped); `POST /orders` now also creates the matching Razorpay order and
+  returns hosted-Checkout params; frontend `CheckoutClient` opens Razorpay's hosted Checkout via
+  `next/script` and calls `/payments/verify` on success (PCI SAQ-A — card data never touches our
+  server). See D40 for the full design, including fixes made after review caught them before they
+  shipped: (1) payment-detail recording (method, payment id) is a separate idempotent step from the
+  PENDING_PAYMENT→PAID status flip, so whichever of the callback/webhook wins the race, the payment
+  method still gets recorded even though the callback alone never carries it; (2) a `WebhookEvent` row
+  is marked `processed_at` only *after* processing succeeds (not at insert time), so a crash mid-process
+  is retried by Razorpay instead of being permanently skipped. A same-session `security-reviewer` +
+  `code-reviewer` pass (mocked code, no live keys) then independently found and both flagged as HIGH: (3)
+  **the real fix** — `payment.failed` was wrongly treated as order-terminal (flip to `PAYMENT_FAILED` +
+  release stock); Razorpay actually lets a customer retry a failed attempt on the *same* order, so a
+  fail-then-succeed sequence stranded captured money on a `PAYMENT_FAILED` order with its stock already
+  given away. Fixed: `markFailed` now only records the failed attempt on the Payment row, never touches
+  order status or stock. (4) `createForOrder`'s DB-persist step (after a successful Razorpay SDK call)
+  had no failure compensation — fixed with the same stock-release path the SDK-failure branch already
+  had. Both reviewers also flagged the **already-known, deliberately deferred** C9 gap (abandoned
+  checkouts that emit zero webhooks never release their reserved stock) — real, but out of 6.4's scope
+  per the plan (assigned to 6.9); not fixed here, flagged again below. Backend: 215 tests green (42 in
+  payments/webhooks), lint/tsc clean. Frontend: 165 tests green, lint/tsc/`next build` clean. **Not done
+  this session:** no Razorpay test-mode account existed, so the SDK is mocked throughout — live hosted-
+  Checkout, live webhook delivery, and a live `security-reviewer` re-pass (§7.3's actual gate) are still
+  pending; the PR has not been opened. See "Where to go next" above for the exact resume steps.
