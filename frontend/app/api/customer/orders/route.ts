@@ -4,8 +4,8 @@ import { placeOrder, CustomerApiError } from "@/lib/customer-api";
 export async function POST(request: NextRequest) {
   try {
     const { addressId, quoteToken } = await request.json();
-    const order = await placeOrder({ addressId, quoteToken });
-    return NextResponse.json(order);
+    const result = await placeOrder({ addressId, quoteToken });
+    return NextResponse.json(result);
   } catch (error) {
     if (error instanceof CustomerApiError) {
       return NextResponse.json(error.body, { status: error.status });

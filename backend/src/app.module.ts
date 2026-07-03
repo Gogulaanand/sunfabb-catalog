@@ -15,6 +15,8 @@ import { AddressesModule } from './addresses/addresses.module.js';
 import { CartModule } from './cart/cart.module.js';
 import { CheckoutModule } from './checkout/checkout.module.js';
 import { OrdersModule } from './orders/orders.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
+import { WebhooksModule } from './webhooks/webhooks.module.js';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { OrdersModule } from './orders/orders.module.js';
     CartModule,
     CheckoutModule,
     OrdersModule,
+    PaymentsModule,
+    WebhooksModule,
   ],
 })
 export class AppModule {}
