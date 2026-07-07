@@ -12,6 +12,7 @@ import { ImagesModule } from './images/images.module.js';
 import { EmailModule } from './email/email.module.js';
 import { CustomerAuthModule } from './customer-auth/customer-auth.module.js';
 import { AddressesModule } from './addresses/addresses.module.js';
+import { CartModule } from './cart/cart.module.js';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AddressesModule } from './addresses/addresses.module.js';
     ImagesModule,
     CustomerAuthModule,
     AddressesModule,
+    CartModule,
   ],
 })
 export class AppModule {}

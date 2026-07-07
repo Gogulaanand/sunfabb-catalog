@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CartIcon from "@/components/cart/cart-icon";
 
 export default function StorefrontLayout({
   children,
@@ -29,6 +30,16 @@ export default function StorefrontLayout({
               All Products
             </Link>
           </nav>
+
+          {/* Right-side actions: cart icon + account (desktop), cart + hamburger (mobile) */}
+          <div className="flex items-center gap-1">
+            <CartIcon />
+            <Link
+              href="/account"
+              className="hidden sm:inline text-label-caps text-on-surface-variant hover:text-primary transition-colors ml-4"
+            >
+              Account
+            </Link>
 
           <details className="sm:hidden relative">
             <summary
@@ -74,6 +85,7 @@ export default function StorefrontLayout({
               </Link>
             </nav>
           </details>
+          </div>{/* end right-side actions */}
         </div>
       </header>
       <main className="flex-1">{children}</main>
