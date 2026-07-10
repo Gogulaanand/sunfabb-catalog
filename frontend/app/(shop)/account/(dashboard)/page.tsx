@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AddressManager } from "@/components/account/address-manager";
 import { CustomerApiError, listAddresses, me } from "@/lib/customer-api";
@@ -37,7 +38,9 @@ export default async function AccountDashboardPage() {
       <section>
         <h2 className="text-title-sm text-on-surface mb-4">Order History</h2>
         <div className="border border-outline-variant rounded-sm p-4 text-body-sm text-on-surface-variant">
-          You haven&apos;t placed any orders yet.
+          <Link href="/account/orders" className="text-primary hover:underline">
+            View your orders →
+          </Link>
         </div>
       </section>
     </div>

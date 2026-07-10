@@ -141,16 +141,12 @@ export default function CartPageLoggedIn({ initialCart }: Props) {
               Shipping and taxes calculated at checkout.
             </p>
             <div className="pt-4 border-t border-outline-variant">
-              {/* Checkout available in Phase 6.3 */}
-              <button
-                disabled
-                className="block w-full text-center bg-primary text-on-primary text-label-caps py-3 rounded opacity-50 cursor-not-allowed"
+              <Link
+                href="/checkout"
+                className="block w-full text-center bg-primary text-on-primary text-label-caps py-3 rounded hover:opacity-90 transition-opacity"
               >
                 Proceed to Checkout
-              </button>
-              <p className="text-body-sm text-on-surface-variant text-center mt-3">
-                Checkout coming soon.
-              </p>
+              </Link>
             </div>
           </div>
         </div>
