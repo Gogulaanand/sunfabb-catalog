@@ -126,6 +126,24 @@ export class WebhooksService {
         await this.payments.markFailed(razorpayOrderId, razorpayPaymentId);
         break;
 
+      // Razorpay fires order.expired 15 minutes after order creation when no
+      // payment has been captured. Belt-and-suspenders alongside the hourly
+      // cron (C9/D41): whichever arrives first releases the reserved stock.
+      case 'order.expired': {
+        const order = await this.prisma.order.findUnique({
+          where: { razorpay_order_id: razorpayOrderId },
+          select: { id: true },
+        });
+        if (!order) {
+          this.logger.warn(
+            `order.expired: no backend order for razorpay_order_id=${razorpayOrderId}`,
+          );
+          return;
+        }
+        await this.payments.releaseByOrderId(order.id);
+        break;
+      }
+
       default:
         this.logger.log(`Ignoring unhandled Razorpay event: ${eventType}`);
     }

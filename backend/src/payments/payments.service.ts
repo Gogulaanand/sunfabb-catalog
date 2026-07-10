@@ -246,13 +246,13 @@ export class PaymentsService {
     }
   }
 
-  // Shared release primitive keyed by our own order id — used only when the
-  // order genuinely can never be paid: the Razorpay order was never created
-  // (createForOrder's SDK-failure or persist-failure paths). A single failed
-  // PAYMENT ATTEMPT does not qualify (see markFailed above) — abandoned
-  // PENDING_PAYMENT orders that never fail or succeed are reconciled by an
-  // expiry sweep, deferred to 6.9 per the plan's C9 decision.
-  private async releaseByOrderId(orderId: string): Promise<void> {
+  // Shared release primitive keyed by our own order id. Used by:
+  //  - createForOrder when the Razorpay order structurally can never be paid
+  //    (SDK failure or DB-persist failure — the order has no usable razorpay_order_id).
+  //  - OrderExpiryService's hourly cron + order.expired webhook handler (C9):
+  //    abandoned PENDING_PAYMENT orders past the expiry threshold.
+  // A single failed PAYMENT ATTEMPT does not qualify (see markFailed above).
+  async releaseByOrderId(orderId: string): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const { count } = await tx.order.updateMany({
         where: { id: orderId, status: 'PENDING_PAYMENT' },
