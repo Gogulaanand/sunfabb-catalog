@@ -3,8 +3,16 @@ import { OrderExpiryService } from './order-expiry.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { PaymentsService } from '../payments/payments.service.js';
 
+// Typed so mock.calls[0][0] is not `any` — avoids @typescript-eslint/no-unsafe-member-access.
+interface FindManyArgs {
+  where: { status: string; created_at: { lt: Date } };
+  select: { id: boolean };
+}
+
 const mockPrisma = {
-  order: { findMany: jest.fn() },
+  order: {
+    findMany: jest.fn<Promise<{ id: string }[]>, [FindManyArgs]>(),
+  },
 };
 
 const mockPayments = {
@@ -67,9 +75,7 @@ describe('OrderExpiryService', () => {
       await service.expireNow();
       const after = Date.now();
 
-      const { where } = mockPrisma.order.findMany.mock.calls[0][0] as {
-        where: { status: string; created_at: { lt: Date } };
-      };
+      const { where } = mockPrisma.order.findMany.mock.calls[0][0];
       expect(where.status).toBe('PENDING_PAYMENT');
       expect(where.created_at.lt).toBeInstanceOf(Date);
 

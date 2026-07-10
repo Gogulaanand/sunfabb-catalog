@@ -256,6 +256,10 @@ login (M4), sibling-reset-token invalidation (M2-partial), `HS256` pin (L2), ver
 
 ### Owner prerequisites for later milestones (vendor accounts — I can't create these)
 - **Razorpay** test-mode account → `RAZORPAY_KEY_ID`/`_KEY_SECRET`/`_WEBHOOK_SECRET` (6.4).
+  When setting up the webhook endpoint in the Dashboard, subscribe to **four** events:
+  `payment.captured`, `order.paid`, `payment.failed`, and `order.expired` (added by C9/D41).
+  At 6.10 go-live, repeat in the live-mode account. The hourly cron fallback works without the
+  webhook subscription, but the 15-min webhook path requires it.
 - **Shiprocket** account, sandbox first (6.6); **Resend** account + verified sending domain on
   `sunfabb.com` (6.7). **GST** GSTIN + HSN codes + rates from your accountant (6.5).
 - Local dev: a `CUSTOMER_JWT_SECRET` was added to your gitignored `backend/.env` so `start:dev` boots.

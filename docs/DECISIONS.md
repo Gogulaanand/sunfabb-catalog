@@ -599,9 +599,14 @@ customer abandons after a failed attempt without retrying) are expired by two co
 1. **Razorpay order.expired webhook** - Razorpay fires this 15 minutes after order creation when no
    payment has been captured. `WebhooksService.process()` handles this new event type: extracts the
    Razorpay order id from the payload's `order.entity.id`, looks up the backend order by
-   `razorpay_order_id`, and calls `PaymentsService.releaseByOrderId(order.id)`. Register `order.expired`
-   in the Razorpay Dashboard alongside the existing `payment.captured`, `order.paid`, and
-   `payment.failed` events.
+   `razorpay_order_id`, and calls `PaymentsService.releaseByOrderId(order.id)`.
+   **Owner action — register `order.expired` in two places:**
+   - Test mode: when setting up the test-mode webhook endpoint (same session as adding
+     `RAZORPAY_KEY_ID`/`_KEY_SECRET`/`_WEBHOOK_SECRET`). Add it to the event list alongside the
+     existing `payment.captured`, `order.paid`, and `payment.failed` subscriptions.
+   - Live mode: repeat in the live-mode account at 6.10 go-live (same gating as the keys themselves).
+   The cron sweep works independently of this — if the event is never registered, the 24h cron still
+   releases stock; you just won't get the faster 15-minute webhook-driven release.
 2. **Hourly cron sweep** (`OrderExpiryService`, `@Cron(EVERY_HOUR)`) - belt-and-suspenders fallback
    for orders that never emitted any webhook at all (modal closed before Razorpay order was even
    created on their end, network partition, etc.). Queries `PENDING_PAYMENT` orders with
