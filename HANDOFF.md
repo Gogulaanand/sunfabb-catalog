@@ -228,7 +228,7 @@ itemized tax, Shiprocket courier, Razorpay test-mode-first (live gated on KYC).
 | 6.1 | Customer accounts & auth — separate `customer-jwt` principal, addresses CRUD (IDOR-safe), email-token verify/reset, throttler, security-reviewed (backend); `(shop)/account` route group, deny-by-default middleware, zod-validated client (frontend) | ✅ **done** — backend PR #18, frontend PR #19 (stacked on #18), browser-verified golden path |
 | 6.2 | Cart (server `Cart`/`CartItem` + Zustand, merge-on-login, price re-read) | ⬜ todo |
 | 6.3 | Checkout & orders (totals engine, `Order`/`OrderItem` snapshots, stock reserve/release, state machine) | 🚧 **built** on `feature/phase6.3-checkout` (stacked on 6.2/PR #20) — backend `checkout/`+`orders/`, frontend `/checkout`+`/account/orders`, lint/tsc/tests green both apps, real-DB integration + SSR flow verified (D39). Not merged. |
-| 6.4 | Razorpay payments (test) — Orders API, dual signature verify, webhook + idempotency | 🚧 **code-complete** on `feature/phase6.4-payments` (stacked on 6.3) — backend `payments/`+`webhooks/`, frontend hosted Checkout in `CheckoutClient`, lint/tsc/tests green both apps (D40). **Acceptance #4's "payment failure releases stock" is knowingly unmet** — owner decision needed, see "Where to go next" below. **Not merged** — live Razorpay test keys + the §7.3 security-reviewer pass are still needed before PR. |
+| 6.4 | Razorpay payments (test) — Orders API, dual signature verify, webhook + idempotency | 🚧 **code-complete** on `feature/phase6.4-payments` (stacked on 6.3) — backend `payments/`+`webhooks/`, frontend hosted Checkout in `CheckoutClient`, lint/tsc/tests green both apps (D40). **C9 (abandoned-checkout stock expiry) closed** on `feature/c9-order-expiry` (PR against 6.4 branch) — see D41. **Not merged** — live Razorpay test keys + the §7.3 security-reviewer pass are still needed before PR. |
 | 6.5 | GST invoicing — HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | ⬜ todo (needs accountant inputs) |
 | 6.6 | Shipping (Shiprocket) — serviceability/rates, AWB/label, tracking webhook | ⬜ todo (needs Shiprocket acct) |
 | 6.7 | Email (Resend) — replace the `EmailService` stub, verified domain | ⬜ todo (needs Resend domain verify) |
@@ -298,21 +298,15 @@ tampered-signature/replay/failure-release paths for real (not just mocked) — *
 failed attempt followed by a successful retry on the same order**, since that's the exact bug already
 found and fixed once — and get the live `security-reviewer` pass before opening the PR.
 
-**Decision point surfaced by this session's review — worth your input, and it's an acceptance-criterion
-deviation, not just a deferred nice-to-have:** the plan's own §12 acceptance #4 says "payment failure
-releases reserved stock." The reviewer-caught fix above (correctly) makes that no longer literally true
-for **two** cases, not just the already-known one:
-1. Zero-webhook abandonment (modal closed, session died) — this was always plan §9's C9, assigned to 6.9.
-2. **A `payment.failed` webhook DOES fire and the customer never retries** — this WAS 6.4's literal scope,
-   and it's now also unreleased, because the only way to release safely is a time-based expiry (see D40):
-   releasing right when `payment.failed` arrives would strand a *later* successful retry on the same
-   order, reintroducing the exact oversell bug that was just fixed.
-Net effect: any declined-or-abandoned checkout — not just modal-closes — now locks stock until 6.9. The
-`security-reviewer` rated this HIGH for production (ordinary abandonment, not just abuse, on a small
-catalog). **Decide:** ship 6.4 with acceptance #4's stock-release clause knowingly unmet and close it at
-6.9 as originally planned (cheap now, real stock-visibility exposure until 6.9), or pull a minimal
-expiry-release sweep forward into 6.4 before opening its PR (more work now, closes both cases
-immediately). See D40 for the full reasoning on why event-driven release can't satisfy #4 safely.
+**C9 is now closed** on `feature/c9-order-expiry` (PR against `feature/phase6.4-payments`) — the
+decision above has been made: expiry was pulled forward rather than deferred to 6.9. See D41 for the
+full design. Stock is now released via two complementary mechanisms:
+1. **`order.expired` webhook** - Razorpay fires this 15 min after order creation. The webhook handler
+   now handles it: looks up the backend order by `razorpay_order_id` and calls `releaseByOrderId`.
+   Register `order.expired` in the Razorpay Dashboard event list alongside the existing three events.
+2. **Hourly cron** (`OrderExpiryService`) - catches orders that emitted no webhook at all. Threshold
+   is `ORDER_EXPIRY_HOURS` (default 24 h). Also exposed as `POST /admin/expiry/orders` for manual sweeps.
+The `payment.failed` behaviour is unchanged - it still does NOT release stock (D40).
 
 **Unblocked alternative if you'd rather not touch Razorpay yet:** 6.8 admin order-management UI (order
 list/detail + status change via the existing `transition()` guard) needs no vendor account and can be
@@ -417,6 +411,16 @@ Append-only. Update only at phase boundaries or feature merges — *not* every s
   not merged. Live Web Vitals captured and compared to the Phase 5.5.1 localhost baseline in PR #7's
   description; `/catalog` LCP regressed 187ms→385ms live (real SSR→Render round trip, invisible on
   localhost) while still warm — true cold-start behavior remains unmeasured until keep-alive ships.
+- _(2026-07-10)_ **C9 closed — abandoned-checkout stock expiry (branch `feature/c9-order-expiry`,
+  PR against `feature/phase6.4-payments`).** Built: `OrderExpiryService` with `@Cron(EVERY_HOUR)`
+  sweep + `expireNow()` shared by the cron and the admin endpoint; `POST /admin/expiry/orders`
+  (JWT-guarded); `order.expired` case in `WebhooksService.process()` (belt-and-suspenders, fires
+  at Razorpay's 15-min mark); `releaseByOrderId` promoted from private to public on `PaymentsService`;
+  `ScheduleModule.forRoot()` + `OrderExpiryModule` wired into `AppModule`; `ORDER_EXPIRY_HOURS=24`
+  added to `.env.example`. Tests: `order-expiry.service.spec.ts`, `order-expiry.controller.spec.ts`,
+  and new `order.expired` describe block in `webhooks.service.spec.ts`. Decision recorded as D41.
+  `payment.failed` behaviour unchanged (D40 regression never reintroduced).
+
 - _(2026-07-03)_ **Phase 6.4 Razorpay payments built, code-complete (no live keys yet).** On
   `feature/phase6.4-payments` (stacked on 6.3): backend `payments/` (Razorpay SDK wrapper, dual HMAC
   signature verification for both the client callback and the webhook, idempotent `confirmPaid`/

@@ -592,3 +592,41 @@ transition, never read-then-write for something a retry can hit twice.
 fixed same-session. **Live** hosted-Checkout, live webhook delivery, and a **live**
 `security-reviewer` re-pass against real Razorpay traffic (§7.3's actual acceptance gate) remain pending
 Razorpay test-mode keys (owner prerequisite) before this milestone's PR can open.
+
+### D41 - C9 closed: abandoned-checkout expiry via order.expired webhook + hourly cron [6.4 addendum]
+**Decision:** PENDING_PAYMENT orders that never reach a terminal state (no webhook ever fires, or the
+customer abandons after a failed attempt without retrying) are expired by two complementary mechanisms:
+1. **Razorpay order.expired webhook** - Razorpay fires this 15 minutes after order creation when no
+   payment has been captured. `WebhooksService.process()` handles this new event type: extracts the
+   Razorpay order id from the payload's `order.entity.id`, looks up the backend order by
+   `razorpay_order_id`, and calls `PaymentsService.releaseByOrderId(order.id)`. Register `order.expired`
+   in the Razorpay Dashboard alongside the existing `payment.captured`, `order.paid`, and
+   `payment.failed` events.
+2. **Hourly cron sweep** (`OrderExpiryService`, `@Cron(EVERY_HOUR)`) - belt-and-suspenders fallback
+   for orders that never emitted any webhook at all (modal closed before Razorpay order was even
+   created on their end, network partition, etc.). Queries `PENDING_PAYMENT` orders with
+   `created_at < now - ORDER_EXPIRY_HOURS` and calls `releaseByOrderId` for each. Default threshold
+   is 24 hours; controlled by the `ORDER_EXPIRY_HOURS` env var (positive integer, rejects at startup
+   if invalid - per D31's fail-fast rule).
+3. **Admin escape hatch** (`POST /admin/expiry/orders`, JWT-guarded) - triggers the same sweep
+   immediately and returns `{ expired: number }`. Useful in staging to force a sweep without waiting
+   for the cron.
+
+`releaseByOrderId` on `PaymentsService` (previously private) is now public so `OrderExpiryService`
+and the webhook handler can call it. It remains the single implementation: flip `PENDING_PAYMENT` to
+`PAYMENT_FAILED`, restore stock on each `OrderItem`, mark the `Payment` as `FAILED` - all in one
+transaction. The conditional `updateMany WHERE status='PENDING_PAYMENT'` guard inside it makes it
+idempotent: if both the webhook and the cron fire for the same order (15 min webhook fires, cron also
+catches it an hour later), the second call is a no-op.
+
+**Why two mechanisms?** The webhook is faster (15 min) but unreliable: if Razorpay can't deliver it
+(network, server restart, unregistered event), the order stays locked. The cron is slower (up to 24 h)
+but guaranteed: it runs regardless of Razorpay delivery. Together they cover all abandonment scenarios
+without any event-driven race conditions (see D40 for why `payment.failed` alone cannot safely release
+stock).
+
+**NOT changed:** `payment.failed` still does not release stock or touch order status (D40). Only
+orders that are STILL `PENDING_PAYMENT` after the full threshold gets expired.
+**Status:** Locked (6.4 addendum). C9 closed. Covered by unit tests in
+`order-expiry.service.spec.ts`, `order-expiry.controller.spec.ts`, and the `order.expired` describe
+block in `webhooks.service.spec.ts`.

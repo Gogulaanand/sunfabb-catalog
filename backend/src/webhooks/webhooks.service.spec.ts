@@ -55,11 +55,15 @@ const mockPrisma = {
       [WebhookEventUpdateManyArgs]
     >(),
   },
+  order: {
+    findUnique: jest.fn(),
+  },
 };
 
 const mockPayments = {
   confirmPaid: jest.fn(),
   markFailed: jest.fn(),
+  releaseByOrderId: jest.fn(),
 };
 
 describe('WebhooksService — idempotency + routing (§12 #4)', () => {
@@ -70,6 +74,8 @@ describe('WebhooksService — idempotency + routing (§12 #4)', () => {
     mockPrisma.webhookEvent.findFirst.mockResolvedValue(null);
     mockPrisma.webhookEvent.create.mockResolvedValue({});
     mockPrisma.webhookEvent.updateMany.mockResolvedValue({ count: 1 });
+    mockPrisma.order.findUnique.mockResolvedValue(null);
+    mockPayments.releaseByOrderId.mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -216,5 +222,65 @@ describe('WebhooksService — idempotency + routing (§12 #4)', () => {
     ).resolves.toBeUndefined();
     expect(mockPayments.confirmPaid).not.toHaveBeenCalled();
     expect(mockPayments.markFailed).not.toHaveBeenCalled();
+  });
+
+  describe('order.expired — C9 belt-and-suspenders (D41)', () => {
+    const ORDER_EXPIRED_PAYLOAD = {
+      event: 'order.expired',
+      payload: {
+        order: { entity: { id: 'order_rzp_expired' } },
+      },
+    };
+
+    it('calls releaseByOrderId with the backend order id when the Razorpay order matches', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: 'backend-order-uuid',
+      });
+
+      await service.handleRazorpay({
+        eventId: 'evt_exp_1',
+        eventType: 'order.expired',
+        payload: ORDER_EXPIRED_PAYLOAD,
+      });
+
+      expect(mockPrisma.order.findUnique).toHaveBeenCalledWith({
+        where: { razorpay_order_id: 'order_rzp_expired' },
+        select: { id: true },
+      });
+      expect(mockPayments.releaseByOrderId).toHaveBeenCalledWith(
+        'backend-order-uuid',
+      );
+      // Event still marked processed so Razorpay won't keep retrying it.
+      expect(mockPrisma.webhookEvent.updateMany).toHaveBeenCalled();
+    });
+
+    it('logs a warning and skips release when no backend order matches the Razorpay order id', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue(null);
+
+      await service.handleRazorpay({
+        eventId: 'evt_exp_2',
+        eventType: 'order.expired',
+        payload: ORDER_EXPIRED_PAYLOAD,
+      });
+
+      expect(mockPayments.releaseByOrderId).not.toHaveBeenCalled();
+      // Event is still marked processed (it was received and handled — we just have no matching order).
+      expect(mockPrisma.webhookEvent.updateMany).toHaveBeenCalled();
+    });
+
+    it('does not call releaseByOrderId or markFailed for order.expired', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: 'backend-order-uuid',
+      });
+
+      await service.handleRazorpay({
+        eventId: 'evt_exp_3',
+        eventType: 'order.expired',
+        payload: ORDER_EXPIRED_PAYLOAD,
+      });
+
+      expect(mockPayments.markFailed).not.toHaveBeenCalled();
+      expect(mockPayments.confirmPaid).not.toHaveBeenCalled();
+    });
   });
 });
