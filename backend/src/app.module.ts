@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
 import { MaterialsModule } from './materials/materials.module.js';
@@ -15,12 +16,17 @@ import { AddressesModule } from './addresses/addresses.module.js';
 import { CartModule } from './cart/cart.module.js';
 import { CheckoutModule } from './checkout/checkout.module.js';
 import { OrdersModule } from './orders/orders.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
+import { WebhooksModule } from './webhooks/webhooks.module.js';
+import { OrderExpiryModule } from './expiry/order-expiry.module.js';
 
 @Module({
   imports: [
     // Throttler config for routes that opt in via @UseGuards(ThrottlerGuard);
     // not registered as a global guard, so existing endpoints are unaffected.
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
+    // ScheduleModule enables @Cron decorators (used by OrderExpiryService — C9/D41).
+    ScheduleModule.forRoot(),
     PrismaModule,
     EmailModule,
     CategoriesModule,
@@ -36,6 +42,9 @@ import { OrdersModule } from './orders/orders.module.js';
     CartModule,
     CheckoutModule,
     OrdersModule,
+    PaymentsModule,
+    WebhooksModule,
+    OrderExpiryModule,
   ],
 })
 export class AppModule {}

@@ -71,6 +71,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get orderItem() {
     return this.client.orderItem;
   }
+  get payment() {
+    return this.client.payment;
+  }
+  get webhookEvent() {
+    return this.client.webhookEvent;
+  }
 
   // Interactive transaction passthrough. The callback runs against a transaction
   // client (every model delegate, minus connection/transaction control methods),

@@ -11,7 +11,11 @@ import { AppModule } from './app.module.js';
 setDefaultAutoSelectFamily(false);
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // rawBody: true exposes the untouched request bytes on req.rawBody, which the
+  // Razorpay webhook needs to verify X-Razorpay-Signature — the HMAC is computed
+  // over the exact payload Razorpay sent, and the JSON-parsed-then-reserialised
+  // body has different bytes and would fail verification (§7.1 raw-body gotcha).
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
   app.enableCors({
     origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',

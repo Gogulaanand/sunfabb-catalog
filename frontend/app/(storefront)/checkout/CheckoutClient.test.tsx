@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { act } from "react";
+import { useEffect } from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import type { Quote, Address } from "@/lib/customer-api";
 
@@ -15,6 +17,17 @@ vi.mock("next/link", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push, refresh }),
 }));
+
+// The real next/script fetches an external file in a browser; jsdom has none,
+// so this stand-in fires onLoad on mount — equivalent to "the Razorpay SDK is
+// available" for every test unless a test overrides window.Razorpay itself.
+function MockScript({ onLoad }: { onLoad?: () => void }) {
+  useEffect(() => {
+    onLoad?.();
+  }, [onLoad]);
+  return null;
+}
+vi.mock("next/script", () => ({ default: MockScript }));
 
 vi.mock("@/lib/api", () => ({
   formatPrice: (paise: number) => `₹${(paise / 100).toFixed(0)}`,
@@ -59,11 +72,42 @@ const ADDRESS: Address = {
   updated_at: "2026-06-27T00:00:00.000Z",
 };
 
+const PLACE_ORDER_RESPONSE = {
+  order: { order_number: "SF-2026-000007" },
+  payment: {
+    key: "rzp_test_key",
+    razorpayOrderId: "order_rzp_1",
+    amountPaise: 899800,
+    currency: "INR",
+    orderNumber: "SF-2026-000007",
+  },
+};
+
 describe("CheckoutClient", () => {
   const fetchMock = vi.fn();
+  let capturedRazorpayOptions: {
+    key: string;
+    amount: number;
+    currency: string;
+    order_id: string;
+    handler: (response: {
+      razorpay_payment_id: string;
+      razorpay_order_id: string;
+      razorpay_signature: string;
+    }) => void;
+    modal?: { ondismiss?: () => void };
+  } | null;
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
+    capturedRazorpayOptions = null;
+    class MockRazorpay {
+      open = vi.fn();
+      constructor(options: typeof capturedRazorpayOptions) {
+        capturedRazorpayOptions = options;
+      }
+    }
+    vi.stubGlobal("Razorpay", MockRazorpay);
   });
 
   afterEach(() => {
@@ -80,26 +124,111 @@ describe("CheckoutClient", () => {
     expect(screen.getByRole("button", { name: /Place Order/i })).toBeEnabled();
   });
 
-  it("places the order with the default address, clears the cart, and redirects to the order", async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({ order_number: "SF-2026-000007" }),
-    });
+  it("places the order, opens Razorpay Checkout with the server-issued amount/order id", async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => PLACE_ORDER_RESPONSE });
 
     render(<CheckoutClient quote={QUOTE} addresses={[ADDRESS]} />);
     fireEvent.click(screen.getByRole("button", { name: /Place Order/i }));
 
-    await waitFor(() =>
-      expect(push).toHaveBeenCalledWith("/account/orders/SF-2026-000007"),
-    );
-
+    await waitFor(() => expect(capturedRazorpayOptions).not.toBeNull());
+    expect(capturedRazorpayOptions).toMatchObject({
+      key: "rzp_test_key",
+      amount: 899800,
+      currency: "INR",
+      order_id: "order_rzp_1",
+    });
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/customer/orders",
       expect.objectContaining({ method: "POST" }),
     );
     const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
     expect(body).toEqual({ addressId: "addr-default" });
+    // Cart clears once the order exists, before Checkout even opens.
     expect(clearCart).toHaveBeenCalled();
+  });
+
+  it("confirms payment and redirects to the order on Checkout success", async () => {
+    fetchMock.mockImplementation((url: string) => {
+      if (url === "/api/customer/orders") {
+        return Promise.resolve({ ok: true, json: async () => PLACE_ORDER_RESPONSE });
+      }
+      if (url === "/api/customer/payments/verify") {
+        return Promise.resolve({ ok: true, json: async () => ({ status: "PAID" }) });
+      }
+      return Promise.reject(new Error(`unexpected fetch: ${url}`));
+    });
+
+    render(<CheckoutClient quote={QUOTE} addresses={[ADDRESS]} />);
+    fireEvent.click(screen.getByRole("button", { name: /Place Order/i }));
+    await waitFor(() => expect(capturedRazorpayOptions).not.toBeNull());
+
+    await act(async () => {
+      capturedRazorpayOptions!.handler({
+        razorpay_payment_id: "pay_1",
+        razorpay_order_id: "order_rzp_1",
+        razorpay_signature: "sig",
+      });
+    });
+
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/account/orders/SF-2026-000007"),
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/customer/payments/verify",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          razorpayOrderId: "order_rzp_1",
+          razorpayPaymentId: "pay_1",
+          razorpaySignature: "sig",
+        }),
+      }),
+    );
+  });
+
+  it("still redirects to the order if the optimistic verify call fails (webhook remains source of truth)", async () => {
+    fetchMock.mockImplementation((url: string) => {
+      if (url === "/api/customer/orders") {
+        return Promise.resolve({ ok: true, json: async () => PLACE_ORDER_RESPONSE });
+      }
+      if (url === "/api/customer/payments/verify") {
+        return Promise.resolve({ ok: false, json: async () => ({ message: "Invalid payment signature" }) });
+      }
+      return Promise.reject(new Error(`unexpected fetch: ${url}`));
+    });
+
+    render(<CheckoutClient quote={QUOTE} addresses={[ADDRESS]} />);
+    fireEvent.click(screen.getByRole("button", { name: /Place Order/i }));
+    await waitFor(() => expect(capturedRazorpayOptions).not.toBeNull());
+
+    await act(async () => {
+      capturedRazorpayOptions!.handler({
+        razorpay_payment_id: "pay_1",
+        razorpay_order_id: "order_rzp_1",
+        razorpay_signature: "sig",
+      });
+    });
+
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/account/orders/SF-2026-000007"),
+    );
+  });
+
+  it("shows an error and does not redirect when the Checkout modal is dismissed", async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => PLACE_ORDER_RESPONSE });
+
+    render(<CheckoutClient quote={QUOTE} addresses={[ADDRESS]} />);
+    fireEvent.click(screen.getByRole("button", { name: /Place Order/i }));
+    await waitFor(() => expect(capturedRazorpayOptions).not.toBeNull());
+
+    act(() => {
+      capturedRazorpayOptions!.modal?.ondismiss?.();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByText(/Payment was not completed/i)).toBeInTheDocument(),
+    );
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("surfaces a server error and does not redirect", async () => {
