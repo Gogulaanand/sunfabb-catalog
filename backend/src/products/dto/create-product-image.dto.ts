@@ -1,11 +1,16 @@
 import {
   IsBoolean,
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
   IsUrl,
+  IsUUID,
   Min,
 } from 'class-validator';
+import type { ProductImageRole } from '../../../generated/prisma/client.js';
+
+const PRODUCT_IMAGE_ROLES = ['GALLERY', 'SWATCH'] as const;
 
 export class CreateProductImageDto {
   @IsUrl()
@@ -29,6 +34,10 @@ export class CreateProductImageDto {
   is_primary?: boolean;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   variant_id?: string;
+
+  @IsOptional()
+  @IsEnum(PRODUCT_IMAGE_ROLES)
+  image_role?: ProductImageRole;
 }

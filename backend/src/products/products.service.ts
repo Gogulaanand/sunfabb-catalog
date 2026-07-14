@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { FindProductsDto } from './dto/find-products.dto.js';
 import { CreateProductDto } from './dto/create-product.dto.js';
@@ -161,6 +161,32 @@ export class ProductsService {
   }
 
   addImage(productId: string, dto: CreateProductImageDto) {
+    return this.createImageAfterVariantCheck(productId, dto);
+  }
+
+  private async createImageAfterVariantCheck(
+    productId: string,
+    dto: CreateProductImageDto,
+  ) {
+    if (dto.variant_id) {
+      const variant = await this.prisma.productVariant.findUnique({
+        where: { id: dto.variant_id },
+        select: { product_id: true },
+      });
+
+      if (!variant) {
+        throw new BadRequestException(
+          `Variant '${dto.variant_id}' was not found`,
+        );
+      }
+
+      if (variant.product_id !== productId) {
+        throw new BadRequestException(
+          `Variant '${dto.variant_id}' does not belong to product '${productId}'`,
+        );
+      }
+    }
+
     return this.prisma.productImage.create({
       data: { ...dto, product_id: productId },
     });
