@@ -155,11 +155,17 @@ describe("product server actions", () => {
     addImage.mockResolvedValue({});
     const file = new File(["x"], "a.jpg");
 
-    const result = await uploadAndAddImageAction("1", "royal-bedspread", file, { is_primary: true });
+    const result = await uploadAndAddImageAction("1", "royal-bedspread", file, {
+      is_primary: true,
+      variant_id: "variant-1",
+      image_role: "SWATCH",
+    });
 
     expect(result).toEqual({ ok: true, data: undefined });
     expect(addImage).toHaveBeenCalledWith("1", {
       is_primary: true,
+      variant_id: "variant-1",
+      image_role: "SWATCH",
       url: "https://cdn/x.jpg",
       public_id: "x",
     });

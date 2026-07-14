@@ -8,6 +8,8 @@ interface VariantSelectorProps {
   variants: ProductVariant[];
   productName: string;
   productSlug: string;
+  selectedVariantId: string | null;
+  onVariantChange: (variantId: string) => void;
 }
 
 function isLoggedIn(): boolean {
@@ -15,10 +17,13 @@ function isLoggedIn(): boolean {
   return document.cookie.split(";").some((c) => c.trim().startsWith("customer_logged_in="));
 }
 
-export default function VariantSelector({ variants, productName, productSlug }: VariantSelectorProps) {
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    variants[0]?.id ?? null
-  );
+export default function VariantSelector({
+  variants,
+  productName,
+  productSlug,
+  selectedVariantId,
+  onVariantChange,
+}: VariantSelectorProps) {
   const [addState, setAddState] = useState<"idle" | "loading" | "added" | "error">("idle");
 
   const addItem = useCartStore((s) => s.addItem);
@@ -95,6 +100,7 @@ export default function VariantSelector({ variants, productName, productSlug }: 
               return (
                 <button
                   key={size}
+                  type="button"
                   onClick={() => {
                     const match = variants.find(
                       (v) =>
@@ -102,7 +108,7 @@ export default function VariantSelector({ variants, productName, productSlug }: 
                         v.color.name === selectedVariant?.color.name &&
                         v.material.name === selectedVariant?.material.name
                     );
-                    if (match) setSelectedVariantId(match.id);
+                    if (match) onVariantChange(match.id);
                   }}
                   className={`px-4 py-1.5 rounded border text-body-sm transition-colors ${
                     isSelected
@@ -128,6 +134,7 @@ export default function VariantSelector({ variants, productName, productSlug }: 
               return (
                 <button
                   key={mat.name}
+                  type="button"
                   onClick={() => {
                     const match = variants.find(
                       (v) =>
@@ -135,7 +142,7 @@ export default function VariantSelector({ variants, productName, productSlug }: 
                         v.size === selectedVariant?.size &&
                         v.color.name === selectedVariant?.color.name
                     );
-                    if (match) setSelectedVariantId(match.id);
+                    if (match) onVariantChange(match.id);
                   }}
                   className={`px-4 py-1.5 rounded border text-body-sm transition-colors ${
                     isSelected
@@ -168,7 +175,10 @@ export default function VariantSelector({ variants, productName, productSlug }: 
               return (
                 <button
                   key={col.name}
+                  type="button"
                   title={col.name}
+                  aria-label={`Select color ${col.name}`}
+                  aria-pressed={isSelected}
                   onClick={() => {
                     const match = variants.find(
                       (v) =>
@@ -176,7 +186,7 @@ export default function VariantSelector({ variants, productName, productSlug }: 
                         v.size === selectedVariant?.size &&
                         v.material.name === selectedVariant?.material.name
                     );
-                    if (match) setSelectedVariantId(match.id);
+                    if (match) onVariantChange(match.id);
                   }}
                   className={`w-8 h-8 rounded-full border-2 transition-all ${
                     isSelected

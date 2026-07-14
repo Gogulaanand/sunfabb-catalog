@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
-import type { Category, Color, Material } from "./api";
+import { productImageRoleSchema, type Category, type Color, type Material, type ProductImageRole } from "./api";
+import { z } from "zod";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -9,10 +10,19 @@ export class AdminApiError extends Error {
   body: unknown;
 
   constructor(status: number, body: unknown) {
-    super(typeof body === "object" && body && "message" in body ? String((body as { message: unknown }).message) : "Request failed");
+    super(getErrorMessage(body));
     this.status = status;
     this.body = body;
   }
+}
+
+function getErrorMessage(body: unknown): string {
+  if (typeof body !== "object" || body === null || !("message" in body)) {
+    return "Request failed";
+  }
+
+  const message = body.message;
+  return typeof message === "string" ? message : "Request failed";
 }
 
 async function authHeaders(): Promise<HeadersInit> {
@@ -38,7 +48,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
 
   if (res.status === 204) return undefined as T;
-  return res.json() as Promise<T>;
+  return res.json();
+}
+
+async function requestJson(path: string, init: RequestInit = {}): Promise<unknown> {
+  return request<unknown>(path, init);
 }
 
 // --- Categories ---
@@ -131,40 +145,45 @@ export interface AdminProductsResponse {
   limit: number;
 }
 
-export interface AdminProductVariant {
-  id: string;
-  material_id: string;
-  color_id: string;
-  size: string;
-  price: number;
-  stock_quantity: number;
-  sku: string;
-  is_active: boolean;
-  material: { name: string };
-  color: { name: string; hex_code: string | null };
-}
+const adminProductVariantSchema = z.object({
+  id: z.string(),
+  material_id: z.string(),
+  color_id: z.string(),
+  size: z.string(),
+  price: z.number(),
+  stock_quantity: z.number(),
+  sku: z.string(),
+  is_active: z.boolean(),
+  material: z.object({ name: z.string() }),
+  color: z.object({ name: z.string(), hex_code: z.string().nullable() }),
+});
 
-export interface AdminProductImage {
-  id: string;
-  url: string;
-  alt_text: string | null;
-  sort_order: number;
-  is_primary: boolean;
-  variant_id: string | null;
-}
+const adminProductImageSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  alt_text: z.string().nullable(),
+  sort_order: z.number(),
+  is_primary: z.boolean(),
+  variant_id: z.string().nullable(),
+  image_role: productImageRoleSchema,
+});
 
-export interface AdminProduct {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  care_instructions: string | null;
-  category_id: string;
-  is_active: boolean;
-  category: { name: string; slug: string };
-  variants: AdminProductVariant[];
-  images: AdminProductImage[];
-}
+const adminProductSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  care_instructions: z.string().nullable(),
+  category_id: z.string(),
+  is_active: z.boolean(),
+  category: z.object({ name: z.string(), slug: z.string() }),
+  variants: z.array(adminProductVariantSchema),
+  images: z.array(adminProductImageSchema),
+});
+
+export type AdminProductVariant = z.infer<typeof adminProductVariantSchema>;
+export type AdminProductImage = z.infer<typeof adminProductImageSchema>;
+export type AdminProduct = z.infer<typeof adminProductSchema>;
 
 export interface ProductInput {
   name: string;
@@ -179,7 +198,7 @@ export function getAdminProducts(): Promise<AdminProductsResponse> {
 }
 
 export function getAdminProduct(slug: string): Promise<AdminProduct> {
-  return request(`/products/${slug}`);
+  return requestJson(`/products/${slug}`).then((body) => adminProductSchema.parse(body));
 }
 
 export function createProduct(input: ProductInput): Promise<AdminProduct> {
@@ -235,6 +254,7 @@ export interface ImageInput {
   sort_order?: number;
   is_primary?: boolean;
   variant_id?: string;
+  image_role?: ProductImageRole;
 }
 
 export function addImage(productId: string, input: ImageInput): Promise<AdminProductImage> {
@@ -266,5 +286,5 @@ export async function uploadImage(file: File): Promise<{ url: string; public_id:
     throw new AdminApiError(res.status, body);
   }
 
-  return res.json() as Promise<{ url: string; public_id: string }>;
+  return z.object({ url: z.string(), public_id: z.string() }).parse(await res.json());
 }

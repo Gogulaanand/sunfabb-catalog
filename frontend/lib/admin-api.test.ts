@@ -36,6 +36,41 @@ import {
 
 describe("admin-api", () => {
   const fetchMock = vi.fn();
+  const adminProductFixture = {
+    id: "product-1",
+    name: "Royal Bedspread",
+    slug: "royal-bedspread",
+    description: null,
+    care_instructions: null,
+    category_id: "category-1",
+    is_active: true,
+    category: { name: "Bedspreads", slug: "bedspreads" },
+    variants: [
+      {
+        id: "variant-1",
+        material_id: "material-1",
+        color_id: "color-1",
+        size: "Queen",
+        price: 125000,
+        stock_quantity: 4,
+        sku: "BSP-QUEEN-RED",
+        is_active: true,
+        material: { name: "Cotton" },
+        color: { name: "Red", hex_code: "#ff0000" },
+      },
+    ],
+    images: [
+      {
+        id: "image-1",
+        url: "https://example.com/image.jpg",
+        alt_text: null,
+        sort_order: 0,
+        is_primary: true,
+        variant_id: "variant-1",
+        image_role: "GALLERY",
+      },
+    ],
+  };
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
@@ -110,7 +145,6 @@ describe("admin-api", () => {
     ["updateColor", () => updateColor("1", { name: "x" }), "/colors/1", "PATCH"],
     ["deleteColor", () => deleteColor("1"), "/colors/1", "DELETE"],
     ["getAdminProducts", () => getAdminProducts(), "/products/admin?limit=100", "GET"],
-    ["getAdminProduct", () => getAdminProduct("slug"), "/products/slug", "GET"],
     [
       "createProduct",
       () => createProduct({ name: "x", slug: "x", category_id: "1" }),
@@ -144,6 +178,25 @@ describe("admin-api", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain(path);
     expect(init.method ?? "GET").toBe(method);
+  });
+
+  it("runtime-validates the admin product detail response", async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => adminProductFixture });
+
+    await expect(getAdminProduct("royal-bedspread")).resolves.toEqual(adminProductFixture);
+  });
+
+  it("rejects an admin product detail response with malformed image metadata", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ...adminProductFixture,
+        images: [{ ...adminProductFixture.images[0], image_role: "THUMBNAIL" }],
+      }),
+    });
+
+    await expect(getAdminProduct("royal-bedspread")).rejects.toThrow();
   });
 
   it("uploadImage sends multipart form data with the bearer token, no Content-Type override", async () => {

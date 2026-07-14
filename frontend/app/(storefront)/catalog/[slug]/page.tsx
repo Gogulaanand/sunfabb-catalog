@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getProduct, getProducts, formatPrice } from "@/lib/api";
-import VariantSelector from "./VariantSelector";
+import { ProductDetailInteractive } from "./ProductDetailInteractive";
+import { getInitialVariantId } from "./product-gallery-utils";
 
 export const revalidate = 30;
 
@@ -36,13 +37,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   if (!product) notFound();
 
-  const sortedImages = [...product.images].sort((a, b) => {
-    if (a.is_primary && !b.is_primary) return -1;
-    if (!a.is_primary && b.is_primary) return 1;
-    return a.sort_order - b.sort_order;
-  });
-
-  const primaryImage = sortedImages[0];
+  const initialVariantId = getInitialVariantId(product.variants, product.images);
 
   const related = (
     await getProducts({ categorySlug: product.category.slug, limit: 5 }).catch(() => ({
@@ -71,85 +66,38 @@ export default async function ProductDetailPage({ params }: PageProps) {
         <span className="text-on-surface">{product.name}</span>
       </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-(--spacing-gutter-desktop)">
-        {/* Images */}
-        <div className="space-y-3">
-          {primaryImage ? (
-            <div className="relative aspect-square rounded-md overflow-hidden bg-surface-container">
-              <Image
-                src={primaryImage.url}
-                alt={primaryImage.alt_text ?? product.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                priority
-              />
+      <ProductDetailInteractive
+        images={product.images}
+        variants={product.variants}
+        productName={product.name}
+        productSlug={product.slug}
+        initialVariantId={initialVariantId}
+        detailsBeforeVariant={
+          <div className="space-y-6">
+            <div>
+              <p className="text-label-caps text-primary mb-2">{product.category.name}</p>
+              <h1 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface">
+                {product.name}
+              </h1>
             </div>
-          ) : (
-            <div className="aspect-square rounded-md bg-surface-container flex items-center justify-center text-outline text-7xl">
-              🧵
-            </div>
-          )}
-
-          {/* Thumbnail strip */}
-          {sortedImages.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {sortedImages.map((img) => (
-                <div
-                  key={img.id}
-                  className="relative w-20 h-20 shrink-0 rounded overflow-hidden bg-surface-container border border-outline-variant"
-                >
-                  <Image
-                    src={img.url}
-                    alt={img.alt_text ?? product.name}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Details */}
-        <div className="space-y-6">
-          <div>
-            <p className="text-label-caps text-primary mb-2">{product.category.name}</p>
-            <h1 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface">
-              {product.name}
-            </h1>
+            {product.description && (
+              <p className="text-body-md text-on-surface-variant leading-relaxed">
+                {product.description}
+              </p>
+            )}
           </div>
-
-          {/* Description */}
-          {product.description && (
-            <p className="text-body-md text-on-surface-variant leading-relaxed">
-              {product.description}
-            </p>
-          )}
-
-          {/* Variant selector (client component) */}
-          {product.variants.length > 0 ? (
-            <VariantSelector
-              variants={product.variants}
-              productName={product.name}
-              productSlug={product.slug}
-            />
-          ) : (
-            <p className="text-on-surface-variant text-body-sm">No variants available.</p>
-          )}
-
-          {/* Care instructions */}
-          {product.care_instructions && (
+        }
+        detailsAfterVariant={
+          product.care_instructions ? (
             <div className="pt-6 border-t border-outline-variant">
               <h2 className="text-title-sm text-on-surface mb-2">Care Instructions</h2>
               <p className="text-body-sm text-on-surface-variant leading-relaxed">
                 {product.care_instructions}
               </p>
             </div>
-          )}
-        </div>
-      </div>
+          ) : null
+        }
+      />
 
       {/* Complete the look */}
       {related.length > 0 && (
@@ -167,7 +115,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
             {related.map((item) => {
-              const itemImage = item.images.find((img) => img.is_primary) ?? item.images[0];
+              const galleryImages = item.images.filter((img) => img.image_role === "GALLERY");
+              const itemImage = galleryImages.find((img) => img.is_primary) ?? galleryImages[0];
               const lowestPrice = item.variants.length
                 ? Math.min(...item.variants.map((v) => v.price))
                 : null;
