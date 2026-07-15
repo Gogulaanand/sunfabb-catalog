@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatPrice, type ProductVariant } from "@/lib/api";
 import { useCartStore } from "@/lib/cart-store";
 
@@ -8,6 +8,8 @@ interface VariantSelectorProps {
   variants: ProductVariant[];
   productName: string;
   productSlug: string;
+  selectedVariantId: string | null;
+  onVariantChange: (variantId: string) => void;
 }
 
 function isLoggedIn(): boolean {
@@ -15,32 +17,91 @@ function isLoggedIn(): boolean {
   return document.cookie.split(";").some((c) => c.trim().startsWith("customer_logged_in="));
 }
 
-export default function VariantSelector({ variants, productName, productSlug }: VariantSelectorProps) {
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    variants[0]?.id ?? null
+function uniqueByName<T extends { name: string }>(items: T[]): T[] {
+  return Array.from(new Map(items.map((item) => [item.name, item])).values());
+}
+
+function chooseVariantForSize(
+  variants: ProductVariant[],
+  size: string,
+  current: ProductVariant,
+): ProductVariant | undefined {
+  const candidates = variants.filter((variant) => variant.size === size);
+
+  return (
+    candidates.find(
+      (variant) =>
+        variant.material.name === current.material.name &&
+        variant.color.name === current.color.name,
+    ) ??
+    candidates.find((variant) => variant.material.name === current.material.name) ??
+    candidates.find((variant) => variant.color.name === current.color.name) ??
+    candidates[0]
   );
+}
+
+function chooseVariantForMaterial(
+  variants: ProductVariant[],
+  size: string,
+  materialName: string,
+  currentColorName: string,
+): ProductVariant | undefined {
+  const candidates = variants.filter(
+    (variant) => variant.size === size && variant.material.name === materialName,
+  );
+
+  return candidates.find((variant) => variant.color.name === currentColorName) ?? candidates[0];
+}
+
+export function VariantSelector({
+  variants,
+  productName,
+  productSlug,
+  selectedVariantId,
+  onVariantChange,
+}: VariantSelectorProps) {
   const [addState, setAddState] = useState<"idle" | "loading" | "added" | "error">("idle");
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const addItem = useCartStore((s) => s.addItem);
 
   const selectedVariant = variants.find((v) => v.id === selectedVariantId) ?? variants[0];
 
-  // Collect unique sizes, materials, colors. The material/color embedded on a
-  // variant has no id (the backend only selects name/hex_code there — see
-  // lib/api.ts), so dedupe by name, which is unique per Material/Color row.
+  // Variant choices are hierarchical: size narrows material, and the chosen
+  // size/material pair narrows color. Material/color are deduped by name
+  // because the embedded API shapes intentionally omit their ids.
   const sizes = Array.from(
     new Map(
       variants.filter((v) => v.size).map((v) => [v.size, v.size])
     ).values()
   );
 
-  const materials = Array.from(
-    new Map(variants.map((v) => [v.material.name, v.material])).values()
+  const variantsForSize = selectedVariant
+    ? variants.filter((variant) => variant.size === selectedVariant.size)
+    : [];
+  const materials = uniqueByName(
+    variantsForSize.map((variant) => variant.material),
   );
 
-  const colors = Array.from(
-    new Map(variants.map((v) => [v.color.name, v.color])).values()
+  const variantsForMaterial = selectedVariant
+    ? variantsForSize.filter(
+        (variant) => variant.material.name === selectedVariant.material.name,
+      )
+    : [];
+  const colors = uniqueByName(
+    variantsForMaterial.map((variant) => variant.color),
   );
+
+  useEffect(() => {
+    return () => {
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+    };
+  }, []);
+
+  function resetAddStateAfterDelay() {
+    if (resetTimer.current) clearTimeout(resetTimer.current);
+    resetTimer.current = setTimeout(() => setAddState("idle"), 2000);
+  }
 
   async function handleAddToCart() {
     if (!selectedVariant) return;
@@ -69,10 +130,10 @@ export default function VariantSelector({ variants, productName, productSlug }: 
         });
       }
       setAddState("added");
-      setTimeout(() => setAddState("idle"), 2000);
+      resetAddStateAfterDelay();
     } catch {
       setAddState("error");
-      setTimeout(() => setAddState("idle"), 2000);
+      resetAddStateAfterDelay();
     }
   }
 
@@ -95,14 +156,12 @@ export default function VariantSelector({ variants, productName, productSlug }: 
               return (
                 <button
                   key={size}
+                  type="button"
+                  aria-pressed={isSelected}
                   onClick={() => {
-                    const match = variants.find(
-                      (v) =>
-                        v.size === size &&
-                        v.color.name === selectedVariant?.color.name &&
-                        v.material.name === selectedVariant?.material.name
-                    );
-                    if (match) setSelectedVariantId(match.id);
+                    if (!selectedVariant) return;
+                    const match = chooseVariantForSize(variants, size, selectedVariant);
+                    if (match) onVariantChange(match.id);
                   }}
                   className={`px-4 py-1.5 rounded border text-body-sm transition-colors ${
                     isSelected
@@ -128,14 +187,17 @@ export default function VariantSelector({ variants, productName, productSlug }: 
               return (
                 <button
                   key={mat.name}
+                  type="button"
+                  aria-pressed={isSelected}
                   onClick={() => {
-                    const match = variants.find(
-                      (v) =>
-                        v.material.name === mat.name &&
-                        v.size === selectedVariant?.size &&
-                        v.color.name === selectedVariant?.color.name
+                    if (!selectedVariant) return;
+                    const match = chooseVariantForMaterial(
+                      variants,
+                      selectedVariant.size,
+                      mat.name,
+                      selectedVariant.color.name,
                     );
-                    if (match) setSelectedVariantId(match.id);
+                    if (match) onVariantChange(match.id);
                   }}
                   className={`px-4 py-1.5 rounded border text-body-sm transition-colors ${
                     isSelected
@@ -168,7 +230,10 @@ export default function VariantSelector({ variants, productName, productSlug }: 
               return (
                 <button
                   key={col.name}
+                  type="button"
                   title={col.name}
+                  aria-label={`Select color ${col.name}`}
+                  aria-pressed={isSelected}
                   onClick={() => {
                     const match = variants.find(
                       (v) =>
@@ -176,7 +241,7 @@ export default function VariantSelector({ variants, productName, productSlug }: 
                         v.size === selectedVariant?.size &&
                         v.material.name === selectedVariant?.material.name
                     );
-                    if (match) setSelectedVariantId(match.id);
+                    if (match) onVariantChange(match.id);
                   }}
                   className={`w-8 h-8 rounded-full border-2 transition-all ${
                     isSelected

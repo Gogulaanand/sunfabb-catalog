@@ -76,6 +76,11 @@ model ProductVariant {
   order_items OrderItem[]
 }
 
+enum ProductImageRole {
+  GALLERY
+  SWATCH
+}
+
 model ProductImage {
   id         String  @id @default(uuid())
   product_id String
@@ -85,6 +90,7 @@ model ProductImage {
   alt_text   String?
   sort_order Int     @default(0)
   is_primary Boolean @default(false)
+  image_role ProductImageRole @default(GALLERY)
 
   product Product         @relation(fields: [product_id], references: [id])
   variant ProductVariant? @relation(fields: [variant_id], references: [id])

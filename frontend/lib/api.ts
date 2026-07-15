@@ -54,12 +54,16 @@ const productListVariantSchema = z.object({
   price: z.number(), // paise
 });
 
+export const productImageRoleSchema = z.enum(["GALLERY", "SWATCH"]);
+
 const productImageSchema = z.object({
   id: z.string(),
   url: z.string(),
   alt_text: z.string().nullable(),
   is_primary: z.boolean(),
   sort_order: z.number(),
+  variant_id: z.string().nullable(),
+  image_role: productImageRoleSchema,
 });
 
 const productSchema = z.object({
@@ -95,6 +99,7 @@ export type Material = z.infer<typeof materialSchema>;
 export type Color = z.infer<typeof colorSchema>;
 export type ProductVariant = z.infer<typeof productVariantSchema>;
 export type ProductImage = z.infer<typeof productImageSchema>;
+export type ProductImageRole = z.infer<typeof productImageRoleSchema>;
 export type Product = z.infer<typeof productSchema>;
 export type ProductListItem = z.infer<typeof productListItemSchema>;
 export type ProductsResponse = z.infer<typeof productsResponseSchema>;

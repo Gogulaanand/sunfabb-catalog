@@ -24,6 +24,8 @@ const imageFixture = {
   alt_text: null,
   is_primary: true,
   sort_order: 0,
+  variant_id: "22222222-2222-2222-2222-222222222222",
+  image_role: "GALLERY" as const,
 };
 
 // The product-detail endpoint returns full variants, including the nested
@@ -126,6 +128,8 @@ describe("getProducts", () => {
     const result = await getProducts();
     expect(result.items[0].variants[0].price).toBe(125000);
     expect(result.items[0].images[0].sort_order).toBe(0);
+    expect(result.items[0].images[0].variant_id).toBe(detailVariantFixture.id);
+    expect(result.items[0].images[0].image_role).toBe("GALLERY");
     expect(typeof result.items[0].id).toBe("string");
   });
 
@@ -182,6 +186,30 @@ describe("getProduct", () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({ ...productFixture, variants: [variantWithoutStock] }),
+    });
+
+    await expect(getProduct("royal-cotton-bedspread")).rejects.toThrow();
+  });
+
+  it("rejects malformed product image fields", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...productFixture,
+        images: [{ ...imageFixture, variant_id: 42 }],
+      }),
+    });
+
+    await expect(getProduct("royal-cotton-bedspread")).rejects.toThrow();
+  });
+
+  it("rejects an unsupported product image role", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...productFixture,
+        images: [{ ...imageFixture, image_role: "THUMBNAIL" }],
+      }),
     });
 
     await expect(getProduct("royal-cotton-bedspread")).rejects.toThrow();

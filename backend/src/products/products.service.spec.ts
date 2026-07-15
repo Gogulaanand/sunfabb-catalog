@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException } from '@nestjs/common';
+import { ProductImageRole } from '../../generated/prisma/enums.js';
 import { ProductsService } from './products.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { FindProductsDto } from './dto/find-products.dto.js';
@@ -28,6 +30,7 @@ const mockPrisma = {
   },
   productVariant: {
     create: jest.fn(),
+    findUnique: jest.fn(),
   },
   productImage: {
     create: jest.fn(),
@@ -69,6 +72,22 @@ describe('ProductsService', () => {
           where: { is_active: true },
           skip: 0,
           take: 20,
+          include: {
+            category: { select: { name: true, slug: true } },
+            images: {
+              where: {
+                is_primary: true,
+                image_role: ProductImageRole.GALLERY,
+              },
+              take: 1,
+            },
+            variants: {
+              where: { is_active: true },
+              select: { price: true },
+              orderBy: { price: 'asc' },
+              take: 1,
+            },
+          },
         }),
       );
     });
@@ -190,7 +209,26 @@ describe('ProductsService', () => {
         limit: 20,
       });
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: {}, skip: 0, take: 20 }),
+        expect.objectContaining({
+          where: {},
+          skip: 0,
+          take: 20,
+          include: {
+            category: { select: { name: true, slug: true } },
+            images: {
+              where: {
+                is_primary: true,
+                image_role: ProductImageRole.GALLERY,
+              },
+              take: 1,
+            },
+            variants: {
+              select: { price: true },
+              orderBy: { price: 'asc' },
+              take: 1,
+            },
+          },
+        }),
       );
     });
 
@@ -230,7 +268,18 @@ describe('ProductsService', () => {
 
   describe('findOne', () => {
     it('returns product with variants and images when found', async () => {
-      const fullProduct = { ...mockProduct, variants: [], images: [] };
+      const fullProduct = {
+        ...mockProduct,
+        variants: [],
+        images: [
+          {
+            id: 'image-1',
+            variant_id: 'variant-1',
+            image_role: 'GALLERY',
+            url: 'https://example.com/image.jpg',
+          },
+        ],
+      };
       mockPrisma.product.findUnique.mockResolvedValue(fullProduct);
 
       const result = await service.findOne('classic-bedspread');
@@ -327,8 +376,15 @@ describe('ProductsService', () => {
 
   describe('addImage', () => {
     it('creates an image linked to the product', async () => {
-      const dto = { url: 'https://res.cloudinary.com/test/image.jpg' };
+      const dto = {
+        url: 'https://res.cloudinary.com/test/image.jpg',
+        variant_id: 'variant-1',
+        image_role: ProductImageRole.GALLERY,
+      };
       const created = { id: 'cuid-img-1', product_id: 'cuid-1', ...dto };
+      mockPrisma.productVariant.findUnique.mockResolvedValue({
+        product_id: 'cuid-1',
+      });
       mockPrisma.productImage.create.mockResolvedValue(created);
 
       const result = await service.addImage('cuid-1', dto);
@@ -337,6 +393,60 @@ describe('ProductsService', () => {
       expect(mockPrisma.productImage.create).toHaveBeenCalledWith({
         data: { ...dto, product_id: 'cuid-1' },
       });
+    });
+
+    it('rejects a variant belonging to another product', async () => {
+      mockPrisma.productVariant.findUnique.mockResolvedValue({
+        product_id: 'other-product',
+      });
+
+      await expect(
+        service.addImage('cuid-1', {
+          url: 'https://res.cloudinary.com/test/image.jpg',
+          variant_id: 'variant-1',
+        }),
+      ).rejects.toThrow(
+        new BadRequestException(
+          "Variant 'variant-1' does not belong to product 'cuid-1'",
+        ),
+      );
+      expect(mockPrisma.productImage.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a variant that does not exist', async () => {
+      mockPrisma.productVariant.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.addImage('cuid-1', {
+          url: 'https://res.cloudinary.com/test/image.jpg',
+          variant_id: 'missing-variant',
+        }),
+      ).rejects.toThrow("Variant 'missing-variant' was not found");
+      expect(mockPrisma.productImage.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a swatch without a variant association', async () => {
+      await expect(
+        service.addImage('cuid-1', {
+          url: 'https://res.cloudinary.com/test/swatch.jpg',
+          image_role: ProductImageRole.SWATCH,
+        }),
+      ).rejects.toThrow('A swatch image must be associated with a variant');
+      expect(mockPrisma.productVariant.findUnique).not.toHaveBeenCalled();
+      expect(mockPrisma.productImage.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a swatch marked as a primary product image', async () => {
+      await expect(
+        service.addImage('cuid-1', {
+          url: 'https://res.cloudinary.com/test/swatch.jpg',
+          image_role: ProductImageRole.SWATCH,
+          variant_id: 'variant-1',
+          is_primary: true,
+        }),
+      ).rejects.toThrow('A swatch image cannot be a primary product image');
+      expect(mockPrisma.productVariant.findUnique).not.toHaveBeenCalled();
+      expect(mockPrisma.productImage.create).not.toHaveBeenCalled();
     });
   });
 });

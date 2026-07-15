@@ -95,8 +95,11 @@ export default async function CatalogPage({ searchParams }: PageProps) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-(--spacing-gutter-desktop)">
               {products.map((product) => {
+                const galleryImages = product.images.filter(
+                  (image) => image.image_role === "GALLERY",
+                );
                 const primaryImage =
-                  product.images.find((img) => img.is_primary) ?? product.images[0];
+                  galleryImages.find((image) => image.is_primary) ?? galleryImages[0];
                 const lowestPrice = product.variants.length
                   ? Math.min(...product.variants.map((v) => v.price))
                   : null;
