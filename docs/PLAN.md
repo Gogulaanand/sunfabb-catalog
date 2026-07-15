@@ -124,7 +124,7 @@ ProductVariant   ← the actual buyable version (size + color + material)
 ProductImage
   id          (uuid, pk)
   product_id  (fk → Product)
-  variant_id? (fk → ProductVariant)   optional: color-specific shots
+  variant_id? (fk → ProductVariant)   optional: exact-SKU shots; null means shared
   url         (string)
   alt_text?   (string)
   sort_order  (integer, default 0)

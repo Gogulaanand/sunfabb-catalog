@@ -5,6 +5,7 @@ import { CreateProductDto } from './dto/create-product.dto.js';
 import { UpdateProductDto } from './dto/update-product.dto.js';
 import { CreateVariantDto } from './dto/create-variant.dto.js';
 import { CreateProductImageDto } from './dto/create-product-image.dto.js';
+import { ProductImageRole } from '../../generated/prisma/enums.js';
 
 @Injectable()
 export class ProductsService {
@@ -35,7 +36,13 @@ export class ProductsService {
 
     const include = {
       category: { select: { name: true, slug: true } },
-      images: { where: { is_primary: true }, take: 1 },
+      images: {
+        where: {
+          is_primary: true,
+          image_role: ProductImageRole.GALLERY,
+        },
+        take: 1,
+      },
       variants: {
         where: { is_active: true },
         select: { price: true },
@@ -86,7 +93,13 @@ export class ProductsService {
 
     const include = {
       category: { select: { name: true, slug: true } },
-      images: { where: { is_primary: true }, take: 1 },
+      images: {
+        where: {
+          is_primary: true,
+          image_role: ProductImageRole.GALLERY,
+        },
+        take: 1,
+      },
       variants: {
         select: { price: true },
         orderBy: { price: 'asc' as const },
@@ -168,6 +181,20 @@ export class ProductsService {
     productId: string,
     dto: CreateProductImageDto,
   ) {
+    if (dto.image_role === ProductImageRole.SWATCH) {
+      if (!dto.variant_id) {
+        throw new BadRequestException(
+          'A swatch image must be associated with a variant',
+        );
+      }
+
+      if (dto.is_primary) {
+        throw new BadRequestException(
+          'A swatch image cannot be a primary product image',
+        );
+      }
+    }
+
     if (dto.variant_id) {
       const variant = await this.prisma.productVariant.findUnique({
         where: { id: dto.variant_id },

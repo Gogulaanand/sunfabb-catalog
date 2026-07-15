@@ -36,3 +36,26 @@ npm test
 npm run dev
 npm test
 ```
+
+## One-time legacy image cleanup
+
+The product-image role migration deliberately defaults existing images to `GALLERY`. It does not run
+data cleanup during deployment. After applying the migration, choose one of these one-time options:
+
+1. If the twelve known legacy `/swatch` records still exist, classify them manually:
+
+   ```bash
+   cd backend
+   npm run data:classify-known-swatches
+   ```
+
+   The command validates that all twelve expected records are present and associated with the three
+   known products before changing them to `SWATCH`. It also removes primary-image status from them.
+   Do not add this command to the normal deployment or migration workflow.
+
+2. If those legacy assets are no longer needed, delete them through the admin catalog instead. That
+   removes both the database record and its Cloudinary asset. In that case, do not run the command;
+   upload only the polished catalog/end-scene images as `GALLERY` images with the correct variant.
+
+`SWATCH` remains a storage classification only. Swatch images are excluded from every public gallery
+and product-card query.

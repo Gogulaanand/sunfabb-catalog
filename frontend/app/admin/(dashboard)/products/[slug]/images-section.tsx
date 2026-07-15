@@ -33,18 +33,26 @@ export function ImagesSection({ product }: { product: AdminProduct }) {
   const [error, setError] = useState<string | null>(null);
   const [variantId, setVariantId] = useState("");
   const [imageRole, setImageRole] = useState<ProductImageRole>("GALLERY");
+  const swatchNeedsVariant = imageRole === "SWATCH" && !variantId;
 
   async function handleFileChange(files: File[]) {
     if (files.length === 0) return;
+    if (swatchNeedsVariant) {
+      setError("Select a variant before uploading a swatch.");
+      return;
+    }
     setUploading(true);
     setError(null);
 
     const startingSortOrder = product.images.length;
+    const hasPrimaryGallery = product.images.some(
+      (image) => image.image_role === "GALLERY" && image.is_primary,
+    );
     const errors: string[] = [];
     for (const [index, file] of files.entries()) {
       const result = await uploadAndAddImageAction(product.id, product.slug, file, {
         sort_order: startingSortOrder + index,
-        is_primary: startingSortOrder === 0 && index === 0,
+        is_primary: imageRole === "GALLERY" && !hasPrimaryGallery && index === 0,
         image_role: imageRole,
         ...(variantId ? { variant_id: variantId } : {}),
       });
@@ -65,7 +73,15 @@ export function ImagesSection({ product }: { product: AdminProduct }) {
       </Heading>
 
       <Stack gap="3" mb="4">
-        <Field label="Variant">
+        <Field
+          label="Variant"
+          required={imageRole === "SWATCH"}
+          helperText={
+            imageRole === "SWATCH"
+              ? "Required for stored swatches. Swatches are never shown publicly."
+              : "Leave blank to share a gallery image across every variant."
+          }
+        >
           <NativeSelect.Root>
             <NativeSelect.Field value={variantId} onChange={(event) => setVariantId(event.target.value)}>
               <option value="">Shared across all colors</option>
@@ -106,7 +122,12 @@ export function ImagesSection({ product }: { product: AdminProduct }) {
       >
         <FileUpload.HiddenInput />
         <FileUpload.Trigger asChild>
-          <Button size="sm" variant="outline" loading={uploading}>
+          <Button
+            size="sm"
+            variant="outline"
+            loading={uploading}
+            disabled={swatchNeedsVariant}
+          >
             <Icon>
               <LuUpload />
             </Icon>

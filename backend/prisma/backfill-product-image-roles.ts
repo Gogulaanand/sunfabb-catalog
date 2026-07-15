@@ -10,17 +10,19 @@ export const TARGET_PRODUCT_SLUGS = [
 ] as const;
 
 const EXPECTED_SWATCH_COUNT = 12;
+const EXPECTED_SWATCH_COUNT_PER_PRODUCT = 4;
 
 export interface SwatchBackfillRecord {
   id: string;
   variant_id: string | null;
   image_role: ProductImageRole;
+  is_primary: boolean;
   product: { slug: string };
 }
 
 export interface SwatchBackfillOperations {
   findMatchingSwatches: () => Promise<SwatchBackfillRecord[]>;
-  setSwatchRole: (imageId: string) => Promise<void>;
+  classifySwatch: (imageId: string) => Promise<void>;
 }
 
 export async function classifyKnownSwatches(
@@ -41,20 +43,28 @@ export async function classifyKnownSwatches(
     );
   }
 
-  const matchedSlugs = new Set(matches.map((image) => image.product.slug));
-  const missingProduct = TARGET_PRODUCT_SLUGS.find(
-    (slug) => !matchedSlugs.has(slug),
-  );
-  if (missingProduct) {
-    throw new Error(
-      `Swatch backfill preflight failed: no matching record belongs to '${missingProduct}'`,
-    );
+  for (const slug of TARGET_PRODUCT_SLUGS) {
+    const productMatchCount = matches.filter(
+      (image) => image.product.slug === slug,
+    ).length;
+    if (productMatchCount === 0) {
+      throw new Error(
+        `Swatch backfill preflight failed: no matching record belongs to '${slug}'`,
+      );
+    }
+    if (productMatchCount !== EXPECTED_SWATCH_COUNT_PER_PRODUCT) {
+      throw new Error(
+        `Swatch backfill preflight failed: expected exactly ${EXPECTED_SWATCH_COUNT_PER_PRODUCT} matching records for '${slug}', found ${productMatchCount}`,
+      );
+    }
   }
 
   let updatedCount = 0;
   for (const image of matches) {
-    if (image.image_role === ProductImageRole.SWATCH) continue;
-    await operations.setSwatchRole(image.id);
+    if (image.image_role === ProductImageRole.SWATCH && !image.is_primary) {
+      continue;
+    }
+    await operations.classifySwatch(image.id);
     updatedCount += 1;
   }
 
@@ -74,13 +84,17 @@ async function backfillSwatches(prisma: PrismaClient): Promise<number> {
             id: true,
             variant_id: true,
             image_role: true,
+            is_primary: true,
             product: { select: { slug: true } },
           },
         }),
-      setSwatchRole: async (imageId) => {
+      classifySwatch: async (imageId) => {
         await tx.productImage.update({
           where: { id: imageId },
-          data: { image_role: ProductImageRole.SWATCH },
+          data: {
+            image_role: ProductImageRole.SWATCH,
+            is_primary: false,
+          },
         });
       },
     }),

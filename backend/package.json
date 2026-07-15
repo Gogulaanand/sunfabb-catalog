@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "postinstall": "prisma generate",
+    "data:classify-known-swatches": "tsx prisma/backfill-product-image-roles.ts",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

@@ -72,6 +72,22 @@ describe('ProductsService', () => {
           where: { is_active: true },
           skip: 0,
           take: 20,
+          include: {
+            category: { select: { name: true, slug: true } },
+            images: {
+              where: {
+                is_primary: true,
+                image_role: ProductImageRole.GALLERY,
+              },
+              take: 1,
+            },
+            variants: {
+              where: { is_active: true },
+              select: { price: true },
+              orderBy: { price: 'asc' },
+              take: 1,
+            },
+          },
         }),
       );
     });
@@ -193,7 +209,26 @@ describe('ProductsService', () => {
         limit: 20,
       });
       expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: {}, skip: 0, take: 20 }),
+        expect.objectContaining({
+          where: {},
+          skip: 0,
+          take: 20,
+          include: {
+            category: { select: { name: true, slug: true } },
+            images: {
+              where: {
+                is_primary: true,
+                image_role: ProductImageRole.GALLERY,
+              },
+              take: 1,
+            },
+            variants: {
+              select: { price: true },
+              orderBy: { price: 'asc' },
+              take: 1,
+            },
+          },
+        }),
       );
     });
 
@@ -387,6 +422,30 @@ describe('ProductsService', () => {
           variant_id: 'missing-variant',
         }),
       ).rejects.toThrow("Variant 'missing-variant' was not found");
+      expect(mockPrisma.productImage.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a swatch without a variant association', async () => {
+      await expect(
+        service.addImage('cuid-1', {
+          url: 'https://res.cloudinary.com/test/swatch.jpg',
+          image_role: ProductImageRole.SWATCH,
+        }),
+      ).rejects.toThrow('A swatch image must be associated with a variant');
+      expect(mockPrisma.productVariant.findUnique).not.toHaveBeenCalled();
+      expect(mockPrisma.productImage.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a swatch marked as a primary product image', async () => {
+      await expect(
+        service.addImage('cuid-1', {
+          url: 'https://res.cloudinary.com/test/swatch.jpg',
+          image_role: ProductImageRole.SWATCH,
+          variant_id: 'variant-1',
+          is_primary: true,
+        }),
+      ).rejects.toThrow('A swatch image cannot be a primary product image');
+      expect(mockPrisma.productVariant.findUnique).not.toHaveBeenCalled();
       expect(mockPrisma.productImage.create).not.toHaveBeenCalled();
     });
   });

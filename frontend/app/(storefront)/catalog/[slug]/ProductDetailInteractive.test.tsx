@@ -107,4 +107,103 @@ describe("ProductDetailInteractive", () => {
     expect(screen.getByTestId("product-gallery-main-image")).toHaveAttribute("alt", "Blue hero");
     expect(screen.queryByAltText("Red photo 2")).not.toBeInTheDocument();
   });
+
+  it("filters material and color choices through the selected size hierarchy", () => {
+    const hierarchicalVariants: ProductVariant[] = [
+      {
+        id: "king-cotton-red",
+        size: "King",
+        price: 120000,
+        stock_quantity: 4,
+        material: { name: "Cotton" },
+        color: { name: "Red", hex_code: "#ff0000" },
+      },
+      {
+        id: "king-cotton-blue",
+        size: "King",
+        price: 121000,
+        stock_quantity: 4,
+        material: { name: "Cotton" },
+        color: { name: "Blue", hex_code: "#0000ff" },
+      },
+      {
+        id: "queen-cotton-blue",
+        size: "Queen",
+        price: 110000,
+        stock_quantity: 4,
+        material: { name: "Cotton" },
+        color: { name: "Blue", hex_code: "#0000ff" },
+      },
+      {
+        id: "queen-cotton-yellow",
+        size: "Queen",
+        price: 111000,
+        stock_quantity: 4,
+        material: { name: "Cotton" },
+        color: { name: "Yellow", hex_code: "#ffff00" },
+      },
+      {
+        id: "queen-linen-green",
+        size: "Queen",
+        price: 115000,
+        stock_quantity: 4,
+        material: { name: "Linen" },
+        color: { name: "Green", hex_code: "#008000" },
+      },
+    ];
+    const images: ProductImage[] = hierarchicalVariants.map((variant) => ({
+      id: `${variant.id}-image`,
+      url: `https://example.com/${variant.id}.jpg`,
+      alt_text: `${variant.id} image`,
+      is_primary: variant.id === "king-cotton-red",
+      sort_order: 0,
+      variant_id: variant.id,
+      image_role: "GALLERY",
+    }));
+
+    render(
+      <ProductDetailInteractive
+        images={images}
+        variants={hierarchicalVariants}
+        productName="Hierarchical bedspread"
+        productSlug="hierarchical-bedspread"
+        initialVariantId="king-cotton-red"
+        detailsBeforeVariant={null}
+        detailsAfterVariant={null}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Select color Red" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Select color Blue" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Select color Yellow" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Queen" }));
+
+    expect(screen.getByRole("button", { name: "Queen" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByRole("button", { name: "Select color Red" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Select color Blue" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Select color Yellow" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Select color Green" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("product-gallery-main-image")).toHaveAttribute(
+      "alt",
+      "queen-cotton-blue image",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Linen" }));
+
+    expect(screen.getByRole("button", { name: "Linen" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Select color Green" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.queryByRole("button", { name: "Select color Blue" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Select color Yellow" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("product-gallery-main-image")).toHaveAttribute(
+      "alt",
+      "queen-linen-green image",
+    );
+  });
 });

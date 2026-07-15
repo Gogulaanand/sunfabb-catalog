@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import type { ProductImage, ProductVariant } from "@/lib/api";
 import { ProductGallery } from "./ProductGallery";
-import VariantSelector from "./VariantSelector";
+import { VariantSelector } from "./VariantSelector";
 
 interface ProductDetailInteractiveProps {
   images: ProductImage[];

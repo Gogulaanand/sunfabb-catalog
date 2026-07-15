@@ -114,6 +114,28 @@ describe("admin-api", () => {
     });
   });
 
+  it("preserves Nest validation message arrays on failure", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 400,
+      statusText: "Bad Request",
+      json: async () => ({
+        message: [
+          "variant_id must be a UUID",
+          "image_role must be one of the following values: GALLERY, SWATCH",
+        ],
+      }),
+    });
+
+    await expect(
+      createCategory({ name: "Bedspreads", slug: "bedspreads" }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message:
+        "variant_id must be a UUID; image_role must be one of the following values: GALLERY, SWATCH",
+    });
+  });
+
   it("falls back to statusText when the error body isn't JSON", async () => {
     fetchMock.mockResolvedValue({
       ok: false,

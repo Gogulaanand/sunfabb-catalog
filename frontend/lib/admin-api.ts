@@ -22,7 +22,15 @@ function getErrorMessage(body: unknown): string {
   }
 
   const message = body.message;
-  return typeof message === "string" ? message : "Request failed";
+  if (typeof message === "string") return message;
+  if (
+    Array.isArray(message) &&
+    message.length > 0 &&
+    message.every((item) => typeof item === "string")
+  ) {
+    return message.join("; ");
+  }
+  return "Request failed";
 }
 
 async function authHeaders(): Promise<HeadersInit> {

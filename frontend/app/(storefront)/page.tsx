@@ -99,8 +99,11 @@ export default async function HomePage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
             {featured.items.map((product) => {
+              const galleryImages = product.images.filter(
+                (image) => image.image_role === "GALLERY",
+              );
               const primaryImage =
-                product.images.find((img) => img.is_primary) ?? product.images[0];
+                galleryImages.find((image) => image.is_primary) ?? galleryImages[0];
               const lowestPrice = product.variants.length
                 ? Math.min(...product.variants.map((v) => v.price))
                 : null;
