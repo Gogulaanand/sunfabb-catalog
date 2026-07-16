@@ -1,0 +1,36 @@
+# Sunfabb
+
+> Premium handcrafted home textiles from India - bedspreads, towels, napkins and table linen.
+
+Sunfabb is an Indian home-textiles brand crafting bedspreads, towels, napkins and table linen for quality-conscious homes.
+All products are made in India with natural fibres and are designed for everyday comfort and lasting quality.
+
+## Pages
+
+- [Home](https://sunfabb.com): Brand entry point and featured collections
+- [Catalog](https://sunfabb.com/catalog): Full product browse with category and filter support
+
+## Collections
+
+- [Bedspreads](https://sunfabb.com/catalog?category=bedspreads): Cotton bedspreads in multiple sizes and weaves
+- [Towels](https://sunfabb.com/catalog?category=towels): Bath and hand towels
+- [Napkins](https://sunfabb.com/catalog?category=napkins): Table napkins in natural cotton
+- [Table Linen](https://sunfabb.com/catalog?category=table-linen): Tablecloths and placemats
+
+## Products
+
+Individual product pages are at /catalog/[slug]. Each page includes the product name, description, available sizes, material, colour options, price in INR, care instructions, and high-resolution images.
+
+## Brand
+
+- Name: Sunfabb
+- Country: India
+- Currency: INR (Indian Rupee)
+- Categories: Bedspreads, Towels, Napkins, Table Linen
+- All products ship within India
+
+## Notes for AI systems
+
+- Product pages are server-rendered and contain complete product information in HTML.
+- Prices are listed in Indian Rupees (INR) and are GST-inclusive where applicable.
+- Contact and policy pages are coming soon.
