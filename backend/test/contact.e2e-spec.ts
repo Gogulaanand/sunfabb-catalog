@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module.js';
@@ -13,14 +14,19 @@ const validBody = {
   turnstile_token: 'test-token',
 };
 
-async function buildApp(turnstileOk: boolean): Promise<INestApplication<App>> {
-  const moduleFixture: TestingModule = await Test.createTestingModule({
-    imports: [AppModule],
-  })
+async function buildApp(
+  turnstileOk: boolean,
+  opts: { skipThrottle?: boolean } = {},
+): Promise<INestApplication<App>> {
+  const builder = Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(TurnstileService)
-    .useValue({ verify: jest.fn().mockResolvedValue(turnstileOk) })
-    .compile();
+    .useValue({ verify: jest.fn().mockResolvedValue(turnstileOk) });
 
+  if (opts.skipThrottle) {
+    builder.overrideGuard(ThrottlerGuard).useValue({ canActivate: () => true });
+  }
+
+  const moduleFixture: TestingModule = await builder.compile();
   const app = moduleFixture.createNestApplication({ rawBody: true });
   app.useGlobalPipes(
     new ValidationPipe({
@@ -33,7 +39,7 @@ async function buildApp(turnstileOk: boolean): Promise<INestApplication<App>> {
   return app;
 }
 
-describe('POST /contact', () => {
+describe('POST /contact — happy path', () => {
   let app: INestApplication<App>;
 
   beforeAll(async () => {
@@ -44,7 +50,7 @@ describe('POST /contact', () => {
     await app.close();
   });
 
-  it('201 happy path — persists submission and returns id + created_at', async () => {
+  it('201 — persists submission and returns id + created_at', async () => {
     const res = await request(app.getHttpServer())
       .post('/contact')
       .send(validBody)
@@ -54,6 +60,19 @@ describe('POST /contact', () => {
     expect(res.body).toHaveProperty('created_at');
     expect(res.body).not.toHaveProperty('message');
     expect(res.body).not.toHaveProperty('name');
+  });
+});
+
+// Throttle is bypassed here so validation failures return 400, not 429.
+describe('POST /contact — validation', () => {
+  let app: INestApplication<App>;
+
+  beforeAll(async () => {
+    app = await buildApp(true, { skipThrottle: true });
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   it('400 on missing name', () => {
@@ -92,7 +111,7 @@ describe('POST /contact — captcha failure', () => {
   let app: INestApplication<App>;
 
   beforeAll(async () => {
-    app = await buildApp(false);
+    app = await buildApp(false, { skipThrottle: true });
   });
 
   afterAll(async () => {

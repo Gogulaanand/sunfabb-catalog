@@ -27,7 +27,7 @@ describe('TurnstileService', () => {
   it('returns true when Cloudflare responds success=true', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: async () => ({ success: true }),
+      json: () => Promise.resolve({ success: true }),
     });
 
     const result = await service.verify('good-token', '1.2.3.4');
@@ -38,7 +38,11 @@ describe('TurnstileService', () => {
       expect.objectContaining({ method: 'POST' }),
     );
 
-    const body: URLSearchParams = mockFetch.mock.calls[0][1].body;
+    const [, callOptions] = mockFetch.mock.calls[0] as [
+      string,
+      { body: URLSearchParams },
+    ];
+    const body = callOptions.body;
     expect(body.get('secret')).toBe('test-secret');
     expect(body.get('response')).toBe('good-token');
     expect(body.get('remoteip')).toBe('1.2.3.4');
@@ -47,7 +51,7 @@ describe('TurnstileService', () => {
   it('returns false when Cloudflare responds success=false', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: async () => ({ success: false }),
+      json: () => Promise.resolve({ success: false }),
     });
 
     const result = await service.verify('bad-token');
@@ -83,12 +87,16 @@ describe('TurnstileService', () => {
   it('omits remoteip when not provided', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: async () => ({ success: true }),
+      json: () => Promise.resolve({ success: true }),
     });
 
     await service.verify('token-no-ip');
 
-    const body: URLSearchParams = mockFetch.mock.calls[0][1].body;
+    const [, callOptionsNoIp] = mockFetch.mock.calls[0] as [
+      string,
+      { body: URLSearchParams },
+    ];
+    const body = callOptionsNoIp.body;
     expect(body.has('remoteip')).toBe(false);
   });
 });
