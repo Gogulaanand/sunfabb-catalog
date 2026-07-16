@@ -1,3 +1,5 @@
+import { safeJsonLd } from "@/lib/json-ld";
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunfabb.com";
 
 export interface OrganizationGraphData {
@@ -34,7 +36,7 @@ export function OrganizationSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(data) }}
     />
   );
 }

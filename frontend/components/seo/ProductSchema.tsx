@@ -1,4 +1,5 @@
 import type { Product } from "@/lib/api";
+import { safeJsonLd } from "@/lib/json-ld";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunfabb.com";
 
@@ -43,7 +44,7 @@ export function ProductSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(data) }}
     />
   );
 }
