@@ -19,6 +19,7 @@ import { OrdersModule } from './orders/orders.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
 import { WebhooksModule } from './webhooks/webhooks.module.js';
 import { OrderExpiryModule } from './expiry/order-expiry.module.js';
+import { ContactModule } from './contact/contact.module.js';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { OrderExpiryModule } from './expiry/order-expiry.module.js';
     PaymentsModule,
     WebhooksModule,
     OrderExpiryModule,
+    ContactModule,
   ],
 })
 export class AppModule {}
