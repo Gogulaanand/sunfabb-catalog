@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CartIcon from "@/components/cart/cart-icon";
+import Footer from "@/components/storefront/footer";
 
 export default function StorefrontLayout({
   children,
@@ -28,6 +29,9 @@ export default function StorefrontLayout({
             </Link>
             <Link href="/catalog" className="hover:text-primary transition-colors">
               All Products
+            </Link>
+            <Link href="/contact" className="hover:text-primary transition-colors">
+              Contact
             </Link>
           </nav>
 
@@ -83,23 +87,19 @@ export default function StorefrontLayout({
               >
                 All Products
               </Link>
+              <Link
+                href="/contact"
+                className="px-4 py-3 hover:text-primary hover:bg-surface-container-low transition-colors"
+              >
+                Contact
+              </Link>
             </nav>
           </details>
           </div>{/* end right-side actions */}
         </div>
       </header>
       <main className="flex-1">{children}</main>
-      <footer className="border-t border-outline-variant bg-surface-container-low">
-        <div className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-12">
-          <p className="font-display text-xl text-primary mb-2">Sunfabb</p>
-          <p className="text-body-sm text-on-surface-variant max-w-md mb-8">
-            Premium bedspreads, towels, napkins and table linen — made in India, built to last.
-          </p>
-          <p className="text-body-sm text-outline">
-            © {new Date().getFullYear()} Sunfabb. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
