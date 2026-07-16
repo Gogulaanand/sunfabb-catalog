@@ -14,8 +14,7 @@ export const metadata: Metadata = {
 // is worse than none (it can trigger Google penalties).
 const isPlaceholder =
   SITE.phone.e164.includes("X") ||
-  SITE.address.mapsUrl.includes("...") ||
-  SITE.instagramUrl.includes("sunfabb") === false;
+  SITE.address.mapsUrl.includes("...");
 
 const jsonLd = isPlaceholder
   ? null
@@ -30,7 +29,7 @@ const jsonLd = isPlaceholder
         streetAddress: SITE.address.lines[0],
         addressCountry: "IN",
       },
-      openingHours: SITE.hours,
+      openingHours: "Mo-Sa 09:30-18:30",
       sameAs: [SITE.instagramUrl],
       url: "https://sunfabb.com",
     };

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import TurnstileWidget from "./turnstile-widget";
+import { whatsappLink } from "@/lib/site-config";
 
 interface SubmitResult {
   id: string;
@@ -72,7 +73,7 @@ export default function ContactForm() {
         <p className="text-body-sm text-on-surface-variant">
           We&apos;ve received your enquiry and will get back to you soon.
           You can also reach us directly on{" "}
-          <a href="https://wa.me/91XXXXXXXXXX" className="text-primary underline">
+          <a href={whatsappLink()} className="text-primary underline">
             WhatsApp
           </a>{" "}
           for a faster response.

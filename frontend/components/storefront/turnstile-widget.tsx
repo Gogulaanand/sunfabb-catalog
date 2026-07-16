@@ -104,13 +104,3 @@ export default function TurnstileWidget({ onToken }: TurnstileWidgetProps) {
   );
 }
 
-// Expose reset so the contact form can call it after a failed submission.
-// Tokens are single-use; failing to reset means the next submit is always 403.
-export function useTurnstileReset() {
-  return function reset(widgetId: string | null) {
-    if (widgetId && window.turnstile) {
-      // Re-render the widget to get a fresh token.
-      window.turnstile.remove(widgetId);
-    }
-  };
-}
