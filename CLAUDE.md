@@ -14,9 +14,7 @@ with a hidden admin.
 
 ## Current status
 
-**Phase 0 Step 1 complete.** Monorepo scaffolded (NestJS backend, Next.js frontend, Prisma 7 init,
-GitHub Actions CI). DB provisioned on Neon. Next: Phase 0 Step 2 — write the first three Prisma
-models (`Category`, `Material`, `Color`) and run the first migration. See `HANDOFF.md` for details.
+**Phase 6 in progress — 6.0-6.4 merged.** Two parallel streams: Stream A (6.5/6.6/6.7, vendor-gated) and Stream B (Growth Wave 0 SEO, unblocked). See `HANDOFF.md` for current state and next steps.
 
 ## Architecture
 
@@ -120,3 +118,5 @@ blocks merge until checks pass. Merge to `main` triggers deploy.
 - **`docs/PLAN.md`** — the complete plan: architecture, schema, API design, roadmap, learning path.
 - **`docs/DECISIONS.md`** — why each technical choice was made (read before proposing changes to stack
   or architecture).
+- **`docs/GROWTH.md`** — Phase 7 reach & discoverability plan (four waves: indexable → citable →
+  buyable everywhere → paid amplification).
