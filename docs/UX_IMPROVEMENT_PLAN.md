@@ -139,7 +139,10 @@ Branch: `feature/ux-polish-qa`
 
 - **Prod data cleanup:** delete/deactivate "E2E Category 540209" and the placeholder-image product ("Royal Cotton Bedspread") via admin; investigate how E2E test data reached prod DB and prevent recurrence.
 - **Towels category tile** uses an off-brand spa stock photo; needs a real brand asset (admin/content task).
-- **Hero brand asset:** Phase C is blocked on one good hero image (Cloudinary upload).
+- **Hero brand asset (TODO - unblocked):** Phase C shipped with the Unsplash placeholder.
+  To fix: upload a brand bedroom/linen image to Cloudinary, copy the delivery URL, and replace
+  `HERO_IMAGE` in `frontend/components/home/hero-section.tsx:6`.
+  Suggested spec: landscape, 1920x1080+, warm natural light, textile/linen subject.
 
 ## Verification approach (every phase)
 
