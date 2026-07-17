@@ -305,3 +305,28 @@ model Shipment {
 
   order Order @relation(fields: [order_id], references: [id])
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// Contact enquiries — stored for the deferred admin view (admin UI is Phase 6.8+).
+// Read via Prisma Studio until then. No IP/user-agent stored (privacy, §2.1).
+// ─────────────────────────────────────────────────────────────────────────
+
+enum ContactMessageStatus {
+  NEW
+  READ
+  RESPONDED
+}
+
+model ContactMessage {
+  id         String               @id @default(uuid())
+  name       String
+  phone      String
+  email      String?
+  message    String
+  status     ContactMessageStatus @default(NEW)
+  created_at DateTime             @default(now())
+  updated_at DateTime             @updatedAt
+  deleted_at DateTime?
+
+  @@index([status, created_at])
+}

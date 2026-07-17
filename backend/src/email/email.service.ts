@@ -41,6 +41,30 @@ export class EmailService {
     return Promise.resolve();
   }
 
+  // Notify the owner of a new contact enquiry. Recipient from CONTACT_NOTIFY_EMAIL;
+  // if unset, logs and skips — notification is best-effort, the DB is the source
+  // of truth. Stub until Resend (6.7); never throws (ContactService catches and logs).
+  sendContactNotification(submission: {
+    id: string;
+    name: string;
+    phone: string;
+    email?: string;
+    message: string;
+  }): Promise<void> {
+    const to = process.env.CONTACT_NOTIFY_EMAIL;
+    if (!to) {
+      this.logger.warn(
+        'CONTACT_NOTIFY_EMAIL not set — skipping contact notification',
+      );
+      return Promise.resolve();
+    }
+    const preview = submission.message.slice(0, 200);
+    this.logger.log(
+      `[stub] contact-notification → ${to} | from: ${submission.name} (${submission.phone}) | id: ${submission.id} | preview: "${preview}"`,
+    );
+    return Promise.resolve();
+  }
+
   // Never log a raw token link in production — that would be a credential leak.
   // The real Resend integration (6.7) replaces this stub entirely.
   private logLink(kind: string, to: string, url: string): void {
