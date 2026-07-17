@@ -261,14 +261,6 @@ two-dot diff against the actual branch tips showed `main` already had equivalent
 after rebases; only a direct content diff tells you what's actually missing.
 **Status:** Locked — process note for future merge-state checks.
 
-### D25 — Render now requires a card on file even for the free tier
-**Decision:** Added a payment method to the Render account before provisioning, despite staying on
-the free plan.
-**Why:** Render's billing policy changed since the original Phase 4 hosting decision (see the
-"Backend host" note in HANDOFF.md) — `create_web_service` returned an explicit 402 Payment Required
-until a card was added. No cost was incurred; this is purely an account-verification gate now.
-**Status:** Locked — informational, no plan change.
-
 ### D26 — `start:prod` script path bug (dist/main → dist/src/main)
 **Decision:** Fixed `backend/package.json`'s `start:prod` from `node dist/main` to `node dist/src/main`.
 **Why:** `nest-cli.json` sets `sourceRoot: "src"`, and with `prisma.config.ts` + `prisma/seed.ts` also
@@ -635,3 +627,26 @@ orders that are STILL `PENDING_PAYMENT` after the full threshold gets expired.
 **Status:** Locked (6.4 addendum). C9 closed. Covered by unit tests in
 `order-expiry.service.spec.ts`, `order-expiry.controller.spec.ts`, and the `order.expired` describe
 block in `webhooks.service.spec.ts`.
+
+### D42 - Growth is Phase 7; two-stream focus; trust pages deferred pending owner inputs
+**Decision:**
+1. The discoverability work (technical SEO, structured data, channel strategy) is formalized as
+   **Phase 7 - Reach & Growth** in `docs/PLAN.md`, with `docs/GROWTH.md` as the detailed sub-plan.
+   Phase 7 runs in parallel with Phase 6 remaining milestones; it is not gated on Phase 6
+   completion.
+2. Development going forward runs as **two parallel streams**: Stream A (6.5/6.6/6.7 - vendor-gated
+   milestones that need accountant inputs, Shiprocket account, and Resend domain verification) and
+   Stream B (Growth Wave 0 SEO - fully unblocked, works with today's 3 live products since
+   `sitemap.ts` and JSON-LD components read live DB data).
+3. **Trust pages** (`/about`, `/contact`, `/privacy-policy`, `/terms`, `/shipping-policy`,
+   `/returns-policy`, `/faq`) are moved out of Growth Wave 0 into Wave 1.
+   Wave 0 ships only the pure-code SEO items (robots, sitemap, JSON-LD, OG metadata, GA4, noindex
+   on private pages).
+   Trust pages require owner business inputs (legal entity name, GSTIN display preference, contact
+   channels, return window, shipping coverage/timelines) that are not yet available; they are also
+   prerequisites for Razorpay live mode and Google Merchant Center (Wave 2), so Wave 1 is their
+   correct home anyway.
+**Why:** separating the two streams prevents vendor blockers from stalling all growth work.
+Trust pages deferred out of Wave 0 keeps that wave code-only so it can ship immediately without
+waiting on owner business decisions.
+**Status:** Locked (2026-07-16).
