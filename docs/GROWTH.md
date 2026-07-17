@@ -37,20 +37,20 @@ automation), and "owner only" (accounts, KYC, budget, brand approvals - things o
 
 ### 1.2 The gaps (ranked by severity)
 
-| # | Gap | Severity | Evidence |
-|---|-----|----------|----------|
-| 1 | `/catalog` took **24.0s** to respond on a cold hit (measured live 2026-07-07); Render free tier sleeps and the page is SSR per-request | Blocker | Crawlers treat this as a dead page; kills crawl budget, rankings, and AI-crawler fetches |
-| 2 | No `robots.txt` and no `sitemap.xml` (both 404 live) | Blocker | Google has no crawl guidance and no product discovery path |
-| 3 | Zero structured data (no Product, Offer, Organization, BreadcrumbList JSON-LD) | Critical | Not eligible for rich results, product snippets, or merchant enrichment; weakens AI-search citation odds |
-| 4 | No Open Graph / Twitter cards anywhere, no `metadataBase` | Critical | Every WhatsApp/Instagram/social share of a product renders as a bare link; in India, WhatsApp sharing is a primary channel |
-| 5 | No analytics (only Vercel Speed Insights), no GA4, no Search Console, no conversion events | Critical | Flying blind; also a hard prerequisite for ads |
-| 6 | No policy/info pages: privacy, terms, returns/refunds, shipping, contact, about, FAQ | Critical | Legal + compliance gap (Razorpay live, Google Merchant Center both expect these) - deferred to Wave 1 pending owner business inputs |
-| 7 | Home page has no page-specific metadata; catalog metadata is static regardless of filters; no canonicals (filter permutations are indexable duplicates) | High | Duplicate-content dilution on the highest-value pages |
-| 8 | Cart/checkout/account pages are indexable (no `noindex`) | Medium | Junk pages compete for crawl budget |
-| 9 | No social presence links, no NAP, no brand entity signals; hero image is an Unsplash stock photo | Medium | No entity for Google/LLMs to build a brand around |
-| 10 | No Google Business Profile, no Merchant Center, no Meta/Pinterest/ONDC presence | Medium | Channels not yet opened (some are gated on commerce launch anyway) |
-| 11 | `home.sunfabb.com` (old personal homepage) has a broken deployment and an expired cert on the same registered domain | Low | Domain-level quality/trust noise |
-| 12 | keep-alive.yml pings every 10 min but only if the `BACKEND_URL` repo secret is set; the measured 24s cold start says it is not effective today | High | See gap 1 |
+| # | Gap | Severity | Status |
+|---|-----|----------|--------|
+| 1 | `/catalog` took **24.0s** to respond on a cold hit; Render free tier sleeps | Blocker | ⚠️ Mitigated - keep-alive pings every 10 min (PR #28); full fix is Render Starter at Wave 2 go-live |
+| 2 | No `robots.txt` and no `sitemap.xml` | Blocker | ✅ Fixed - PR #26 |
+| 3 | Zero structured data (no Product, Offer, Organization, BreadcrumbList JSON-LD) | Critical | ✅ Fixed - PR #26 |
+| 4 | No Open Graph / Twitter cards, no `metadataBase` | Critical | ✅ Fixed - PR #26 |
+| 5 | No GA4, no Search Console, no conversion events | Critical | ✅ GA4 live (G-PXJJRTCMXW), Search Console verified + sitemap submitted, Bing imported. Conversion events deferred to Wave 2 |
+| 6 | No policy/info pages: privacy, terms, returns/refunds, shipping, contact, about, FAQ | Critical | ⬜ Deferred to Wave 1 - needs owner business inputs |
+| 7 | Home/catalog metadata static; filter permutations indexable duplicates; no canonicals | High | ✅ Fixed - PR #26 |
+| 8 | Cart/checkout/account pages indexable (no `noindex`) | Medium | ✅ Fixed - PR #26 |
+| 9 | No social presence links, no NAP, no brand entity signals | Medium | ⬜ Wave 1 |
+| 10 | No Google Business Profile, no Merchant Center, no Meta/Pinterest/ONDC presence | Medium | ⬜ Wave 2 (gated on commerce launch) |
+| 11 | `home.sunfabb.com` broken deployment and expired cert | Low | ⬜ Separate attention needed |
+| 12 | keep-alive.yml `BACKEND_URL` secret not set; cold start not mitigated | High | ✅ Fixed - secret set 2026-07-17; PR #28 raised timeout to 90s |
 
 **Bottom line:** the site is invisible by construction today - not because of competition, but
 because the discoverability layer (items 1-8) was scoped in Phase 3 ("SEO: metadata, Open Graph,
@@ -66,12 +66,12 @@ Channels are sequenced so nothing is built before its prerequisites exist.
 Sending traffic (or Googlebot) to a site that times out, lacks trust pages, or cannot take payment
 wastes the effort.
 
-| Wave | Theme | Gate to start | Touchpoints |
-|------|-------|---------------|-------------|
-| **Wave 0** | Be indexable | None - start now | §3.1 technical SEO, §3.2 crawl performance, §3.5 Search Console/Bing, §3.13 analytics. **Trust pages deferred to Wave 1** - they need owner business inputs (see note below). |
-| **Wave 1** | Be worth citing and following | Wave 0 shipped + owner provides business inputs | §3.3 trust pages + content engine, §3.4 AI/LLM search (GEO), §3.7 Business Profile, §3.8 social engine start |
-| **Wave 2** | Be buyable everywhere | Phase 6 go-live (6.10): live payments, shipping, policies | §3.6 Google Shopping, §3.8 Meta catalog/product tagging, §3.9 WhatsApp Business, §3.10 ONDC, §3.11 email flows |
-| **Wave 3** | Pay to amplify what converts | Wave 2 live + GA4 shows the funnel converts | §3.12 ads (Google PMax, Meta), marketplace expansion, review engine |
+| Wave | Theme | Gate to start | Status | Touchpoints |
+|------|-------|---------------|--------|-------------|
+| **Wave 0** | Be indexable | None | ✅ **Shipped 2026-07-17** (PR #26) | §3.1 technical SEO, §3.2 crawl performance, §3.5 Search Console/Bing, §3.13 analytics. |
+| **Wave 1** | Be worth citing and following | Wave 0 shipped + owner provides business inputs | ⬜ todo | §3.3 trust pages + content engine, §3.4 AI/LLM search (GEO), §3.7 Business Profile, §3.8 social engine start |
+| **Wave 2** | Be buyable everywhere | Phase 6 go-live (6.10): live payments, shipping, policies | ⬜ todo | §3.6 Google Shopping, §3.8 Meta catalog/product tagging, §3.9 WhatsApp Business, §3.10 ONDC, §3.11 email flows |
+| **Wave 3** | Pay to amplify what converts | Wave 2 live + GA4 shows the funnel converts | ⬜ todo | §3.12 ads (Google PMax, Meta), marketplace expansion, review engine |
 
 **Trust pages note (gap 6):** `/about`, `/contact`, `/privacy-policy`, `/terms`,
 `/shipping-policy`, `/returns-policy`, `/faq` require owner business inputs (legal entity name,

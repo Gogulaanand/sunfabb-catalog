@@ -36,9 +36,7 @@ patterns and learning.
 
 ---
 
-## Current focus - two streams
-
-Work is running on two parallel, non-blocking streams:
+## Current focus
 
 ### Stream A - vendor-gated milestones (6.5/6.6/6.7)
 
@@ -57,31 +55,14 @@ Also needed before any of these: **Razorpay test-mode account** (free, instant -
 When registering the webhook endpoint subscribe to **four** events: `payment.captured`,
 `order.paid`, `payment.failed`, `order.expired`.
 
-### Stream B - unblocked (Growth Wave 0 SEO)
+### Stream B - next unblocked milestone: 6.8 admin order-management UI
 
-This stream needs no vendor accounts and can start immediately on a separate branch.
-The sitemap and JSON-LD components read live DB data, so even the 3 products already live on
-sunfabb.com give them something real to serve.
+Growth Wave 0 SEO is **done** (PR #26, merged 2026-07-17).
+The next unblocked app milestone is **6.8 admin order-management UI** (order list/detail + status
+transitions via the existing `transition()` guard) - no vendor account needed.
 
-Full plan: **`docs/GROWTH.md`** (Phase 7 of the build plan).
-
-Immediate Wave 0 scope (pure-code, no external accounts):
-- `app/robots.ts`, `app/sitemap.ts` (read live product `updated_at` - small backend field exposure
-  needed first)
-- `metadataBase`, `title.template`, site-wide OG/Twitter defaults in `app/layout.tsx`
-- Product/catalog/home `generateMetadata` with OG images via Cloudinary transform
-- JSON-LD components: `Organization`, `Product`+`Offer`, `BreadcrumbList`, `ItemList`
-- `robots: { index: false }` on cart/checkout/account pages
-- GA4 via `@next/third-parties`
-
-Trust pages (`/about`, `/contact`, `/privacy-policy`, `/terms`, `/shipping-policy`,
-`/returns-policy`, `/faq`) are deferred until the owner supplies business inputs (entity name,
-GSTIN display preference, contact channels, return window, shipping coverage).
-These are prerequisites for Razorpay live mode and Google Merchant Center anyway, so Wave 0 ships
-without them.
-
-**Next unblocked app milestone after Wave 0:** 6.8 admin order-management UI (order list/detail +
-status transitions via the existing `transition()` guard) - no vendor account needed.
+Full growth plan: **`docs/GROWTH.md`** (Phase 7).
+Wave 1 (trust pages + content engine) gates on owner providing business inputs - see GROWTH.md §3.3.
 
 ---
 
@@ -102,11 +83,15 @@ independently whenever designs are ready.
   `ADMIN_EMAIL`/`ADMIN_PASSWORD_HASH` directly as Render env vars - never in a file.
   `backend/.env` is gitignored and was never committed.
 - **Render free tier sleeps** and causes 24s cold starts on `/catalog`.
-  Upgrade to Render Starter ($7/mo) at Wave 2 go-live (Phase 6.10); consider pulling it forward to
-  Wave 0 since $7/mo buys crawlability immediately.
+  Upgrade to Render Starter ($7/mo) at Wave 2 go-live (Phase 6.10); keep-alive pings every 10 min
+  to mitigate (BACKEND_URL secret now set, PR #28 fixed the timeout).
 - **`home.sunfabb.com`** (old personal homepage, Vercel project `website`) has a broken deployment
   and an expired wildcard cert (`*.sunfabb.com`, expired June 2021).
   Unrelated to the catalog - needs separate attention.
+- **Wave 1 gate:** trust pages (`/about`, `/contact`, `/privacy-policy`, `/terms`,
+  `/shipping-policy`, `/returns-policy`, `/faq`) need owner business inputs before Claude can draft
+  them (legal entity name, GSTIN display, contact channels, return window, shipping coverage).
+  These are also prerequisites for Razorpay live mode and Google Merchant Center.
 - **6.1 security hardening backlog** - none block current work, revisit at 6.8/6.9:
   - L3: gate sensitive actions on `email_verified` before order placement - still an open decision.
   - L4: CORS allowlist if Vercel preview deploys need to call the API.
@@ -174,6 +159,18 @@ Update only at phase boundaries or feature merges.
   `PaymentsService` (D41).
 - _(2026-07-14)_ **Variant-aware product gallery** (PR #24).
   Product detail page now filters images by selected variant; gallery updates on variant switch.
-- _(2026-07-16)_ **Docs roadmap refresh** (this PR).
+- _(2026-07-16)_ **Docs roadmap refresh** (PR #25).
   HANDOFF/PLAN/GROWTH/WORKFLOW/CLAUDE.md updated to reflect merged state; Growth Wave 0 formalized
   as Phase 7; two-stream focus documented (D42).
+- _(2026-07-17)_ **Growth Wave 0 SEO shipped** (PR #26 + PR #28).
+  `robots.ts`, `sitemap.ts` (live data, `updated_at`), `metadataBase`/`title.template`/OG/Twitter
+  defaults, product `generateMetadata` (Cloudinary 1200x630 OG image, canonical), catalog
+  `generateMetadata` (category-aware, canonical strips filter params), `noindex` on
+  cart/checkout/account, four JSON-LD components (`Organization`+`WebSite`, `Product`+`Offer`,
+  `BreadcrumbList`, `ItemList`) with XSS-safe `safeJsonLd()`, security headers in `next.config.ts`,
+  `public/llms.txt`, semantic HTML on product pages, GA4 via `@next/third-parties`.
+  Vercel env vars set: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_GA_MEASUREMENT_ID` (G-PXJJRTCMXW).
+  `BACKEND_URL` GitHub secret set.
+  Google Search Console verified + sitemap submitted.
+  Bing Webmaster Tools imported from Search Console.
+  209/209 tests green.
