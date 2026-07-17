@@ -5,7 +5,10 @@ import CartPageGuest from "./CartPageGuest";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Your Cart — Sunfabb" };
+export const metadata = {
+  title: "Your Cart",
+  robots: { index: false, follow: false },
+};
 
 export default async function CartPage() {
   const cookieStore = await cookies();

@@ -1,6 +1,23 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { getCategories, getProducts, formatPrice } from "@/lib/api";
+
+export const metadata: Metadata = {
+  title: {
+    absolute:
+      "Sunfabb - Premium Cotton Bedspreads, Towels & Table Linen Online India",
+  },
+  description:
+    "Shop premium handcrafted home textiles from India. Sunfabb brings you bedspreads, towels, napkins and table linen crafted for comfort and lasting quality.",
+  openGraph: {
+    title:
+      "Sunfabb - Premium Cotton Bedspreads, Towels & Table Linen Online India",
+    description:
+      "Shop premium handcrafted home textiles from India. Crafted for comfort, built to last.",
+    url: "/",
+  },
+};
 
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1920&q=75";

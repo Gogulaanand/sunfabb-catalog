@@ -12,7 +12,10 @@ import CheckoutClient from "./CheckoutClient";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { title: "Checkout — Sunfabb" };
+export const metadata = {
+  title: "Checkout",
+  robots: { index: false, follow: false },
+};
 
 function errorMessage(body: unknown): string {
   if (typeof body === "object" && body && "message" in body) {
