@@ -128,7 +128,7 @@ async function fetchAndParse<T>(
   init: RequestInit,
   errorMessage: string,
 ): Promise<T> {
-  const res = await fetch(url, init);
+  const res = await fetch(url, { ...init, signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error(errorMessage);
   return schema.parse(await res.json());
 }
