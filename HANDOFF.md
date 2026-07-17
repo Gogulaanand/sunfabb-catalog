@@ -169,7 +169,7 @@ Update only at phase boundaries or feature merges.
 - _(2026-07-16)_ **Docs roadmap refresh** (PR #25).
   HANDOFF/PLAN/GROWTH/WORKFLOW/CLAUDE.md updated to reflect merged state; Growth Wave 0 formalized
   as Phase 7; two-stream focus documented (D42).
-- _(2026-07-17)_ **UX Phase A - perceived performance** (PR - pending merge).
+- _(2026-07-17)_ **UX Phase A - perceived performance** (PR #30 - pending merge).
   `AbortSignal.timeout(8000)` on all backend fetches; `/catalog` restructured to Suspense-stream
   (shell renders in <100ms, grid streams in behind a skeleton); `loading.tsx`/`error.tsx`/
   `not-found.tsx` added to all storefront routes; `NEXT_PUBLIC_API_URL` env reconciliation
