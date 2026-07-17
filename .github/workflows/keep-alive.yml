@@ -11,9 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Curl categories endpoint
+        continue-on-error: true
         run: |
           if [ -z "${{ secrets.BACKEND_URL }}" ]; then
             echo "BACKEND_URL secret is not set yet — skipping (set it once the Render backend is deployed)."
             exit 0
           fi
-          curl -fsS --max-time 60 "${{ secrets.BACKEND_URL }}/categories" -o /dev/null
+          curl -fsS --max-time 90 "${{ secrets.BACKEND_URL }}/categories" -o /dev/null
