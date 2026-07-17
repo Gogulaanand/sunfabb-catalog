@@ -67,8 +67,9 @@ transitions via the existing `transition()` guard) - no vendor account needed.
 an Apple-like design language.
 Phase A (`feature/perf-nav-instant`) merged as PR #30.
 Phase B (`feature/motion-foundations`) merged as PR #31.
-Phase C (`feature/home-redesign`) in review - see PR for details.
-Phases D-F are ready to execute one session at a time.
+Phase C (`feature/home-redesign`) merged as PR #32.
+Phase D (`feature/catalog-redesign`) in review - see PR for details.
+Phases E-F are ready to execute one session at a time.
 
 Full growth plan: **`docs/GROWTH.md`** (Phase 7).
 Wave 1 (trust pages + content engine) gates on owner providing business inputs - see GROWTH.md §3.3.
@@ -206,6 +207,26 @@ Update only at phase boundaries or feature merges.
   `ProductCard` retained from Phase B.
   Whitespace: sections raised to `py-14 md:py-24 lg:py-32` (56/96/128px).
   Build clean (31 pages), 24 test files, 216 tests green, lint clean.
+- _(2026-07-17)_ **UX Phase D - catalog page redesign** (PR pending).
+  Grid stagger: `StaggerGroup`/`StaggerItem` wrap the product grid with a `key` derived from filter
+  params, so cards stagger-in on initial load AND replay on every filter/sort/page change.
+  `CatalogPendingGrid` replaced CSS `opacity-50` with `motion.div animate={{ opacity: 0.4 }}`
+  for a smooth fade-through during `useTransition`.
+  Filters sidebar: custom styled checkboxes (hidden native input + branded box + CheckIcon SVG),
+  animated color swatches (`whileHover scale:1.12`, `whileTap scale:0.92`), animated active-filter
+  count badge (`AnimatePresence` scale+fade). Mobile `<details>` disclosure replaced with an
+  `AnimatePresence` bottom-sheet drawer (backdrop fade at 0.25s, panel slide-up at 0.35s
+  ease-out-expo, body scroll lock, Esc key close, close-on-backdrop tap, `role="dialog"` a11y).
+  Result count: extracted to `CatalogResultCount` client component; count number animates
+  with `AnimatePresence mode="wait"` `key={showing-total}` (fade up/down on change).
+  Pagination: CSS hover/press states (`hover:bg-surface-container`, `active:scale-95`,
+  `transition-all duration-150`); active page gets `scale-105 shadow-sm`.
+  Empty state: `CatalogEmptyState` component - search-with-X SVG icon, "No products found" title,
+  context-aware copy, "Clear all filters" `<Link href="/catalog">` button (only shown when filters
+  are active).
+  All constraints: no Chakra/Emotion on storefront routes; Ethos & Hearth tokens preserved;
+  URL-param filter behavior unchanged (SEO safe); reduced-motion via `MotionProvider` in layout.
+  Build clean (31 pages), lint clean, 24 test files, 216/217 tests green.
 - _(2026-07-17)_ **Growth Wave 0 SEO shipped** (PR #26 + PR #28).
   `robots.ts`, `sitemap.ts` (live data, `updated_at`), `metadataBase`/`title.template`/OG/Twitter
   defaults, product `generateMetadata` (Cloudinary 1200x630 OG image, canonical), catalog

@@ -29,14 +29,15 @@ describe("CatalogFilters", () => {
     pushMock.mockClear();
   });
 
-  it("renders every category as a checkbox option", () => {
+  it("renders every category as a checkbox option in the desktop sidebar", () => {
     renderFilters();
-    expect(screen.getAllByText("Bedspreads")).toHaveLength(2); // desktop + mobile <details> copy
+    // Mobile drawer is closed by default; only the desktop sidebar is in the DOM.
+    expect(screen.getAllByText("Bedspreads")).toHaveLength(1);
   });
 
   it("navigates to the catalog with the category slug and resets page on selection", () => {
     renderFilters();
-    const [checkbox] = screen.getAllByLabelText("Bedspreads");
+    const checkbox = screen.getByLabelText("Bedspreads");
     fireEvent.click(checkbox);
 
     expect(pushMock).toHaveBeenCalledWith(expect.stringContaining("category=bedspreads"));
