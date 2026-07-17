@@ -61,6 +61,13 @@ Growth Wave 0 SEO is **done** (PR #26, merged 2026-07-17).
 The next unblocked app milestone is **6.8 admin order-management UI** (order list/detail + status
 transitions via the existing `transition()` guard) - no vendor account needed.
 
+### UX improvement plan (parallel track)
+
+`docs/UX_IMPROVEMENT_PLAN.md` - six phases (A-F) improving perceived performance and introducing
+an Apple-like design language.
+Phase A (`feature/perf-nav-instant`) is in review - see PR for details.
+Phases B-F are ready to execute one session at a time.
+
 Full growth plan: **`docs/GROWTH.md`** (Phase 7).
 Wave 1 (trust pages + content engine) gates on owner providing business inputs - see GROWTH.md §3.3.
 
@@ -162,6 +169,13 @@ Update only at phase boundaries or feature merges.
 - _(2026-07-16)_ **Docs roadmap refresh** (PR #25).
   HANDOFF/PLAN/GROWTH/WORKFLOW/CLAUDE.md updated to reflect merged state; Growth Wave 0 formalized
   as Phase 7; two-stream focus documented (D42).
+- _(2026-07-17)_ **UX Phase A - perceived performance** (PR #30 - pending merge).
+  `AbortSignal.timeout(8000)` on all backend fetches; `/catalog` restructured to Suspense-stream
+  (shell renders in <100ms, grid streams in behind a skeleton); `loading.tsx`/`error.tsx`/
+  `not-found.tsx` added to all storefront routes; `NEXT_PUBLIC_API_URL` env reconciliation
+  (renamed from `NEXT_PUBLIC_BACKEND_URL`); fail-fast on missing var in production.
+  Backend `compression()` was already present.
+  24 test files, 216 tests green; `next build` clean (31 pages).
 - _(2026-07-17)_ **Growth Wave 0 SEO shipped** (PR #26 + PR #28).
   `robots.ts`, `sitemap.ts` (live data, `updated_at`), `metadataBase`/`title.template`/OG/Twitter
   defaults, product `generateMetadata` (Cloudinary 1200x630 OG image, canonical), catalog
