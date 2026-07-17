@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   getCategories,
   getMaterials,
@@ -13,6 +12,7 @@ import CatalogFilters from "./CatalogFilters";
 import CatalogPendingGrid from "./CatalogPendingGrid";
 import { CatalogTransitionProvider } from "./CatalogTransitionContext";
 import { ItemListSchema } from "@/components/seo/ItemListSchema";
+import { ProductCard } from "@/components/product/product-card";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunfabb.com";
 
@@ -90,35 +90,16 @@ export default async function CatalogContent({
                       : null;
 
                     return (
-                      <Link
+                      <ProductCard
                         key={product.id}
-                        href={`/catalog/${product.slug}`}
-                        className="group block"
-                      >
-                        <div className="relative aspect-square overflow-hidden rounded-md bg-surface-container mb-3">
-                          {primaryImage ? (
-                            <Image
-                              src={primaryImage.url}
-                              alt={primaryImage.alt_text ?? product.name}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-outline text-5xl">
-                              🧵
-                            </div>
-                          )}
-                        </div>
-                        <h3 className="text-title-sm text-on-surface">
-                          {product.name}
-                        </h3>
-                        {lowestPrice !== null && (
-                          <p className="text-price-lg text-on-surface-variant mt-1">
-                            {formatPrice(lowestPrice)}
-                          </p>
-                        )}
-                      </Link>
+                        slug={product.slug}
+                        name={product.name}
+                        imageUrl={primaryImage?.url}
+                        imageAlt={primaryImage?.alt_text ?? product.name}
+                        formattedPrice={lowestPrice !== null ? formatPrice(lowestPrice) : null}
+                        aspectRatio="square"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                      />
                     );
                   })}
                 </div>
@@ -143,7 +124,7 @@ export default async function CatalogContent({
                         <Link
                           key={p}
                           href={`/catalog?${pageParams.toString()}`}
-                          className={`w-9 h-9 flex items-center justify-center rounded text-body-sm transition-colors ${
+                          className={`w-9 h-9 flex items-center justify-center rounded text-body-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                             p === page
                               ? "bg-primary text-on-primary"
                               : "border border-outline-variant text-on-surface-variant hover:border-primary"

@@ -151,7 +151,7 @@ export default function CatalogFilters({
                     currentColor === String(col.id) ? null : String(col.id)
                   )
                 }
-                className={`w-7 h-7 rounded-full border-2 transition-all ${
+                className={`w-7 h-7 rounded-full border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                   currentColor === String(col.id)
                     ? "border-primary scale-110"
                     : "border-outline-variant hover:border-primary"

@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { getProduct, getProducts, formatPrice, NotFoundError } from "@/lib/api";
 import { ProductDetailInteractive } from "./ProductDetailInteractive";
 import { getInitialVariantId } from "./product-gallery-utils";
 import { ProductSchema } from "@/components/seo/ProductSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
+import { ProductCard } from "@/components/product/product-card";
+import { StaggerGroup, StaggerItem } from "@/components/motion";
 
 export const revalidate = 30;
 
@@ -209,12 +210,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
             </h2>
             <Link
               href={`/catalog?category=${product.category.slug}`}
-              className="text-label-caps text-primary hover:underline whitespace-nowrap"
+              className="text-label-caps text-primary hover:underline whitespace-nowrap rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               Shop All
             </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
+          <StaggerGroup className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
             {related.map((item) => {
               const galleryImages = item.images.filter(
                 (img) => img.image_role === "GALLERY",
@@ -226,36 +227,20 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 : null;
 
               return (
-                <Link
-                  key={item.id}
-                  href={`/catalog/${item.slug}`}
-                  className="group block"
-                >
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-surface-container mb-3">
-                    {itemImage ? (
-                      <Image
-                        src={itemImage.url}
-                        alt={itemImage.alt_text ?? item.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-outline text-4xl">
-                        🧵
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-title-sm text-on-surface">{item.name}</p>
-                  {lowestPrice !== null && (
-                    <p className="text-price-lg text-on-surface-variant">
-                      {formatPrice(lowestPrice)}
-                    </p>
-                  )}
-                </Link>
+                <StaggerItem key={item.id}>
+                  <ProductCard
+                    slug={item.slug}
+                    name={item.name}
+                    imageUrl={itemImage?.url}
+                    imageAlt={itemImage?.alt_text ?? item.name}
+                    formattedPrice={lowestPrice !== null ? formatPrice(lowestPrice) : null}
+                    aspectRatio="3/4"
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                  />
+                </StaggerItem>
               );
             })}
-          </div>
+          </StaggerGroup>
         </div>
       )}
     </div>

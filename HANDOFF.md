@@ -65,8 +65,9 @@ transitions via the existing `transition()` guard) - no vendor account needed.
 
 `docs/UX_IMPROVEMENT_PLAN.md` - six phases (A-F) improving perceived performance and introducing
 an Apple-like design language.
-Phase A (`feature/perf-nav-instant`) is in review - see PR for details.
-Phases B-F are ready to execute one session at a time.
+Phase A (`feature/perf-nav-instant`) merged as PR #30.
+Phase B (`feature/motion-foundations`) is in review - see PR for details.
+Phases C-F are ready to execute one session at a time.
 
 Full growth plan: **`docs/GROWTH.md`** (Phase 7).
 Wave 1 (trust pages + content engine) gates on owner providing business inputs - see GROWTH.md §3.3.
@@ -176,6 +177,21 @@ Update only at phase boundaries or feature merges.
   (renamed from `NEXT_PUBLIC_BACKEND_URL`); fail-fast on missing var in production.
   Backend `compression()` was already present.
   24 test files, 216 tests green; `next build` clean (31 pages).
+- _(2026-07-17)_ **UX Phase B - motion foundations** (PR pending).
+  `motion` v12 installed; motion tokens (`--ease-out-expo`, `--ease-in-out-soft`, 150/250/450ms
+  durations) added to `globals.css @theme`; motion primitives (`Reveal`, `StaggerGroup`/
+  `StaggerItem`, `MotionProvider`) created in `components/motion/`; `MotionProvider`
+  (`MotionConfig reducedMotion="user"`) mounted in storefront layout for global
+  prefers-reduced-motion support.
+  `ProductCard` extracted into `components/product/product-card.tsx` (hover scale 1.03, press
+  0.98, ease-out-expo 450ms) - replaces three inline copies in home, catalog, and product detail.
+  `Header` client component replaces the static inline header: scroll-aware (compact h-14 +
+  stronger blur after 24px); `<details>` mobile menu replaced with `AnimatePresence` slide-in
+  overlay panel (backdrop fade, body scroll lock, Esc close, focus trap).
+  Consistent `focus-visible:ring-2 ring-primary ring-offset-2` on all tiles, nav links,
+  pagination, VariantSelector size/material/color/add-to-cart buttons.
+  Build clean (31 pages), 24 test files, 216 tests green, lint clean, storefront chunks 4-16 kB
+  (no bloat).
 - _(2026-07-17)_ **Growth Wave 0 SEO shipped** (PR #26 + PR #28).
   `robots.ts`, `sitemap.ts` (live data, `updated_at`), `metadataBase`/`title.template`/OG/Twitter
   defaults, product `generateMetadata` (Cloudinary 1200x630 OG image, canonical), catalog

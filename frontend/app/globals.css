@@ -105,6 +105,13 @@
   --spacing-margin-desktop: 64px;
   --spacing-gutter-mobile: 16px;
   --spacing-margin-mobile: 20px;
+
+  /* Motion tokens */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-micro: 150ms;
+  --duration-standard: 250ms;
+  --duration-reveal: 450ms;
 }
 
 body {
