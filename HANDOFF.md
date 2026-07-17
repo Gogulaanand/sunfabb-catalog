@@ -66,8 +66,9 @@ transitions via the existing `transition()` guard) - no vendor account needed.
 `docs/UX_IMPROVEMENT_PLAN.md` - six phases (A-F) improving perceived performance and introducing
 an Apple-like design language.
 Phase A (`feature/perf-nav-instant`) merged as PR #30.
-Phase B (`feature/motion-foundations`) is in review - see PR for details.
-Phases C-F are ready to execute one session at a time.
+Phase B (`feature/motion-foundations`) merged as PR #31.
+Phase C (`feature/home-redesign`) in review - see PR for details.
+Phases D-F are ready to execute one session at a time.
 
 Full growth plan: **`docs/GROWTH.md`** (Phase 7).
 Wave 1 (trust pages + content engine) gates on owner providing business inputs - see GROWTH.md §3.3.
@@ -177,7 +178,7 @@ Update only at phase boundaries or feature merges.
   (renamed from `NEXT_PUBLIC_BACKEND_URL`); fail-fast on missing var in production.
   Backend `compression()` was already present.
   24 test files, 216 tests green; `next build` clean (31 pages).
-- _(2026-07-17)_ **UX Phase B - motion foundations** (PR pending).
+- _(2026-07-17)_ **UX Phase B - motion foundations** (PR #31, merged).
   `motion` v12 installed; motion tokens (`--ease-out-expo`, `--ease-in-out-soft`, 150/250/450ms
   durations) added to `globals.css @theme`; motion primitives (`Reveal`, `StaggerGroup`/
   `StaggerItem`, `MotionProvider`) created in `components/motion/`; `MotionProvider`
@@ -192,6 +193,19 @@ Update only at phase boundaries or feature merges.
   pagination, VariantSelector size/material/color/add-to-cart buttons.
   Build clean (31 pages), 24 test files, 216 tests green, lint clean, storefront chunks 4-16 kB
   (no bloat).
+- _(2026-07-17)_ **UX Phase C - home page redesign** (PR pending).
+  `HeroSection` client component (`components/home/hero-section.tsx`): full-bleed viewport-height
+  hero, Ken Burns scale animation on image (skipped under prefers-reduced-motion via MotionProvider),
+  bottom-to-top gradient scrim, oversized Playfair headline at `clamp(2.5rem, 5vw+1rem, 5.5rem)`,
+  staggered load reveal for headline/copy/CTA (delays 0/0.12/0.24s).
+  Unsplash URL kept as placeholder with TODO comment - blocked on Cloudinary brand asset.
+  Curated Collections: editorial tile layout - full-width feature banner (first category, `3/1`
+  aspect desktop, `3/2` mobile) + portrait tiles below; overlay caption with gradient scrim; image
+  scale + caption lift on hover; subtitle added to section heading.
+  Featured Pieces: section header `Reveal` + subtitle tuned; `StaggerGroup`/`StaggerItem`/
+  `ProductCard` retained from Phase B.
+  Whitespace: sections raised to `py-14 md:py-24 lg:py-32` (56/96/128px).
+  Build clean (31 pages), 24 test files, 216 tests green, lint clean.
 - _(2026-07-17)_ **Growth Wave 0 SEO shipped** (PR #26 + PR #28).
   `robots.ts`, `sitemap.ts` (live data, `updated_at`), `metadataBase`/`title.template`/OG/Twitter
   defaults, product `generateMetadata` (Cloudinary 1200x630 OG image, canonical), catalog
