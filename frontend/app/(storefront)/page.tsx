@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { getCategories, getProducts, formatPrice } from "@/lib/api";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion";
+import { ProductCard } from "@/components/product/product-card";
 
 export const metadata: Metadata = {
   title: {
@@ -50,7 +52,7 @@ export default async function HomePage() {
           </p>
           <Link
             href="/catalog"
-            className="inline-flex items-center justify-center h-11 px-8 rounded bg-primary text-on-primary text-label-caps hover:bg-primary-container transition-colors"
+            className="inline-flex items-center justify-center h-11 px-8 rounded bg-primary text-on-primary text-label-caps hover:bg-primary-container transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             Shop Now
           </Link>
@@ -59,62 +61,70 @@ export default async function HomePage() {
 
       {/* Curated collections */}
       <section className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-(--spacing-margin-mobile) md:py-20">
-        <h2 className="font-display text-headline-md-mobile md:text-headline-md text-center text-on-surface mb-10">
-          Curated Collections
-        </h2>
+        <Reveal>
+          <h2 className="font-display text-headline-md-mobile md:text-headline-md text-center text-on-surface mb-10">
+            Curated Collections
+          </h2>
+        </Reveal>
 
         {categories.length === 0 ? (
           <p className="text-on-surface-variant text-center">No categories found.</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
+          <StaggerGroup className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
             {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/catalog?category=${category.slug}`}
-                className="group block"
-              >
-                <div className="relative aspect-square overflow-hidden rounded-md bg-surface-container mb-3">
-                  {category.image_url ? (
-                    <Image
-                      src={category.image_url}
-                      alt={category.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-outline text-4xl">
-                      🪡
-                    </div>
-                  )}
-                </div>
-                <p className="text-title-sm text-on-surface text-center">{category.name}</p>
-              </Link>
+              <StaggerItem key={category.id}>
+                <Link
+                  href={`/catalog?category=${category.slug}`}
+                  className="group block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  <div className="relative aspect-square overflow-hidden rounded-md bg-surface-container mb-3">
+                    {category.image_url ? (
+                      <Image
+                        src={category.image_url}
+                        alt={category.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-outline text-4xl">
+                        🪡
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-title-sm text-on-surface text-center">{category.name}</p>
+                </Link>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         )}
       </section>
 
       {/* Featured pieces */}
       <section className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-(--spacing-margin-mobile) md:py-20">
-        <div className="flex items-baseline justify-between mb-10">
-          <div>
-            <h2 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface mb-1">
-              Featured Pieces
-            </h2>
-            <p className="text-body-sm text-on-surface-variant">
-              Thoughtfully sourced, quietly luxurious
-            </p>
+        <Reveal>
+          <div className="flex items-baseline justify-between mb-10">
+            <div>
+              <h2 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface mb-1">
+                Featured Pieces
+              </h2>
+              <p className="text-body-sm text-on-surface-variant">
+                Thoughtfully sourced, quietly luxurious
+              </p>
+            </div>
+            <Link
+              href="/catalog"
+              className="text-label-caps text-primary hover:underline whitespace-nowrap rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Shop All
+            </Link>
           </div>
-          <Link href="/catalog" className="text-label-caps text-primary hover:underline whitespace-nowrap">
-            Shop All
-          </Link>
-        </div>
+        </Reveal>
 
         {featured.items.length === 0 ? (
           <p className="text-on-surface-variant">No products found.</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
+          <StaggerGroup className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
             {featured.items.map((product) => {
               const galleryImages = product.images.filter(
                 (image) => image.image_role === "GALLERY",
@@ -126,32 +136,20 @@ export default async function HomePage() {
                 : null;
 
               return (
-                <Link key={product.id} href={`/catalog/${product.slug}`} className="group block">
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-surface-container mb-3">
-                    {primaryImage ? (
-                      <Image
-                        src={primaryImage.url}
-                        alt={primaryImage.alt_text ?? product.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(max-width: 768px) 50vw, 25vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-outline text-4xl">
-                        🧵
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-title-sm text-on-surface">{product.name}</p>
-                  {lowestPrice !== null && (
-                    <p className="text-price-lg text-on-surface-variant">
-                      {formatPrice(lowestPrice)}
-                    </p>
-                  )}
-                </Link>
+                <StaggerItem key={product.id}>
+                  <ProductCard
+                    slug={product.slug}
+                    name={product.name}
+                    imageUrl={primaryImage?.url}
+                    imageAlt={primaryImage?.alt_text ?? product.name}
+                    formattedPrice={lowestPrice !== null ? formatPrice(lowestPrice) : null}
+                    aspectRatio="3/4"
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                  />
+                </StaggerItem>
               );
             })}
-          </div>
+          </StaggerGroup>
         )}
       </section>
     </>

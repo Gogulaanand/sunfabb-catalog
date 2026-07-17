@@ -163,7 +163,7 @@ export function VariantSelector({
                     const match = chooseVariantForSize(variants, size, selectedVariant);
                     if (match) onVariantChange(match.id);
                   }}
-                  className={`px-4 py-1.5 rounded border text-body-sm transition-colors ${
+                  className={`px-4 py-1.5 rounded border text-body-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                     isSelected
                       ? "bg-primary border-primary text-on-primary"
                       : "border-outline-variant text-on-surface hover:border-primary"
@@ -199,7 +199,7 @@ export function VariantSelector({
                     );
                     if (match) onVariantChange(match.id);
                   }}
-                  className={`px-4 py-1.5 rounded border text-body-sm transition-colors ${
+                  className={`px-4 py-1.5 rounded border text-body-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                     isSelected
                       ? "bg-primary border-primary text-on-primary"
                       : "border-outline-variant text-on-surface hover:border-primary"
@@ -243,7 +243,7 @@ export function VariantSelector({
                     );
                     if (match) onVariantChange(match.id);
                   }}
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${
+                  className={`w-8 h-8 rounded-full border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                     isSelected
                       ? "border-primary scale-110 ring-2 ring-primary-container ring-offset-1"
                       : "border-outline-variant hover:border-primary"
@@ -272,7 +272,7 @@ export function VariantSelector({
         <button
           onClick={handleAddToCart}
           disabled={addState === "loading" || selectedVariant.stock_quantity === 0}
-          className={`w-full py-3 rounded text-label-caps transition-all ${
+          className={`w-full py-3 rounded text-label-caps transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
             addState === "added"
               ? "bg-tertiary text-on-primary"
               : addState === "error"
