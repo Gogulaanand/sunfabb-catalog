@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { getProduct, getProducts, formatPrice } from "@/lib/api";
+import { getProduct, getProducts, formatPrice, NotFoundError } from "@/lib/api";
 import { ProductDetailInteractive } from "./ProductDetailInteractive";
 import { getInitialVariantId } from "./product-gallery-utils";
 import { ProductSchema } from "@/components/seo/ProductSchema";
@@ -66,9 +66,14 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const product = await getProduct(slug).catch(() => null);
 
-  if (!product) notFound();
+  let product;
+  try {
+    product = await getProduct(slug);
+  } catch (err) {
+    if (err instanceof NotFoundError) notFound();
+    throw err; // timeout or server error - surface error.tsx (retryable)
+  }
 
   const initialVariantId = getInitialVariantId(product.variants, product.images);
 

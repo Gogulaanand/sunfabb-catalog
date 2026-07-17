@@ -2,6 +2,13 @@ import { z } from "zod";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
+export class NotFoundError extends Error {
+  constructor() {
+    super('Not found');
+    this.name = 'NotFoundError';
+  }
+}
+
 const categorySchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -129,6 +136,7 @@ async function fetchAndParse<T>(
   errorMessage: string,
 ): Promise<T> {
   const res = await fetch(url, { ...init, signal: AbortSignal.timeout(8000) });
+  if (res.status === 404) throw new NotFoundError();
   if (!res.ok) throw new Error(errorMessage);
   return schema.parse(await res.json());
 }
