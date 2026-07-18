@@ -178,7 +178,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   </div>
                 )}
                 <div className="grid grid-cols-[auto_1fr] gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
-                  <dt className="text-on-surface-variant">Brand</dt>
+                    <dt className="text-on-surface-variant w-20 shrink-0">Brand</dt>
                   <dd className="text-on-surface">Sunfabb</dd>
                 </div>
               </dl>
