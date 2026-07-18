@@ -32,6 +32,9 @@ import {
   addImage,
   deleteImage,
   uploadImage,
+  getAdminOrder,
+  listAdminOrders,
+  updateAdminOrderStatus,
 } from "./admin-api";
 
 describe("admin-api", () => {
@@ -70,6 +73,70 @@ describe("admin-api", () => {
         image_role: "GALLERY",
       },
     ],
+  };
+
+  const adminOrderDetailFixture = {
+    id: "550e8400-e29b-41d4-a716-446655440000",
+    order_number: "SF-2026-000123",
+    customer_id: "660e8400-e29b-41d4-a716-446655440000",
+    status: "PAID",
+    email: "jane@example.com",
+    subtotal_paise: 10000,
+    shipping_paise: 0,
+    tax_paise: 0,
+    discount_paise: 0,
+    total_paise: 10000,
+    currency: "INR",
+    shipping_address: {
+      full_name: "Jane Doe",
+      phone: "9876543210",
+      line1: "12 MG Road",
+      line2: null,
+      city: "Bengaluru",
+      state: "Karnataka",
+      pincode: "560001",
+      country: "India",
+    },
+    billing_address: null,
+    razorpay_order_id: "order_rzp_1",
+    razorpay_payment_id: "pay_1",
+    invoice_number: null,
+    placed_at: "2026-07-18T08:35:00.000Z",
+    created_at: "2026-07-18T08:30:00.000Z",
+    updated_at: "2026-07-18T08:35:00.000Z",
+    customer: { full_name: "Jane Doe", email: "jane@example.com", phone: "9876543210" },
+    items: [
+      {
+        id: "770e8400-e29b-41d4-a716-446655440000",
+        variant_id: "880e8400-e29b-41d4-a716-446655440000",
+        product_name: "Royal Bedspread",
+        variant_label: "King · Indigo · 100% Cotton",
+        sku: "SKU-1",
+        hsn_code: "6304",
+        unit_price_paise: 5000,
+        quantity: 2,
+        tax_rate_bps: 0,
+        cgst_paise: 0,
+        sgst_paise: 0,
+        igst_paise: 0,
+        line_total_paise: 10000,
+      },
+    ],
+    payments: [
+      {
+        id: "990e8400-e29b-41d4-a716-446655440000",
+        razorpay_payment_id: "pay_1",
+        razorpay_order_id: "order_rzp_1",
+        amount_paise: 10000,
+        status: "CAPTURED",
+        method: "upi",
+        refunded_paise: 0,
+        created_at: "2026-07-18T08:35:00.000Z",
+        updated_at: "2026-07-18T08:35:00.000Z",
+      },
+    ],
+    shipment: null,
+    allowed_next_statuses: ["PROCESSING", "CANCELLED", "REFUNDED", "PARTIALLY_REFUNDED"],
   };
 
   beforeEach(() => {
@@ -243,5 +310,72 @@ describe("admin-api", () => {
     });
 
     await expect(uploadImage(new File(["x"], "a.jpg"))).rejects.toMatchObject({ status: 413 });
+  });
+
+  it("lists admin orders with validated filters and pagination", async () => {
+    const response = {
+      orders: [
+        {
+          id: adminOrderDetailFixture.id,
+          order_number: adminOrderDetailFixture.order_number,
+          status: adminOrderDetailFixture.status,
+          customer: {
+            full_name: adminOrderDetailFixture.customer.full_name,
+            email: adminOrderDetailFixture.customer.email,
+          },
+          total_paise: 125000,
+          created_at: adminOrderDetailFixture.created_at,
+          item_count: 2,
+        },
+      ],
+      total: 1,
+      page: 2,
+      limit: 10,
+    };
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => response });
+
+    await expect(
+      listAdminOrders({ page: 2, limit: 10, status: "PAID", date_from: "2026-07-01", date_to: "2026-07-18" }),
+    ).resolves.toEqual(response);
+
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toContain("/admin/orders?page=2&limit=10&status=PAID&date_from=2026-07-01&date_to=2026-07-18");
+  });
+
+  it("gets and updates a validated admin order detail", async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => adminOrderDetailFixture });
+
+    await expect(getAdminOrder(adminOrderDetailFixture.id)).resolves.toEqual(adminOrderDetailFixture);
+    await expect(updateAdminOrderStatus(adminOrderDetailFixture.id, "PROCESSING")).resolves.toEqual(
+      adminOrderDetailFixture,
+    );
+
+    const [url, init] = fetchMock.mock.calls[1];
+    expect(url).toContain(`/admin/orders/${adminOrderDetailFixture.id}/status`);
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body)).toEqual({ status: "PROCESSING" });
+  });
+
+  it("rejects malformed admin order responses at the API boundary", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ...adminOrderDetailFixture, total_paise: "10000" }),
+    });
+
+    await expect(getAdminOrder(adminOrderDetailFixture.id)).rejects.toThrow();
+  });
+
+  it("rejects incomplete order address snapshots at the API boundary", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ...adminOrderDetailFixture,
+        shipping_address: { full_name: "Jane Doe", city: "Bengaluru" },
+      }),
+    });
+
+    await expect(getAdminOrder(adminOrderDetailFixture.id)).rejects.toThrow();
   });
 });
