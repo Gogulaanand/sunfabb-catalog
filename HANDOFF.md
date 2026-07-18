@@ -209,7 +209,6 @@ Update only at phase boundaries or feature merges.
   `ProductCard` retained from Phase B.
   Whitespace: sections raised to `py-14 md:py-24 lg:py-32` (56/96/128px).
   Build clean (31 pages), 24 test files, 216 tests green, lint clean.
-<<<<<<< HEAD
 - _(2026-07-17)_ **UX Phase D - catalog page redesign** (PR pending).
   Grid stagger: `StaggerGroup`/`StaggerItem` wrap the product grid with a `key` derived from filter
   params, so cards stagger-in on initial load AND replay on every filter/sort/page change.
@@ -230,7 +229,6 @@ Update only at phase boundaries or feature merges.
   All constraints: no Chakra/Emotion on storefront routes; Ethos & Hearth tokens preserved;
   URL-param filter behavior unchanged (SEO safe); reduced-motion via `MotionProvider` in layout.
   Build clean (31 pages), lint clean, 24 test files, 216/217 tests green.
-=======
 - _(2026-07-18)_ **UX Phase E - product detail redesign** (PR pending).
   `ProductGallery`: `AnimatePresence mode="wait"` crossfade on main image (key per image id),
   thumbnail active-state spring scale + border-color animation via `motion.button animate`.
@@ -247,7 +245,6 @@ Update only at phase boundaries or feature merges.
   (JSDOM has no rAF to advance exit animations; mock makes key-reconciliation synchronous in tests).
   24/24 test files green (216 passed, 1 skipped), `next build` clean (32 pages), lint clean.
 
->>>>>>> f359d0c (feat(storefront): Phase E - product detail redesign)
 - _(2026-07-18)_ **UX Phase F - polish and QA** (in review).
   Evaluated Next.js 16.2.6 View Transitions and skipped the experimental integration in favor of
   a removable 200ms template-level CSS fade with reduced-motion suppression. Branded the storefront
