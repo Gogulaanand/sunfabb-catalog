@@ -69,8 +69,9 @@ Phase A (`feature/perf-nav-instant`) merged as PR #30.
 Phase B (`feature/motion-foundations`) merged as PR #31.
 Phase C (`feature/home-redesign`) merged as PR #32.
 Phase D (`feature/catalog-redesign`) merged as PR #33.
-Phase E (`feature/pdp-redesign`) in review - see PR for details.
-Phase F is ready to execute.
+Phase E (`feature/pdp-redesign`) merged as PR #34.
+Phase F (`feature/ux-polish-qa`) implemented and in review; see
+`phases/briefing/phase-f-ux-polish-qa.md` for the QA evidence and current blockers.
 
 Full growth plan: **`docs/GROWTH.md`** (Phase 7).
 Wave 1 (trust pages + content engine) gates on owner providing business inputs - see GROWTH.md §3.3.
@@ -247,6 +248,15 @@ Update only at phase boundaries or feature merges.
   24/24 test files green (216 passed, 1 skipped), `next build` clean (32 pages), lint clean.
 
 >>>>>>> f359d0c (feat(storefront): Phase E - product detail redesign)
+- _(2026-07-18)_ **UX Phase F - polish and QA** (in review).
+  Evaluated Next.js 16.2.6 View Transitions and skipped the experimental integration in favor of
+  a removable 200ms template-level CSS fade with reduced-motion suppression. Branded the storefront
+  `not-found.tsx` and `error.tsx` pages with Playfair/terracotta Ethos & Hearth styling, recovery
+  copy, Home/Catalog links, and `Reveal` entrances. Added focused tests; lint, 219 frontend tests
+  (1 skipped), and production build pass. Browser sweep covered seven storefront routes at desktop
+  and mobile sizes. Home Lighthouse was 89 performance/96 accessibility on the first run and 91/96
+  on repeat; catalog was 95/96. PDP audit remains blocked by the existing backend `ProductImageRole`
+  runtime/data mismatch; see the briefing.
 - _(2026-07-17)_ **Growth Wave 0 SEO shipped** (PR #26 + PR #28).
   `robots.ts`, `sitemap.ts` (live data, `updated_at`), `metadataBase`/`title.template`/OG/Twitter
   defaults, product `generateMetadata` (Cloudinary 1200x630 OG image, canonical), catalog
