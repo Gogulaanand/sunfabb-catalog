@@ -40,21 +40,26 @@ interface CheckItemProps {
 function CheckItem({ checked, onChange, label }: CheckItemProps) {
   return (
     <label className="flex items-center gap-3 text-body-sm text-on-surface cursor-pointer group select-none">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-        className="sr-only"
-        aria-label={label}
-      />
-      <span
-        className={`w-4 h-4 rounded border-[1.5px] flex items-center justify-center shrink-0 transition-colors duration-150 ${
-          checked
-            ? "bg-primary border-primary text-on-primary"
-            : "border-outline-variant group-hover:border-primary"
-        }`}
-      >
-        {checked && <CheckIcon />}
+      {/* Native input sits inside a sized container so Playwright can click it by role.
+          opacity-[0.01] keeps it invisible to users without triggering Playwright's
+          "element is not visible" guard (which fires on opacity:0 / sr-only clip). */}
+      <span className="relative w-4 h-4 shrink-0">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onChange}
+          className="absolute inset-0 w-full h-full opacity-[0.01] cursor-pointer m-0"
+        />
+        <span
+          aria-hidden="true"
+          className={`absolute inset-0 rounded border-[1.5px] flex items-center justify-center pointer-events-none transition-colors duration-150 ${
+            checked
+              ? "bg-primary border-primary text-on-primary"
+              : "border-outline-variant group-hover:border-primary"
+          }`}
+        >
+          {checked && <CheckIcon />}
+        </span>
       </span>
       <span>{label}</span>
     </label>
