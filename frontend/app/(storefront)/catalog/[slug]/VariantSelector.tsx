@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { formatPrice, type ProductVariant } from "@/lib/api";
 import { useCartStore } from "@/lib/cart-store";
 
@@ -53,6 +54,15 @@ function chooseVariantForMaterial(
   return candidates.find((variant) => variant.color.name === currentColorName) ?? candidates[0];
 }
 
+type AddState = "idle" | "loading" | "added" | "error";
+
+const BUTTON_LABELS: Record<AddState, string> = {
+  idle: "Add to Cart",
+  loading: "Adding…",
+  added: "Added to Cart",
+  error: "Failed — try again",
+};
+
 export function VariantSelector({
   variants,
   productName,
@@ -60,16 +70,13 @@ export function VariantSelector({
   selectedVariantId,
   onVariantChange,
 }: VariantSelectorProps) {
-  const [addState, setAddState] = useState<"idle" | "loading" | "added" | "error">("idle");
+  const [addState, setAddState] = useState<AddState>("idle");
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const addItem = useCartStore((s) => s.addItem);
 
   const selectedVariant = variants.find((v) => v.id === selectedVariantId) ?? variants[0];
 
-  // Variant choices are hierarchical: size narrows material, and the chosen
-  // size/material pair narrows color. Material/color are deduped by name
-  // because the embedded API shapes intentionally omit their ids.
   const sizes = Array.from(
     new Map(
       variants.filter((v) => v.size).map((v) => [v.size, v.size])
@@ -137,6 +144,13 @@ export function VariantSelector({
     }
   }
 
+  const buttonBg =
+    addState === "added"
+      ? "bg-tertiary text-on-primary"
+      : addState === "error"
+      ? "bg-error text-on-primary"
+      : "bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed";
+
   return (
     <div className="space-y-6">
       {/* Price */}
@@ -154,7 +168,7 @@ export function VariantSelector({
             {sizes.map((size) => {
               const isSelected = selectedVariant?.size === size;
               return (
-                <button
+                <motion.button
                   key={size}
                   type="button"
                   aria-pressed={isSelected}
@@ -163,6 +177,8 @@ export function VariantSelector({
                     const match = chooseVariantForSize(variants, size, selectedVariant);
                     if (match) onVariantChange(match.id);
                   }}
+                  whileTap={{ scale: 0.94 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   className={`px-4 py-1.5 rounded border text-body-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                     isSelected
                       ? "bg-primary border-primary text-on-primary"
@@ -170,7 +186,7 @@ export function VariantSelector({
                   }`}
                 >
                   {size}
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -185,7 +201,7 @@ export function VariantSelector({
             {materials.map((mat) => {
               const isSelected = selectedVariant?.material.name === mat.name;
               return (
-                <button
+                <motion.button
                   key={mat.name}
                   type="button"
                   aria-pressed={isSelected}
@@ -199,6 +215,8 @@ export function VariantSelector({
                     );
                     if (match) onVariantChange(match.id);
                   }}
+                  whileTap={{ scale: 0.94 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   className={`px-4 py-1.5 rounded border text-body-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                     isSelected
                       ? "bg-primary border-primary text-on-primary"
@@ -206,7 +224,7 @@ export function VariantSelector({
                   }`}
                 >
                   {mat.name}
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -228,7 +246,7 @@ export function VariantSelector({
             {colors.map((col) => {
               const isSelected = selectedVariant?.color.name === col.name;
               return (
-                <button
+                <motion.button
                   key={col.name}
                   type="button"
                   title={col.name}
@@ -243,9 +261,12 @@ export function VariantSelector({
                     );
                     if (match) onVariantChange(match.id);
                   }}
-                  className={`w-8 h-8 rounded-full border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                  animate={{ scale: isSelected ? 1.15 : 1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className={`w-8 h-8 rounded-full border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                     isSelected
-                      ? "border-primary scale-110 ring-2 ring-primary-container ring-offset-1"
+                      ? "border-primary ring-2 ring-primary-container ring-offset-1"
                       : "border-outline-variant hover:border-primary"
                   }`}
                   style={{ backgroundColor: col.hex_code ?? undefined }}
@@ -269,27 +290,44 @@ export function VariantSelector({
 
       {/* Add to Cart */}
       {selectedVariant && (
-        <button
+        <div role="status" aria-live="polite" className="sr-only">
+          {addState !== "idle" ? BUTTON_LABELS[addState] : ""}
+        </div>
+      )}
+      {selectedVariant && (
+        <motion.button
+          layout
           onClick={handleAddToCart}
           disabled={addState === "loading" || selectedVariant.stock_quantity === 0}
-          className={`w-full py-3 rounded text-label-caps transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-            addState === "added"
-              ? "bg-tertiary text-on-primary"
-              : addState === "error"
-              ? "bg-error text-on-primary"
-              : "bg-primary text-on-primary hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-          }`}
+          className={`w-full py-3 rounded text-label-caps focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${buttonBg}`}
+          transition={{ layout: { type: "spring", stiffness: 400, damping: 30 } }}
+          whileTap={{ scale: addState === "loading" ? 1 : 0.98 }}
         >
-          {addState === "loading"
-            ? "Adding…"
-            : addState === "added"
-            ? "Added to Cart ✓"
-            : addState === "error"
-            ? "Failed — try again"
-            : selectedVariant.stock_quantity === 0
-            ? "Out of Stock"
-            : "Add to Cart"}
-        </button>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={addState}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.15 }}
+              className="flex items-center justify-center gap-2"
+            >
+              {addState === "added" && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                  aria-hidden="true"
+                >
+                  ✓
+                </motion.span>
+              )}
+              {selectedVariant.stock_quantity === 0 && addState === "idle"
+                ? "Out of Stock"
+                : BUTTON_LABELS[addState]}
+            </motion.span>
+          </AnimatePresence>
+        </motion.button>
       )}
     </div>
   );

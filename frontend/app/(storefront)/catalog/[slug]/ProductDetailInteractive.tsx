@@ -36,7 +36,7 @@ export function ProductDetailInteractive({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-(--spacing-gutter-desktop)">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-(--spacing-gutter-desktop) items-start">
       <ProductGallery
         images={images}
         productName={productName}
@@ -45,7 +45,7 @@ export function ProductDetailInteractive({
         onActiveIndexChange={setActiveGalleryIndex}
       />
 
-      <div className="space-y-6">
+      <div className="lg:sticky lg:top-20 lg:self-start space-y-6">
         {detailsBeforeVariant && <div key="before-variant">{detailsBeforeVariant}</div>}
         {variants.length > 0 ? (
           <div key="variant-selector">

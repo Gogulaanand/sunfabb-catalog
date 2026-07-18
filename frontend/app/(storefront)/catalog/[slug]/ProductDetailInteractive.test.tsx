@@ -5,6 +5,17 @@ import type { ProductImage, ProductVariant } from "@/lib/api";
 import { getInitialVariantId } from "./product-gallery-utils";
 import { ProductDetailInteractive } from "./ProductDetailInteractive";
 
+// AnimatePresence mode="wait" defers child mounting until exit animations complete,
+// which never happens in JSDOM (no rAF). Mock it as a passthrough so React's
+// key-based reconciliation handles unmount/mount synchronously in tests.
+vi.mock("motion/react", async () => {
+  const actual = await vi.importActual<typeof import("motion/react")>("motion/react");
+  return {
+    ...actual,
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  };
+});
+
 vi.mock("next/image", () => ({
   default: (props: {
     src: string;
