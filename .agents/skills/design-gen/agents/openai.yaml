@@ -1,0 +1,4 @@
+interface:
+  display_name: "Catalog Design Generation"
+  short_description: "Generate a complete verified catalog design"
+  default_prompt: "Use $design-gen to generate the next queued catalog design with canonical scene prompts."
