@@ -35,7 +35,15 @@ Thumbs.db
 
 # Local session-state scratch file — see HANDOFF.md and docs/WORKFLOW.md
 .session-state.md
+.omc
 .omc/state
 .omc/state/sessions/*
 .omc/sessions/*
 backend/.omc/state/*
+frontend/.omc/state/*
+
+tools/image-pipeline/work/swatches/*
+tools/image-pipeline/input/*
+tools/image-pipeline/work/crops/*
+tools/image-pipeline/work/prep/*
+tools/image-pipeline/work/scenes/*
