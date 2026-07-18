@@ -1,0 +1,5 @@
+# Source photos and all generated working files stay out of git
+input/
+work/
+node_modules/
+.env
