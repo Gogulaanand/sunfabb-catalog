@@ -2,8 +2,11 @@
 
 import Image from "next/image";
 import { useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import type { ProductImage } from "@/lib/api";
 import { getApplicableGalleryImages } from "./product-gallery-utils";
+
+const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
 
 interface ProductGalleryProps {
   images: ProductImage[];
@@ -70,43 +73,62 @@ export function ProductGallery({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {activeImage ? (
-        <div className="relative aspect-square rounded-md overflow-hidden bg-surface-container">
-          <Image
-            src={activeImage.url}
-            alt={activeImage.alt_text ?? productName}
-            fill
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            priority
-            data-testid="product-gallery-main-image"
-          />
-          {galleryImages.length > 1 && (
-            <>
-              <button
-                type="button"
-                aria-label="Previous image"
-                onClick={() => moveBy(-1)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-surface/90 px-3 py-2 text-on-surface shadow-sm transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <span aria-hidden="true">←</span>
-              </button>
-              <button
-                type="button"
-                aria-label="Next image"
-                onClick={() => moveBy(1)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-surface/90 px-3 py-2 text-on-surface shadow-sm transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <span aria-hidden="true">→</span>
-              </button>
-            </>
+      <div className="relative aspect-square rounded-md overflow-hidden bg-surface-container">
+        <AnimatePresence mode="wait" initial={false}>
+          {activeImage ? (
+            <motion.div
+              key={activeImage.id}
+              className="absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: EASE_OUT_EXPO }}
+            >
+              <Image
+                src={activeImage.url}
+                alt={activeImage.alt_text ?? productName}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+                data-testid="product-gallery-main-image"
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="placeholder"
+              className="absolute inset-0 flex items-center justify-center text-outline text-7xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              🧵
+            </motion.div>
           )}
-        </div>
-      ) : (
-        <div className="aspect-square rounded-md bg-surface-container flex items-center justify-center text-outline text-7xl">
-          🧵
-        </div>
-      )}
+        </AnimatePresence>
+
+        {galleryImages.length > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous image"
+              onClick={() => moveBy(-1)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-10 rounded-full bg-surface/90 px-3 py-2 text-on-surface shadow-sm transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <span aria-hidden="true">←</span>
+            </button>
+            <button
+              type="button"
+              aria-label="Next image"
+              onClick={() => moveBy(1)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-10 rounded-full bg-surface/90 px-3 py-2 text-on-surface shadow-sm transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <span aria-hidden="true">→</span>
+            </button>
+          </>
+        )}
+      </div>
 
       <p className="sr-only" aria-live="polite">
         {activeImage
@@ -123,7 +145,7 @@ export function ProductGallery({
           {galleryImages.map((image, index) => {
             const isSelected = index === visibleIndex;
             return (
-              <button
+              <motion.button
                 key={image.id}
                 type="button"
                 role="tab"
@@ -131,11 +153,13 @@ export function ProductGallery({
                 aria-selected={isSelected}
                 tabIndex={isSelected ? 0 : -1}
                 onClick={() => onActiveIndexChange(index)}
-                className={`relative w-20 h-20 shrink-0 rounded overflow-hidden bg-surface-container border-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                  isSelected
-                    ? "border-primary"
-                    : "border-outline-variant hover:border-primary"
-                }`}
+                animate={{
+                  scale: isSelected ? 1.05 : 1,
+                  borderColor: isSelected ? "var(--color-primary)" : "var(--color-outline-variant)",
+                }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="relative w-20 h-20 shrink-0 rounded overflow-hidden bg-surface-container border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <Image
                   src={image.url}
@@ -144,7 +168,7 @@ export function ProductGallery({
                   className="object-cover"
                   sizes="80px"
                 />
-              </button>
+              </motion.button>
             );
           })}
         </div>

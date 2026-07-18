@@ -2,11 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getProduct, getProducts, formatPrice, NotFoundError } from "@/lib/api";
 import { ProductDetailInteractive } from "./ProductDetailInteractive";
+import { CareDisclosure } from "./CareDisclosure";
 import { getInitialVariantId } from "./product-gallery-utils";
 import { ProductSchema } from "@/components/seo/ProductSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { ProductCard } from "@/components/product/product-card";
-import { StaggerGroup, StaggerItem } from "@/components/motion";
+import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion";
 
 export const revalidate = 30;
 
@@ -73,7 +74,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     product = await getProduct(slug);
   } catch (err) {
     if (err instanceof NotFoundError) notFound();
-    throw err; // timeout or server error - surface error.tsx (retryable)
+    throw err;
   }
 
   const initialVariantId = getInitialVariantId(product.variants, product.images);
@@ -136,15 +137,13 @@ export default async function ProductDetailPage({ params }: PageProps) {
         productSlug={product.slug}
         initialVariantId={initialVariantId}
         detailsBeforeVariant={
-          <div className="space-y-6">
-            <div>
-              <p className="text-label-caps text-primary mb-2">
-                {product.category.name}
-              </p>
-              <h1 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface">
-                {product.name}
-              </h1>
-            </div>
+          <div className="space-y-4">
+            <p className="text-label-caps text-primary tracking-widest">
+              {product.category.name}
+            </p>
+            <h1 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface leading-tight">
+              {product.name}
+            </h1>
             {product.description && (
               <p className="text-body-md text-on-surface-variant leading-relaxed">
                 {product.description}
@@ -153,58 +152,49 @@ export default async function ProductDetailPage({ params }: PageProps) {
           </div>
         }
         detailsAfterVariant={
-          <div className="space-y-6">
-            {/* Structured specs for crawlers and LLMs */}
+          <div className="space-y-0">
+            {/* Structured specs */}
             <div className="pt-6 border-t border-outline-variant">
-              <h2 className="text-title-sm text-on-surface mb-3">
+              <h2 className="text-label-caps text-on-surface-variant tracking-widest mb-4">
                 Product Details
               </h2>
-              <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-body-sm">
+              <dl className="divide-y divide-outline-variant/50">
                 {uniqueSizes.length > 0 && (
-                  <>
+                  <div className="grid grid-cols-[auto_1fr] gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
                     <dt className="text-on-surface-variant">Sizes</dt>
                     <dd className="text-on-surface">{uniqueSizes.join(", ")}</dd>
-                  </>
+                  </div>
                 )}
                 {uniqueMaterials.length > 0 && (
-                  <>
+                  <div className="grid grid-cols-[auto_1fr] gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
                     <dt className="text-on-surface-variant">Material</dt>
-                    <dd className="text-on-surface">
-                      {uniqueMaterials.join(", ")}
-                    </dd>
-                  </>
+                    <dd className="text-on-surface">{uniqueMaterials.join(", ")}</dd>
+                  </div>
                 )}
                 {uniqueColors.length > 0 && (
-                  <>
+                  <div className="grid grid-cols-[auto_1fr] gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
                     <dt className="text-on-surface-variant">Colours</dt>
-                    <dd className="text-on-surface">
-                      {uniqueColors.join(", ")}
-                    </dd>
-                  </>
+                    <dd className="text-on-surface">{uniqueColors.join(", ")}</dd>
+                  </div>
                 )}
-                <dt className="text-on-surface-variant">Brand</dt>
-                <dd className="text-on-surface">Sunfabb</dd>
+                <div className="grid grid-cols-[auto_1fr] gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
+                  <dt className="text-on-surface-variant">Brand</dt>
+                  <dd className="text-on-surface">Sunfabb</dd>
+                </div>
               </dl>
             </div>
 
             {product.care_instructions && (
-              <div className="pt-6 border-t border-outline-variant">
-                <h2 className="text-title-sm text-on-surface mb-2">
-                  Care Instructions
-                </h2>
-                <p className="text-body-sm text-on-surface-variant leading-relaxed">
-                  {product.care_instructions}
-                </p>
-              </div>
+              <CareDisclosure instructions={product.care_instructions} />
             )}
           </div>
         }
       />
 
-      {/* Complete the look */}
+      {/* Complete the Look */}
       {related.length > 0 && (
-        <div className="mt-(--spacing-margin-mobile) md:mt-20">
-          <div className="flex items-baseline justify-between mb-10">
+        <div className="mt-(--spacing-margin-mobile) md:mt-24">
+          <Reveal className="flex items-baseline justify-between mb-10">
             <h2 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface">
               Complete the Look
             </h2>
@@ -214,7 +204,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             >
               Shop All
             </Link>
-          </div>
+          </Reveal>
           <StaggerGroup className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
             {related.map((item) => {
               const galleryImages = item.images.filter(
