@@ -11,8 +11,11 @@ import {
 import CatalogFilters from "./CatalogFilters";
 import CatalogPendingGrid from "./CatalogPendingGrid";
 import { CatalogTransitionProvider } from "./CatalogTransitionContext";
+import { CatalogResultCount } from "./CatalogResultCount";
+import { CatalogEmptyState } from "./CatalogEmptyState";
 import { ItemListSchema } from "@/components/seo/ItemListSchema";
 import { ProductCard } from "@/components/product/product-card";
+import { StaggerGroup, StaggerItem } from "@/components/motion";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunfabb.com";
 
@@ -44,6 +47,8 @@ export default async function CatalogContent({
 
   const { items: products, total } = productsData;
   const totalPages = Math.ceil(total / limit);
+  const hasFilters = Boolean(categorySlug || materialId || colorId);
+  const gridKey = [categorySlug, materialId, colorId, sortBy, page].join("-");
 
   return (
     <>
@@ -64,20 +69,15 @@ export default async function CatalogContent({
           {/* Product grid */}
           <CatalogPendingGrid>
             <div className="flex-1 min-w-0">
-              <p className="text-body-sm text-on-surface-variant mb-6">
-                Showing {products.length} of {total}{" "}
-                {total === 1 ? "item" : "items"}
-              </p>
+              <CatalogResultCount showing={products.length} total={total} />
 
               {products.length === 0 ? (
-                <div className="py-20 text-center text-on-surface-variant">
-                  <p className="text-title-sm">No products found.</p>
-                  <p className="text-body-sm mt-2">
-                    Try adjusting your filters.
-                  </p>
-                </div>
+                <CatalogEmptyState hasFilters={hasFilters} />
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-(--spacing-gutter-desktop)">
+                <StaggerGroup
+                  key={gridKey}
+                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-(--spacing-gutter-desktop)"
+                >
                   {products.map((product) => {
                     const galleryImages = product.images.filter(
                       (image) => image.image_role === "GALLERY",
@@ -90,19 +90,24 @@ export default async function CatalogContent({
                       : null;
 
                     return (
-                      <ProductCard
-                        key={product.id}
-                        slug={product.slug}
-                        name={product.name}
-                        imageUrl={primaryImage?.url}
-                        imageAlt={primaryImage?.alt_text ?? product.name}
-                        formattedPrice={lowestPrice !== null ? formatPrice(lowestPrice) : null}
-                        aspectRatio="square"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                      />
+                      <StaggerItem key={product.id}>
+                        <ProductCard
+                          slug={product.slug}
+                          name={product.name}
+                          imageUrl={primaryImage?.url}
+                          imageAlt={primaryImage?.alt_text ?? product.name}
+                          formattedPrice={
+                            lowestPrice !== null
+                              ? formatPrice(lowestPrice)
+                              : null
+                          }
+                          aspectRatio="square"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                        />
+                      </StaggerItem>
                     );
                   })}
-                </div>
+                </StaggerGroup>
               )}
 
               {/* Pagination */}
@@ -124,10 +129,10 @@ export default async function CatalogContent({
                         <Link
                           key={p}
                           href={`/catalog?${pageParams.toString()}`}
-                          className={`w-9 h-9 flex items-center justify-center rounded text-body-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                          className={`w-9 h-9 flex items-center justify-center rounded text-body-sm transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                             p === page
-                              ? "bg-primary text-on-primary"
-                              : "border border-outline-variant text-on-surface-variant hover:border-primary"
+                              ? "bg-primary text-on-primary shadow-sm scale-105"
+                              : "border border-outline-variant text-on-surface-variant hover:border-primary hover:text-on-surface hover:bg-surface-container active:scale-95"
                           }`}
                         >
                           {p}

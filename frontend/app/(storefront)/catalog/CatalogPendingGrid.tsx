@@ -1,16 +1,18 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { motion } from "motion/react";
 import { useCatalogTransition } from "./CatalogTransitionContext";
 
 export default function CatalogPendingGrid({ children }: { children: ReactNode }) {
   const { isPending } = useCatalogTransition();
   return (
-    <div
+    <motion.div
       aria-busy={isPending}
-      className={`transition-opacity duration-200 ${isPending ? "opacity-50" : "opacity-100"}`}
+      animate={{ opacity: isPending ? 0.4 : 1 }}
+      transition={{ duration: 0.2 }}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }
