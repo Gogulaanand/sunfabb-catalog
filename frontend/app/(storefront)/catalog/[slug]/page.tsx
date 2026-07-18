@@ -160,20 +160,20 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </h2>
               <dl className="divide-y divide-outline-variant/50">
                 {uniqueSizes.length > 0 && (
-                  <div className="grid grid-cols-[auto_1fr] gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
-                    <dt className="text-on-surface-variant">Sizes</dt>
+                  <div className="flex gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
+                    <dt className="text-on-surface-variant w-20 shrink-0">Sizes</dt>
                     <dd className="text-on-surface">{uniqueSizes.join(", ")}</dd>
                   </div>
                 )}
                 {uniqueMaterials.length > 0 && (
-                  <div className="grid grid-cols-[auto_1fr] gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
-                    <dt className="text-on-surface-variant">Material</dt>
+                  <div className="flex gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
+                    <dt className="text-on-surface-variant w-20 shrink-0">Material</dt>
                     <dd className="text-on-surface">{uniqueMaterials.join(", ")}</dd>
                   </div>
                 )}
                 {uniqueColors.length > 0 && (
-                  <div className="grid grid-cols-[auto_1fr] gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
-                    <dt className="text-on-surface-variant">Colours</dt>
+                  <div className="flex gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
+                    <dt className="text-on-surface-variant w-20 shrink-0">Colours</dt>
                     <dd className="text-on-surface">{uniqueColors.join(", ")}</dd>
                   </div>
                 )}
