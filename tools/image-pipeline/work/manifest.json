@@ -1,0 +1,2017 @@
+{
+  "items": [
+    {
+      "source": "8569.jpg",
+      "designNo": "8569",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "blue",
+          "box": {
+            "x": 18,
+            "y": 128,
+            "w": 252,
+            "h": 1024
+          }
+        },
+        {
+          "color": "pink",
+          "box": {
+            "x": 333,
+            "y": 128,
+            "w": 126,
+            "h": 1024
+          }
+        },
+        {
+          "color": "green",
+          "box": {
+            "x": 560,
+            "y": 128,
+            "w": 110,
+            "h": 1024
+          }
+        },
+        {
+          "color": "peach",
+          "box": {
+            "x": 760,
+            "y": 128,
+            "w": 130,
+            "h": 1024
+          }
+        }
+      ]
+    },
+    {
+      "source": "034c6e00-f366-49d7-b088-b9eda6193bdc.jpg",
+      "designNo": "4219",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "pink",
+          "box": {
+            "x": 15,
+            "y": 100,
+            "w": 110,
+            "h": 600
+          }
+        },
+        {
+          "color": "mustard",
+          "box": {
+            "x": 160,
+            "y": 100,
+            "w": 110,
+            "h": 600
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 305,
+            "y": 100,
+            "w": 110,
+            "h": 600
+          }
+        },
+        {
+          "color": "magenta",
+          "box": {
+            "x": 450,
+            "y": 100,
+            "w": 110,
+            "h": 600
+          }
+        }
+      ]
+    },
+    {
+      "source": "09ebfd45-a40b-4df2-92ce-ececc28a238d.jpg",
+      "designNo": "8525",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "mauve",
+          "box": {
+            "x": 30,
+            "y": 30,
+            "w": 1050,
+            "h": 880
+          }
+        },
+        {
+          "color": "grey",
+          "box": {
+            "x": 30,
+            "y": 980,
+            "w": 350,
+            "h": 260
+          }
+        },
+        {
+          "color": "lavender",
+          "box": {
+            "x": 410,
+            "y": 980,
+            "w": 350,
+            "h": 260
+          }
+        },
+        {
+          "color": "gold",
+          "box": {
+            "x": 790,
+            "y": 980,
+            "w": 350,
+            "h": 260
+          }
+        }
+      ]
+    },
+    {
+      "source": "1f7db153-84cb-499f-86da-159c77e80f0e.jpg",
+      "designNo": "8555",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "maroon",
+          "box": {
+            "x": 15,
+            "y": 100,
+            "w": 180,
+            "h": 1300
+          }
+        },
+        {
+          "color": "slate-blue",
+          "box": {
+            "x": 245,
+            "y": 100,
+            "w": 180,
+            "h": 1300
+          }
+        },
+        {
+          "color": "olive-brown",
+          "box": {
+            "x": 475,
+            "y": 100,
+            "w": 180,
+            "h": 1300
+          }
+        },
+        {
+          "color": "grey-blue",
+          "box": {
+            "x": 705,
+            "y": 100,
+            "w": 180,
+            "h": 1300
+          }
+        }
+      ]
+    },
+    {
+      "source": "28293bde-1404-41cc-aa1c-a18edb66f5bb.jpg",
+      "designNo": "4461",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "purple",
+          "box": {
+            "x": 10,
+            "y": 50,
+            "w": 160,
+            "h": 950
+          }
+        },
+        {
+          "color": "yellow",
+          "box": {
+            "x": 200,
+            "y": 50,
+            "w": 160,
+            "h": 950
+          }
+        },
+        {
+          "color": "olive",
+          "box": {
+            "x": 390,
+            "y": 50,
+            "w": 160,
+            "h": 950
+          }
+        },
+        {
+          "color": "hot-pink",
+          "box": {
+            "x": 580,
+            "y": 50,
+            "w": 160,
+            "h": 950
+          }
+        }
+      ]
+    },
+    {
+      "source": "2e0a2bdc-4fde-4223-a279-534c48be1c37.jpg",
+      "designNo": "8470",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "lavender",
+          "box": {
+            "x": 15,
+            "y": 50,
+            "w": 180,
+            "h": 1300
+          }
+        },
+        {
+          "color": "mustard",
+          "box": {
+            "x": 245,
+            "y": 50,
+            "w": 180,
+            "h": 1300
+          }
+        },
+        {
+          "color": "seafoam",
+          "box": {
+            "x": 475,
+            "y": 50,
+            "w": 180,
+            "h": 1300
+          }
+        },
+        {
+          "color": "peach",
+          "box": {
+            "x": 705,
+            "y": 50,
+            "w": 180,
+            "h": 1300
+          }
+        }
+      ]
+    },
+    {
+      "source": "3407a693-34b8-42f8-852f-a6bee8452ee3.jpg",
+      "designNo": "UNKNOWN-PLAID4",
+      "category": "other",
+      "colorways": [
+        {
+          "color": "plaid",
+          "box": {
+            "x": 50,
+            "y": 550,
+            "w": 550,
+            "h": 650
+          }
+        }
+      ]
+    },
+    {
+      "source": "34cb3c44-8b65-46d1-a4cc-d60bbbd637bc.jpg",
+      "designNo": "4388",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "pink",
+          "box": {
+            "x": 10,
+            "y": 30,
+            "w": 200,
+            "h": 1500
+          }
+        },
+        {
+          "color": "yellow",
+          "box": {
+            "x": 220,
+            "y": 30,
+            "w": 200,
+            "h": 1500
+          }
+        },
+        {
+          "color": "teal",
+          "box": {
+            "x": 440,
+            "y": 30,
+            "w": 200,
+            "h": 1500
+          }
+        },
+        {
+          "color": "orange",
+          "box": {
+            "x": 660,
+            "y": 30,
+            "w": 220,
+            "h": 1500
+          }
+        }
+      ]
+    },
+    {
+      "source": "3fa9c707-3887-472e-8f42-5887367c0ece.jpg",
+      "designNo": "8571",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "grey-blue",
+          "box": {
+            "x": 10,
+            "y": 20,
+            "w": 220,
+            "h": 1240
+          }
+        },
+        {
+          "color": "yellow",
+          "box": {
+            "x": 240,
+            "y": 20,
+            "w": 220,
+            "h": 1240
+          }
+        },
+        {
+          "color": "pink",
+          "box": {
+            "x": 470,
+            "y": 20,
+            "w": 220,
+            "h": 1240
+          }
+        }
+      ]
+    },
+    {
+      "source": "40059ce4-4a8e-4901-80f3-e879aa10ff95.jpg",
+      "designNo": "4221",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "brown",
+          "box": {
+            "x": 5,
+            "y": 30,
+            "w": 130,
+            "h": 960
+          }
+        },
+        {
+          "color": "blue-grey",
+          "box": {
+            "x": 145,
+            "y": 30,
+            "w": 130,
+            "h": 960
+          }
+        },
+        {
+          "color": "mustard",
+          "box": {
+            "x": 285,
+            "y": 30,
+            "w": 130,
+            "h": 960
+          }
+        },
+        {
+          "color": "mauve",
+          "box": {
+            "x": 425,
+            "y": 30,
+            "w": 130,
+            "h": 960
+          }
+        }
+      ]
+    },
+    {
+      "source": "485fc9da-b1d8-4c6a-82b6-bf2b51b8abdf.jpg",
+      "designNo": "8501",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "red",
+          "box": {
+            "x": 20,
+            "y": 20,
+            "w": 930,
+            "h": 780
+          }
+        },
+        {
+          "color": "teal",
+          "box": {
+            "x": 985,
+            "y": 15,
+            "w": 280,
+            "h": 260
+          }
+        },
+        {
+          "color": "mustard",
+          "box": {
+            "x": 985,
+            "y": 290,
+            "w": 280,
+            "h": 260
+          }
+        },
+        {
+          "color": "light-blue",
+          "box": {
+            "x": 985,
+            "y": 565,
+            "w": 280,
+            "h": 260
+          }
+        }
+      ]
+    },
+    {
+      "source": "4cc8eb37-281c-438a-85c1-11ec1e3a8906.jpg",
+      "designNo": "4610",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "purple",
+          "box": {
+            "x": 20,
+            "y": 100,
+            "w": 150,
+            "h": 1000
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 200,
+            "y": 100,
+            "w": 150,
+            "h": 1000
+          }
+        },
+        {
+          "color": "pink",
+          "box": {
+            "x": 370,
+            "y": 100,
+            "w": 150,
+            "h": 1000
+          }
+        },
+        {
+          "color": "mustard",
+          "box": {
+            "x": 550,
+            "y": 100,
+            "w": 150,
+            "h": 1000
+          }
+        }
+      ]
+    },
+    {
+      "source": "517d4c37-40e1-4dcc-933c-656e7e9a1a3b.jpg",
+      "designNo": "SILVER-STAR",
+      "category": "other",
+      "colorways": [
+        {
+          "color": "navy-plaid",
+          "box": {
+            "x": 50,
+            "y": 780,
+            "w": 600,
+            "h": 400
+          }
+        }
+      ]
+    },
+    {
+      "source": "55f81b8e-d469-4548-8c0a-3d24ff13a9dc.jpg",
+      "designNo": "8563",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "olive",
+          "box": {
+            "x": 20,
+            "y": 50,
+            "w": 150,
+            "h": 1100
+          }
+        },
+        {
+          "color": "grey",
+          "box": {
+            "x": 190,
+            "y": 50,
+            "w": 150,
+            "h": 1100
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 370,
+            "y": 50,
+            "w": 150,
+            "h": 1100
+          }
+        },
+        {
+          "color": "teal",
+          "box": {
+            "x": 540,
+            "y": 50,
+            "w": 150,
+            "h": 1100
+          }
+        }
+      ]
+    },
+    {
+      "source": "5e245afe-283a-4950-927b-67d7130146c2.jpg",
+      "designNo": "4216",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "blue",
+          "box": {
+            "x": 20,
+            "y": 50,
+            "w": 120,
+            "h": 900
+          }
+        },
+        {
+          "color": "purple",
+          "box": {
+            "x": 160,
+            "y": 50,
+            "w": 120,
+            "h": 900
+          }
+        },
+        {
+          "color": "brown",
+          "box": {
+            "x": 300,
+            "y": 50,
+            "w": 120,
+            "h": 900
+          }
+        },
+        {
+          "color": "red",
+          "box": {
+            "x": 440,
+            "y": 50,
+            "w": 120,
+            "h": 900
+          }
+        }
+      ]
+    },
+    {
+      "source": "5e4e9c21-a872-4e53-bcaf-880c466b2187.jpg",
+      "designNo": "8517",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "red",
+          "box": {
+            "x": 50,
+            "y": 50,
+            "w": 1060,
+            "h": 750
+          }
+        },
+        {
+          "color": "purple",
+          "box": {
+            "x": 20,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 400,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        },
+        {
+          "color": "maroon",
+          "box": {
+            "x": 780,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        }
+      ]
+    },
+    {
+      "source": "699031c9-138a-4ca5-966d-2622b216e63b.jpg",
+      "designNo": "8496",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "pink",
+          "box": {
+            "x": 50,
+            "y": 50,
+            "w": 800,
+            "h": 750
+          }
+        },
+        {
+          "color": "mustard",
+          "box": {
+            "x": 950,
+            "y": 20,
+            "w": 300,
+            "h": 250
+          }
+        },
+        {
+          "color": "teal",
+          "box": {
+            "x": 950,
+            "y": 300,
+            "w": 300,
+            "h": 250
+          }
+        },
+        {
+          "color": "orange",
+          "box": {
+            "x": 950,
+            "y": 580,
+            "w": 300,
+            "h": 250
+          }
+        }
+      ]
+    },
+    {
+      "source": "6a927d66-7fb0-40bd-9305-289f1ad2abf5.jpg",
+      "designNo": "8522",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "blue",
+          "box": {
+            "x": 50,
+            "y": 50,
+            "w": 1060,
+            "h": 750
+          }
+        },
+        {
+          "color": "taupe",
+          "box": {
+            "x": 20,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        },
+        {
+          "color": "pink",
+          "box": {
+            "x": 400,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        },
+        {
+          "color": "olive",
+          "box": {
+            "x": 780,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        }
+      ]
+    },
+    {
+      "source": "6b47f36e-94d5-4327-8a3e-c5cf4f7d665b.jpg",
+      "designNo": "8519",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "red",
+          "box": {
+            "x": 50,
+            "y": 50,
+            "w": 1060,
+            "h": 750
+          }
+        },
+        {
+          "color": "magenta",
+          "box": {
+            "x": 20,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 400,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        },
+        {
+          "color": "purple",
+          "box": {
+            "x": 780,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        }
+      ]
+    },
+    {
+      "source": "6d19171f-bb61-49cf-96a2-29067c9009aa.jpg",
+      "designNo": "TOWEL",
+      "category": "other",
+      "colorways": [
+        {
+          "color": "orange",
+          "box": {
+            "x": 100,
+            "y": 100,
+            "w": 350,
+            "h": 400
+          }
+        },
+        {
+          "color": "green",
+          "box": {
+            "x": 500,
+            "y": 100,
+            "w": 350,
+            "h": 400
+          }
+        },
+        {
+          "color": "dark-blue",
+          "box": {
+            "x": 900,
+            "y": 100,
+            "w": 350,
+            "h": 400
+          }
+        },
+        {
+          "color": "burgundy",
+          "box": {
+            "x": 100,
+            "y": 550,
+            "w": 350,
+            "h": 400
+          }
+        },
+        {
+          "color": "red",
+          "box": {
+            "x": 500,
+            "y": 550,
+            "w": 350,
+            "h": 400
+          }
+        },
+        {
+          "color": "mid-blue",
+          "box": {
+            "x": 900,
+            "y": 550,
+            "w": 350,
+            "h": 400
+          }
+        },
+        {
+          "color": "peach",
+          "box": {
+            "x": 100,
+            "y": 1000,
+            "w": 350,
+            "h": 400
+          }
+        },
+        {
+          "color": "brown",
+          "box": {
+            "x": 500,
+            "y": 1000,
+            "w": 350,
+            "h": 400
+          }
+        },
+        {
+          "color": "light-blue",
+          "box": {
+            "x": 900,
+            "y": 1000,
+            "w": 350,
+            "h": 400
+          }
+        }
+      ]
+    },
+    {
+      "source": "72c51d9c-c6c4-4772-8581-d705ab6ea46f.jpg",
+      "designNo": "4592",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "salmon",
+          "box": {
+            "x": 20,
+            "y": 100,
+            "w": 150,
+            "h": 1000
+          }
+        },
+        {
+          "color": "teal",
+          "box": {
+            "x": 200,
+            "y": 100,
+            "w": 150,
+            "h": 1000
+          }
+        },
+        {
+          "color": "magenta",
+          "box": {
+            "x": 370,
+            "y": 100,
+            "w": 150,
+            "h": 1000
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 550,
+            "y": 100,
+            "w": 150,
+            "h": 1000
+          }
+        }
+      ]
+    },
+    {
+      "source": "7624a2c0-3639-4c1b-be1b-a5fade985d7f.jpg",
+      "designNo": "UNKNOWN-PLAID1",
+      "category": "other",
+      "colorways": [
+        {
+          "color": "plaid",
+          "box": {
+            "x": 200,
+            "y": 600,
+            "w": 600,
+            "h": 600
+          }
+        }
+      ]
+    },
+    {
+      "source": "786c1a9f-78e1-46ec-8d43-2b3f64d027f3.jpg",
+      "designNo": "4195",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "grey",
+          "box": {
+            "x": 20,
+            "y": 50,
+            "w": 100,
+            "h": 700
+          }
+        },
+        {
+          "color": "beige",
+          "box": {
+            "x": 160,
+            "y": 50,
+            "w": 100,
+            "h": 700
+          }
+        },
+        {
+          "color": "yellow",
+          "box": {
+            "x": 300,
+            "y": 50,
+            "w": 100,
+            "h": 700
+          }
+        },
+        {
+          "color": "brown",
+          "box": {
+            "x": 450,
+            "y": 50,
+            "w": 100,
+            "h": 700
+          }
+        }
+      ]
+    },
+    {
+      "source": "8bf22fec-5d07-4b25-a032-1c6d5efe7804.jpg",
+      "designNo": "4207",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "grey",
+          "box": {
+            "x": 20,
+            "y": 50,
+            "w": 100,
+            "h": 650
+          }
+        },
+        {
+          "color": "tan",
+          "box": {
+            "x": 160,
+            "y": 50,
+            "w": 100,
+            "h": 650
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 300,
+            "y": 50,
+            "w": 100,
+            "h": 650
+          }
+        },
+        {
+          "color": "olive",
+          "box": {
+            "x": 450,
+            "y": 50,
+            "w": 100,
+            "h": 650
+          }
+        }
+      ]
+    },
+    {
+      "source": "94587bad-efeb-40e8-8f84-dbf425733c2e.jpg",
+      "designNo": "4429",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "cyan",
+          "box": {
+            "x": 20,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        },
+        {
+          "color": "yellow",
+          "box": {
+            "x": 190,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        },
+        {
+          "color": "royal-blue",
+          "box": {
+            "x": 370,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        },
+        {
+          "color": "purple",
+          "box": {
+            "x": 540,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        }
+      ]
+    },
+    {
+      "source": "9cae2487-ca6f-4aba-ae1f-313652f2fa67.jpg",
+      "designNo": "4603",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "purple",
+          "box": {
+            "x": 20,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        },
+        {
+          "color": "green",
+          "box": {
+            "x": 200,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        },
+        {
+          "color": "brown",
+          "box": {
+            "x": 370,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        },
+        {
+          "color": "pink",
+          "box": {
+            "x": 550,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        }
+      ]
+    },
+    {
+      "source": "9d6c82bd-80cb-42dd-9297-d32ce3c176cd.jpg",
+      "designNo": "4425",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "magenta",
+          "box": {
+            "x": 20,
+            "y": 50,
+            "w": 150,
+            "h": 1000
+          }
+        },
+        {
+          "color": "orange",
+          "box": {
+            "x": 190,
+            "y": 50,
+            "w": 150,
+            "h": 1000
+          }
+        },
+        {
+          "color": "olive",
+          "box": {
+            "x": 370,
+            "y": 50,
+            "w": 150,
+            "h": 1000
+          }
+        },
+        {
+          "color": "red",
+          "box": {
+            "x": 540,
+            "y": 50,
+            "w": 150,
+            "h": 1000
+          }
+        }
+      ]
+    },
+    {
+      "source": "a04c376d-c416-4f5d-858d-5c3024532159.jpg",
+      "designNo": "8473",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "blue",
+          "box": {
+            "x": 20,
+            "y": 250,
+            "w": 170,
+            "h": 150
+          }
+        },
+        {
+          "color": "brown",
+          "box": {
+            "x": 270,
+            "y": 250,
+            "w": 140,
+            "h": 150
+          }
+        },
+        {
+          "color": "grey",
+          "box": {
+            "x": 430,
+            "y": 250,
+            "w": 90,
+            "h": 150
+          }
+        },
+        {
+          "color": "burgundy",
+          "box": {
+            "x": 550,
+            "y": 250,
+            "w": 150,
+            "h": 150
+          }
+        }
+      ]
+    },
+    {
+      "source": "a3158b6e-3f72-495f-bc3f-835a7eba996a.jpg",
+      "designNo": "UNKNOWN-PLAID2",
+      "category": "other",
+      "colorways": [
+        {
+          "color": "green-purple-plaid",
+          "box": {
+            "x": 100,
+            "y": 600,
+            "w": 400,
+            "h": 600
+          }
+        }
+      ]
+    },
+    {
+      "source": "a408b253-a3f0-4bc6-aef7-8314bc9a8556.jpg",
+      "designNo": "4337",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "blue",
+          "box": {
+            "x": 20,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        },
+        {
+          "color": "terracotta",
+          "box": {
+            "x": 190,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        },
+        {
+          "color": "olive",
+          "box": {
+            "x": 370,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        },
+        {
+          "color": "pink",
+          "box": {
+            "x": 540,
+            "y": 50,
+            "w": 150,
+            "h": 900
+          }
+        }
+      ]
+    },
+    {
+      "source": "a9574b09-a7fb-4c38-88f2-cf463666a4ca.jpg",
+      "designNo": "8521",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "pink",
+          "box": {
+            "x": 50,
+            "y": 50,
+            "w": 1060,
+            "h": 750
+          }
+        },
+        {
+          "color": "teal",
+          "box": {
+            "x": 20,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        },
+        {
+          "color": "yellow",
+          "box": {
+            "x": 400,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        },
+        {
+          "color": "peach",
+          "box": {
+            "x": 780,
+            "y": 950,
+            "w": 350,
+            "h": 300
+          }
+        }
+      ]
+    },
+    {
+      "source": "b1bcfb62-03e8-4fab-b3ed-5de984de8c95.jpg",
+      "designNo": "4217",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "yellow",
+          "box": {
+            "x": 20,
+            "y": 50,
+            "w": 100,
+            "h": 700
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 160,
+            "y": 50,
+            "w": 100,
+            "h": 700
+          }
+        },
+        {
+          "color": "purple",
+          "box": {
+            "x": 300,
+            "y": 50,
+            "w": 100,
+            "h": 700
+          }
+        },
+        {
+          "color": "green",
+          "box": {
+            "x": 450,
+            "y": 50,
+            "w": 100,
+            "h": 700
+          }
+        }
+      ]
+    },
+    {
+      "source": "b278d992-eef4-46c6-8075-9f692ed62bfd.jpg",
+      "designNo": "8479",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "olive",
+          "box": {
+            "x": 20,
+            "y": 500,
+            "w": 150,
+            "h": 500
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 340,
+            "y": 500,
+            "w": 120,
+            "h": 500
+          }
+        },
+        {
+          "color": "copper",
+          "box": {
+            "x": 560,
+            "y": 500,
+            "w": 140,
+            "h": 500
+          }
+        },
+        {
+          "color": "magenta",
+          "box": {
+            "x": 780,
+            "y": 500,
+            "w": 100,
+            "h": 500
+          }
+        }
+      ]
+    },
+    {
+      "source": "b3781674-11f8-4472-a263-b2fcfd0b8a7d.jpg",
+      "designNo": "4468",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "magenta",
+          "box": {
+            "x": 20,
+            "y": 50,
+            "w": 200,
+            "h": 1100
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 250,
+            "y": 50,
+            "w": 200,
+            "h": 1100
+          }
+        },
+        {
+          "color": "orange-red",
+          "box": {
+            "x": 480,
+            "y": 50,
+            "w": 200,
+            "h": 1100
+          }
+        },
+        {
+          "color": "red",
+          "box": {
+            "x": 720,
+            "y": 50,
+            "w": 200,
+            "h": 1100
+          }
+        }
+      ]
+    },
+    {
+      "source": "b515447e-3dec-4ad5-b647-25b19ededff4.jpg",
+      "designNo": "8476",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "teal",
+          "box": {
+            "x": 30,
+            "y": 50,
+            "w": 170,
+            "h": 1200
+          }
+        },
+        {
+          "color": "pink",
+          "box": {
+            "x": 250,
+            "y": 50,
+            "w": 170,
+            "h": 1200
+          }
+        },
+        {
+          "color": "mustard",
+          "box": {
+            "x": 480,
+            "y": 50,
+            "w": 170,
+            "h": 1200
+          }
+        },
+        {
+          "color": "blue-grey",
+          "box": {
+            "x": 700,
+            "y": 50,
+            "w": 170,
+            "h": 1200
+          }
+        }
+      ]
+    },
+    {
+      "source": "bb73654a-1532-4d0d-9e9a-e43b1833d1f5.jpg",
+      "designNo": "UNKNOWN-PLAID3",
+      "category": "other",
+      "colorways": [
+        {
+          "color": "plaid",
+          "box": {
+            "x": 100,
+            "y": 400,
+            "w": 600,
+            "h": 800
+          }
+        }
+      ]
+    },
+    {
+      "source": "befcaed9-1b70-42da-b901-0dfba9f7ec39.jpg",
+      "designNo": "UNKNOWN-STRIPE1",
+      "category": "table_linen",
+      "colorways": [
+        {
+          "color": "stripes",
+          "box": {
+            "x": 100,
+            "y": 400,
+            "w": 500,
+            "h": 800
+          }
+        }
+      ]
+    },
+    {
+      "source": "c034b231-07e1-4777-a85c-cdf37c3a035f.jpg",
+      "designNo": "8511",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "pink",
+          "box": {
+            "x": 50,
+            "y": 50,
+            "w": 800,
+            "h": 750
+          }
+        },
+        {
+          "color": "light-blue",
+          "box": {
+            "x": 950,
+            "y": 20,
+            "w": 300,
+            "h": 250
+          }
+        },
+        {
+          "color": "lavender",
+          "box": {
+            "x": 950,
+            "y": 300,
+            "w": 300,
+            "h": 250
+          }
+        },
+        {
+          "color": "yellow",
+          "box": {
+            "x": 950,
+            "y": 580,
+            "w": 300,
+            "h": 250
+          }
+        }
+      ]
+    },
+    {
+      "source": "c5c453ae-52e8-4fa5-b3c7-523b8cbf7f48.jpg",
+      "designNo": "8474",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "brown",
+          "box": {
+            "x": 20,
+            "y": 200,
+            "w": 150,
+            "h": 1100
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 270,
+            "y": 200,
+            "w": 120,
+            "h": 1100
+          }
+        },
+        {
+          "color": "purple",
+          "box": {
+            "x": 500,
+            "y": 200,
+            "w": 120,
+            "h": 1100
+          }
+        },
+        {
+          "color": "olive",
+          "box": {
+            "x": 730,
+            "y": 200,
+            "w": 140,
+            "h": 1100
+          }
+        }
+      ]
+    },
+    {
+      "source": "ccefb2d1-9a89-44f5-b7eb-4948ffa478b1.jpg",
+      "designNo": "8507",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "burgundy",
+          "box": {
+            "x": 50,
+            "y": 50,
+            "w": 800,
+            "h": 750
+          }
+        },
+        {
+          "color": "magenta",
+          "box": {
+            "x": 950,
+            "y": 20,
+            "w": 300,
+            "h": 250
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 950,
+            "y": 300,
+            "w": 300,
+            "h": 250
+          }
+        },
+        {
+          "color": "gold",
+          "box": {
+            "x": 950,
+            "y": 580,
+            "w": 300,
+            "h": 250
+          }
+        }
+      ]
+    },
+    {
+      "source": "cd76e872-4ac3-4338-86a7-72c9c0aad62f.jpg",
+      "designNo": "UNKNOWN-STRIPE2",
+      "category": "table_linen",
+      "colorways": [
+        {
+          "color": "stripes",
+          "box": {
+            "x": 100,
+            "y": 400,
+            "w": 500,
+            "h": 800
+          }
+        }
+      ]
+    },
+    {
+      "source": "ce3f9382-d372-46ad-a01e-49deaa044c45.jpg",
+      "designNo": "4210",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "blue",
+          "box": {
+            "x": 15,
+            "y": 150,
+            "w": 100,
+            "h": 700
+          }
+        },
+        {
+          "color": "mustard",
+          "box": {
+            "x": 165,
+            "y": 150,
+            "w": 90,
+            "h": 700
+          }
+        },
+        {
+          "color": "teal",
+          "box": {
+            "x": 310,
+            "y": 150,
+            "w": 90,
+            "h": 700
+          }
+        },
+        {
+          "color": "olive",
+          "box": {
+            "x": 455,
+            "y": 150,
+            "w": 100,
+            "h": 700
+          }
+        }
+      ]
+    },
+    {
+      "source": "d0850094-319a-4b8f-a508-b741cc4ae930.jpg",
+      "designNo": "8559",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "grey",
+          "box": {
+            "x": 20,
+            "y": 250,
+            "w": 150,
+            "h": 1100
+          }
+        },
+        {
+          "color": "olive",
+          "box": {
+            "x": 410,
+            "y": 250,
+            "w": 110,
+            "h": 1100
+          }
+        },
+        {
+          "color": "blue-grey",
+          "box": {
+            "x": 580,
+            "y": 250,
+            "w": 120,
+            "h": 1100
+          }
+        },
+        {
+          "color": "mustard",
+          "box": {
+            "x": 750,
+            "y": 250,
+            "w": 120,
+            "h": 1100
+          }
+        }
+      ]
+    },
+    {
+      "source": "d2d143d3-6335-497b-bf0e-10199e1f9c5f.jpg",
+      "designNo": "4462",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "magenta",
+          "box": {
+            "x": 15,
+            "y": 200,
+            "w": 140,
+            "h": 850
+          }
+        },
+        {
+          "color": "yellow",
+          "box": {
+            "x": 205,
+            "y": 200,
+            "w": 110,
+            "h": 850
+          }
+        },
+        {
+          "color": "green",
+          "box": {
+            "x": 395,
+            "y": 200,
+            "w": 110,
+            "h": 850
+          }
+        },
+        {
+          "color": "purple",
+          "box": {
+            "x": 585,
+            "y": 200,
+            "w": 140,
+            "h": 850
+          }
+        }
+      ]
+    },
+    {
+      "source": "dd015223-8b09-406d-addd-df83d46e08b3.jpg",
+      "designNo": "8481",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "beige",
+          "box": {
+            "x": 30,
+            "y": 50,
+            "w": 170,
+            "h": 1200
+          }
+        },
+        {
+          "color": "blue",
+          "box": {
+            "x": 250,
+            "y": 50,
+            "w": 170,
+            "h": 1200
+          }
+        },
+        {
+          "color": "pink",
+          "box": {
+            "x": 480,
+            "y": 50,
+            "w": 170,
+            "h": 1200
+          }
+        },
+        {
+          "color": "olive",
+          "box": {
+            "x": 700,
+            "y": 50,
+            "w": 170,
+            "h": 1200
+          }
+        }
+      ]
+    },
+    {
+      "source": "e9fd3907-473e-427f-ae96-4d34a2380d82.jpg",
+      "designNo": "UNKNOWN-STRIPE3",
+      "category": "table_linen",
+      "colorways": [
+        {
+          "color": "stripes",
+          "box": {
+            "x": 100,
+            "y": 400,
+            "w": 500,
+            "h": 800
+          }
+        }
+      ]
+    },
+    {
+      "source": "ead43998-67eb-44b5-9d52-233258c4c533.jpg",
+      "designNo": "8560",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "beige",
+          "box": {
+            "x": 20,
+            "y": 250,
+            "w": 150,
+            "h": 1100
+          }
+        },
+        {
+          "color": "mauve",
+          "box": {
+            "x": 270,
+            "y": 250,
+            "w": 120,
+            "h": 1100
+          }
+        },
+        {
+          "color": "cream",
+          "box": {
+            "x": 500,
+            "y": 250,
+            "w": 120,
+            "h": 1100
+          }
+        },
+        {
+          "color": "blue-grey",
+          "box": {
+            "x": 730,
+            "y": 250,
+            "w": 140,
+            "h": 1100
+          }
+        }
+      ]
+    },
+    {
+      "source": "edc04462-d79d-4490-a0f0-92651ad57908.jpg",
+      "designNo": "4208",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "blue",
+          "box": {
+            "x": 15,
+            "y": 350,
+            "w": 130,
+            "h": 300
+          }
+        },
+        {
+          "color": "purple",
+          "box": {
+            "x": 210,
+            "y": 350,
+            "w": 100,
+            "h": 300
+          }
+        },
+        {
+          "color": "yellow",
+          "box": {
+            "x": 410,
+            "y": 350,
+            "w": 70,
+            "h": 300
+          }
+        },
+        {
+          "color": "red",
+          "box": {
+            "x": 545,
+            "y": 350,
+            "w": 60,
+            "h": 300
+          }
+        }
+      ]
+    },
+    {
+      "source": "ee9986cd-e4e7-415a-a646-293e59a58436.jpg",
+      "designNo": "4607",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "yellow",
+          "box": {
+            "x": 15,
+            "y": 200,
+            "w": 130,
+            "h": 850
+          }
+        },
+        {
+          "color": "pink",
+          "box": {
+            "x": 195,
+            "y": 200,
+            "w": 110,
+            "h": 850
+          }
+        },
+        {
+          "color": "teal",
+          "box": {
+            "x": 375,
+            "y": 200,
+            "w": 110,
+            "h": 850
+          }
+        },
+        {
+          "color": "peach",
+          "box": {
+            "x": 555,
+            "y": 200,
+            "w": 130,
+            "h": 850
+          }
+        }
+      ]
+    },
+    {
+      "source": "fb18e4a8-d59f-4204-acb8-27ab82c0a227.jpg",
+      "designNo": "8576",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "brown",
+          "box": {
+            "x": 20,
+            "y": 250,
+            "w": 150,
+            "h": 1100
+          }
+        },
+        {
+          "color": "blue-grey",
+          "box": {
+            "x": 270,
+            "y": 250,
+            "w": 120,
+            "h": 1100
+          }
+        },
+        {
+          "color": "dark-grey",
+          "box": {
+            "x": 500,
+            "y": 250,
+            "w": 120,
+            "h": 1100
+          }
+        },
+        {
+          "color": "maroon",
+          "box": {
+            "x": 730,
+            "y": 250,
+            "w": 140,
+            "h": 1100
+          }
+        }
+      ]
+    },
+    {
+      "source": "ff84ca00-9056-4498-a0f6-498ebf94e548.jpg",
+      "designNo": "8545",
+      "category": "bedspread",
+      "colorways": [
+        {
+          "color": "olive",
+          "box": {
+            "x": 20,
+            "y": 200,
+            "w": 150,
+            "h": 1100
+          }
+        },
+        {
+          "color": "peach",
+          "box": {
+            "x": 270,
+            "y": 200,
+            "w": 120,
+            "h": 1100
+          }
+        },
+        {
+          "color": "purple",
+          "box": {
+            "x": 500,
+            "y": 200,
+            "w": 120,
+            "h": 1100
+          }
+        },
+        {
+          "color": "green",
+          "box": {
+            "x": 730,
+            "y": 200,
+            "w": 140,
+            "h": 1100
+          }
+        }
+      ]
+    }
+  ]
+}

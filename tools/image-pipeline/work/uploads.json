@@ -1,0 +1,332 @@
+{
+  "4219": {
+    "pink": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/4219/pink/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033250/sunfabb/products/4219/pink/01-hero.jpg"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/4219/pink/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033250/sunfabb/products/4219/pink/02-closeup.jpg"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/4219/pink/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033250/sunfabb/products/4219/pink/03-folded.jpg"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/4219/pink/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033251/sunfabb/products/4219/pink/04-room.jpg"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/4219/pink/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033248/sunfabb/products/4219/pink/swatch.jpg"
+      }
+    ],
+    "mustard": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/4219/mustard/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033251/sunfabb/products/4219/mustard/01-hero.jpg"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/4219/mustard/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033252/sunfabb/products/4219/mustard/02-closeup.jpg"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/4219/mustard/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033253/sunfabb/products/4219/mustard/03-folded.jpg"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/4219/mustard/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033254/sunfabb/products/4219/mustard/04-room.jpg"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/4219/mustard/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033249/sunfabb/products/4219/mustard/swatch.jpg"
+      }
+    ],
+    "blue": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/4219/blue/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033252/sunfabb/products/4219/blue/01-hero.png"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/4219/blue/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033252/sunfabb/products/4219/blue/02-closeup.png"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/4219/blue/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033253/sunfabb/products/4219/blue/03-folded.png"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/4219/blue/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033254/sunfabb/products/4219/blue/04-room.png"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/4219/blue/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033249/sunfabb/products/4219/blue/swatch.jpg"
+      }
+    ],
+    "magenta": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/4219/magenta/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033252/sunfabb/products/4219/magenta/01-hero.jpg"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/4219/magenta/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033253/sunfabb/products/4219/magenta/02-closeup.jpg"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/4219/magenta/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033254/sunfabb/products/4219/magenta/03-folded.jpg"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/4219/magenta/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033255/sunfabb/products/4219/magenta/04-room.jpg"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/4219/magenta/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033249/sunfabb/products/4219/magenta/swatch.jpg"
+      }
+    ]
+  },
+  "8525": {
+    "mauve": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/8525/mauve/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033257/sunfabb/products/8525/mauve/01-hero.png"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/8525/mauve/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033257/sunfabb/products/8525/mauve/02-closeup.png"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/8525/mauve/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033258/sunfabb/products/8525/mauve/03-folded.png"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/8525/mauve/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033258/sunfabb/products/8525/mauve/04-room.png"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/8525/mauve/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033255/sunfabb/products/8525/mauve/swatch.png"
+      }
+    ],
+    "grey": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/8525/grey/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033258/sunfabb/products/8525/grey/01-hero.png"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/8525/grey/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033259/sunfabb/products/8525/grey/02-closeup.png"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/8525/grey/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033260/sunfabb/products/8525/grey/03-folded.png"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/8525/grey/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033261/sunfabb/products/8525/grey/04-room.png"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/8525/grey/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033256/sunfabb/products/8525/grey/swatch.png"
+      }
+    ],
+    "lavender": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/8525/lavender/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033258/sunfabb/products/8525/lavender/01-hero.png"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/8525/lavender/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033259/sunfabb/products/8525/lavender/02-closeup.png"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/8525/lavender/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033261/sunfabb/products/8525/lavender/03-folded.png"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/8525/lavender/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033262/sunfabb/products/8525/lavender/04-room.png"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/8525/lavender/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033256/sunfabb/products/8525/lavender/swatch.png"
+      }
+    ],
+    "gold": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/8525/gold/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033259/sunfabb/products/8525/gold/01-hero.png"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/8525/gold/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033260/sunfabb/products/8525/gold/02-closeup.png"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/8525/gold/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033261/sunfabb/products/8525/gold/03-folded.png"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/8525/gold/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033262/sunfabb/products/8525/gold/04-room.png"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/8525/gold/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033256/sunfabb/products/8525/gold/swatch.png"
+      }
+    ]
+  },
+  "8569": {
+    "blue": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/8569/blue/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033243/sunfabb/products/8569/blue/01-hero.png"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/8569/blue/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033242/sunfabb/products/8569/blue/02-closeup.png"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/8569/blue/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033243/sunfabb/products/8569/blue/03-folded.png"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/8569/blue/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033244/sunfabb/products/8569/blue/04-room.png"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/8569/blue/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033242/sunfabb/products/8569/blue/swatch.png"
+      }
+    ],
+    "pink": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/8569/pink/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033244/sunfabb/products/8569/pink/01-hero.png"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/8569/pink/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033245/sunfabb/products/8569/pink/02-closeup.png"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/8569/pink/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033246/sunfabb/products/8569/pink/03-folded.png"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/8569/pink/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033247/sunfabb/products/8569/pink/04-room.png"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/8569/pink/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033240/sunfabb/products/8569/pink/swatch.png"
+      }
+    ],
+    "green": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/8569/green/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033245/sunfabb/products/8569/green/01-hero.png"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/8569/green/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033246/sunfabb/products/8569/green/02-closeup.png"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/8569/green/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033247/sunfabb/products/8569/green/03-folded.png"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/8569/green/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033248/sunfabb/products/8569/green/04-room.png"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/8569/green/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033241/sunfabb/products/8569/green/swatch.png"
+      }
+    ],
+    "peach": [
+      {
+        "shot": "hero",
+        "publicId": "sunfabb/products/8569/peach/01-hero",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033245/sunfabb/products/8569/peach/01-hero.jpg"
+      },
+      {
+        "shot": "closeup",
+        "publicId": "sunfabb/products/8569/peach/02-closeup",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033246/sunfabb/products/8569/peach/02-closeup.jpg"
+      },
+      {
+        "shot": "folded",
+        "publicId": "sunfabb/products/8569/peach/03-folded",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033247/sunfabb/products/8569/peach/03-folded.png"
+      },
+      {
+        "shot": "room",
+        "publicId": "sunfabb/products/8569/peach/04-room",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033248/sunfabb/products/8569/peach/04-room.jpg"
+      },
+      {
+        "shot": "swatch",
+        "publicId": "sunfabb/products/8569/peach/swatch",
+        "url": "https://res.cloudinary.com/sunfabb/image/upload/v1784033241/sunfabb/products/8569/peach/swatch.png"
+      }
+    ]
+  }
+}
