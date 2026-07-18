@@ -34,6 +34,9 @@ Thumbs.db
 # Claude Code local memory (machine-specific, not for version control)
 .claude/
 
+# Codex local config may contain MCP credentials. Commit config.example.toml only.
+.codex/config.toml
+
 # Local session-state scratch file — see HANDOFF.md and docs/WORKFLOW.md
 .session-state.md
 .omc
