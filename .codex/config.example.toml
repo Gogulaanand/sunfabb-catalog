@@ -42,14 +42,13 @@ args = ["@playwright/mcp@latest"]
 [mcp_servers.razorpay]
 url = "https://mcp.razorpay.com/mcp"
 
-[mcp_servers.razorpay.http_headers]
-Authorization = "Basic cnpwX3Rlc3RfVEFSZVpGTFFxOTMwNTk6MDNHQm56OFpHaGhYVHZzZVRHR3lodU05Cg=="
+# Set this environment variable to the full value: Basic <base64(key_id:key_secret)>.
+[mcp_servers.razorpay.env_http_headers]
+Authorization = "RAZORPAY_MCP_AUTHORIZATION"
 
 [mcp_servers.render]
 url = "https://mcp.render.com/mcp"
-
-[mcp_servers.render.http_headers]
-Authorization = "Bearer rnd_FEtiv68a94UIITUVPoE90hvR31Ip"
+bearer_token_env_var = "RENDER_API_KEY"
 
 [mcp_servers.vercel]
 url = "https://mcp.vercel.com"
