@@ -290,6 +290,11 @@ export function VariantSelector({
 
       {/* Add to Cart */}
       {selectedVariant && (
+        <div role="status" aria-live="polite" className="sr-only">
+          {addState !== "idle" ? BUTTON_LABELS[addState] : ""}
+        </div>
+      )}
+      {selectedVariant && (
         <motion.button
           layout
           onClick={handleAddToCart}

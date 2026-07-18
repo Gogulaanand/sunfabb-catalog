@@ -74,7 +74,7 @@ export function ProductGallery({
       onTouchEnd={handleTouchEnd}
     >
       <div className="relative aspect-square rounded-md overflow-hidden bg-surface-container">
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence initial={false}>
           {activeImage ? (
             <motion.div
               key={activeImage.id}
