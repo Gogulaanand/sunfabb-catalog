@@ -127,9 +127,9 @@ Run: `cd backend && npx jest src/admin/orders/admin-orders.service.spec.ts --run
 
 Expected: PASS with all service cases green.
 
-- [ ] **Step 8: Commit only after the user’s explicit commit approval**
+- [x] **Step 8: Commit after the user’s explicit commit approval**
 
-Do not commit during this task; the user requested approval before implementation commits.
+The user approved commit/push/PR creation. Implementation commit: `4637c0e`.
 
 ---
 
@@ -290,7 +290,7 @@ Expected: PASS with no lint errors.
 
 Run: `cd backend && npm test -- --runInBand` and `npm run test:e2e -- --runInBand`.
 
-Result: the full unit/integration suite passes (43 suites, 265 tests). The existing e2e suite has one passing suite and two unrelated baseline failures: the stale scaffold test still expects `GET /` to return `Hello World!` although no root route exists, and the contact happy-path test receives a 500 because the configured remote Prisma database times out (`ETIMEDOUT` on `ContactMessage.create`).
+Result: the full unit/integration suite passes (43 suites, 268 tests). The existing e2e suite has one passing suite and two unrelated baseline failures: the stale scaffold test still expects `GET /` to return `Hello World!` although no root route exists, and the contact happy-path test receives a 500 because the configured remote Prisma database times out (`ETIMEDOUT` on `ContactMessage.create`).
 
 - [x] **Step 2: Run backend lint, type-check, and build**
 
@@ -308,6 +308,7 @@ Expected: exit code `0` for each command.
 
 Run `git diff --stat main...HEAD`, `git diff --check`, and inspect all changed files. Confirm all three routes, guard, DTO validation, Prisma-only access, Zod boundary validation, paise formatting, optimistic rollback, nav link, tests, and no unrelated files are included.
 
-- [ ] **Step 5: Stop for user approval before commit/push/PR**
+- [x] **Step 5: Commit, push, and open the PR after user approval**
 
-Report exact verification output and the intended implementation commit scope. Do not stage, commit, push, or open a PR until the user explicitly approves.
+The feature commit was pushed to `feature/6.8-admin-orders`, and the owner has opened the PR
+against `main`. The remaining milestone step is PR review and merge.

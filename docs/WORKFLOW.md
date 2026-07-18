@@ -126,7 +126,7 @@ See the milestone log in `HANDOFF.md` for what was built in each phase.
 | 6.5 GST invoicing (HSN, CGST/SGST/IGST, invoice numbers, PDF) | **L** | First invoicing/tax logic; vendor-gated (needs accountant inputs) |
 | 6.6 Shipping - Shiprocket integration | **L** | First courier API + webhook; vendor-gated (needs Shiprocket account) |
 | 6.7 Email - Resend, transactional flows | L | First email service; vendor-gated (needs Resend domain verify) |
-| 6.8 Admin order management UI | F | Order list/detail + status transitions via existing `transition()` guard; unblocked |
+| 6.8 Admin order management UI | F | Order list/detail + status transitions via existing `transition()` guard; implemented, PR open |
 | 6.9 Hardening & Playwright e2e (full purchase, cross-principal test) | L | Security pass + first full e2e purchase flow |
 | 6.10 Go-live (Razorpay + Shiprocket KYC, Render Starter upgrade) | L | First real production payment; gated on vendor KYC |
 

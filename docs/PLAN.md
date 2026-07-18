@@ -220,6 +220,19 @@ POST   /products/:id/images
 ... (same pattern for categories, materials, colors)
 ```
 
+Admin orders (milestone 6.8, JWT-protected):
+
+```
+GET    /admin/orders?page=&limit=&status=&date_from=&date_to=
+GET    /admin/orders/:id
+PATCH  /admin/orders/:id/status
+```
+
+The order list is newest-first and returns customer summary, integer paise totals, creation time,
+and item count. The detail endpoint returns safe order/customer fields, frozen item snapshots,
+payments, shipment data, and server-computed legal next statuses. Status updates delegate to the
+shared order state machine and reject illegal transitions with 400.
+
 Customer (Phase 6, separate JWT principal):
 
 ```
@@ -344,7 +357,7 @@ Progress across the ~50-design catalog is tracked in
 
 ### Phase 6 - e-commerce (in progress)
 
-Full scope: **`.omc/plans/2026-06-21-phase6-ecommerce.md`**. ADRs D32-D41.
+Full scope: **`.omc/plans/2026-06-21-phase6-ecommerce.md`**. ADRs D32-D41 plus D43 for milestone 6.8.
 
 | # | Milestone | Status |
 |---|-----------|--------|
@@ -356,9 +369,15 @@ Full scope: **`.omc/plans/2026-06-21-phase6-ecommerce.md`**. ADRs D32-D41.
 | 6.5 | GST invoicing - HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | ⬜ needs accountant inputs |
 | 6.6 | Shipping (Shiprocket) - serviceability/rates, AWB/label, tracking webhook | ⬜ needs Shiprocket account |
 | 6.7 | Email (Resend) - replace `EmailService` stub, verified domain | ⬜ needs Resend domain verify |
-| 6.8 | Admin order management UI | ⬜ unblocked |
+| 6.8 | Admin order management UI | 🟡 implementation complete - PR open |
 | 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ⬜ |
 | 6.10 | Go-live (gated on Razorpay + Shiprocket KYC, Render Starter upgrade) | ⬜ |
+
+**Milestone 6.8 implementation:** The admin order resource and Chakra UI screens are complete on
+`feature/6.8-admin-orders`. The backend exposes paginated/filterable list, detail, and status-update
+routes behind the single-admin JWT guard. The frontend validates every admin-order response with Zod,
+formats paise as INR at the display boundary, and uses the server's `allowed_next_statuses` for the
+status control. The PR is open against `main`; merge is the remaining milestone step.
 
 **Parallel catalog-content track:** ~47 designs in the image-generation pipeline
 (`tools/image-pipeline/CATALOG_PROGRESS.md`); non-blocking for app development.
