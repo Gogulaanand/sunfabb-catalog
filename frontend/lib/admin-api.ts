@@ -2,6 +2,10 @@ import "server-only";
 import { cookies } from "next/headers";
 import { productImageRoleSchema, type Category, type Color, type Material, type ProductImageRole } from "./api";
 import { z } from "zod";
+import { adminOrderStatusSchema, type AdminOrderStatus } from "./admin-order-status";
+
+export { adminOrderStatusSchema } from "./admin-order-status";
+export type { AdminOrderStatus } from "./admin-order-status";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -274,6 +278,156 @@ export function addImage(productId: string, input: ImageInput): Promise<AdminPro
 
 export function deleteImage(id: string): Promise<void> {
   return request(`/images/${id}`, { method: "DELETE" });
+}
+
+// --- Orders ---
+
+const adminOrderCustomerSchema = z.object({
+  full_name: z.string().nullable(),
+  email: z.string().email(),
+  phone: z.string().nullable(),
+});
+
+const adminAddressSnapshotSchema = z.object({
+  full_name: z.string(),
+  phone: z.string(),
+  line1: z.string(),
+  line2: z.string().nullable(),
+  city: z.string(),
+  state: z.string(),
+  pincode: z.string(),
+  country: z.string(),
+});
+
+const adminOrderListItemSchema = z.object({
+  id: z.string().uuid(),
+  order_number: z.string(),
+  status: adminOrderStatusSchema,
+  customer: adminOrderCustomerSchema.pick({ full_name: true, email: true }),
+  total_paise: z.number().int(),
+  created_at: z.string().datetime(),
+  item_count: z.number().int().nonnegative(),
+});
+
+const adminOrderItemSchema = z.object({
+  id: z.string().uuid(),
+  variant_id: z.string().uuid(),
+  product_name: z.string(),
+  variant_label: z.string(),
+  sku: z.string(),
+  hsn_code: z.string().nullable(),
+  unit_price_paise: z.number().int(),
+  quantity: z.number().int().positive(),
+  tax_rate_bps: z.number().int().nonnegative(),
+  cgst_paise: z.number().int().nonnegative(),
+  sgst_paise: z.number().int().nonnegative(),
+  igst_paise: z.number().int().nonnegative(),
+  line_total_paise: z.number().int(),
+});
+
+const adminPaymentSchema = z.object({
+  id: z.string().uuid(),
+  razorpay_payment_id: z.string().nullable(),
+  razorpay_order_id: z.string().nullable(),
+  amount_paise: z.number().int(),
+  status: z.enum([
+    "CREATED",
+    "AUTHORIZED",
+    "CAPTURED",
+    "FAILED",
+    "REFUNDED",
+    "PARTIALLY_REFUNDED",
+  ]),
+  method: z.string().nullable(),
+  refunded_paise: z.number().int().nonnegative(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+
+const adminShipmentSchema = z.object({
+  id: z.string().uuid(),
+  order_id: z.string().uuid(),
+  shiprocket_order_id: z.string().nullable(),
+  awb_code: z.string().nullable(),
+  courier_name: z.string().nullable(),
+  label_url: z.string().nullable(),
+  tracking_url: z.string().nullable(),
+  status: z.string().nullable(),
+  shipped_at: z.string().datetime().nullable(),
+  delivered_at: z.string().datetime().nullable(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+
+const adminOrderDetailSchema = z.object({
+  id: z.string().uuid(),
+  order_number: z.string(),
+  customer_id: z.string().uuid(),
+  status: adminOrderStatusSchema,
+  email: z.string().email(),
+  subtotal_paise: z.number().int(),
+  shipping_paise: z.number().int(),
+  tax_paise: z.number().int(),
+  discount_paise: z.number().int(),
+  total_paise: z.number().int(),
+  currency: z.literal("INR"),
+  shipping_address: adminAddressSnapshotSchema,
+  billing_address: adminAddressSnapshotSchema.nullable(),
+  razorpay_order_id: z.string().nullable(),
+  razorpay_payment_id: z.string().nullable(),
+  invoice_number: z.string().nullable(),
+  placed_at: z.string().datetime().nullable(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+  customer: adminOrderCustomerSchema,
+  items: z.array(adminOrderItemSchema),
+  payments: z.array(adminPaymentSchema),
+  shipment: adminShipmentSchema.nullable(),
+  allowed_next_statuses: z.array(adminOrderStatusSchema),
+});
+
+const adminOrdersResponseSchema = z.object({
+  orders: z.array(adminOrderListItemSchema),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+});
+
+export type AdminOrderListItem = z.infer<typeof adminOrderListItemSchema>;
+export type AdminOrdersResponse = z.infer<typeof adminOrdersResponseSchema>;
+export type AdminOrderDetail = z.infer<typeof adminOrderDetailSchema>;
+
+export interface AdminOrdersQuery {
+  page?: number;
+  limit?: number;
+  status?: AdminOrderStatus;
+  date_from?: string;
+  date_to?: string;
+}
+
+export function listAdminOrders(params: AdminOrdersQuery = {}): Promise<AdminOrdersResponse> {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") searchParams.set(key, String(value));
+  }
+  const query = searchParams.toString();
+  return requestJson(`/admin/orders${query ? `?${query}` : ""}`).then((body) =>
+    adminOrdersResponseSchema.parse(body),
+  );
+}
+
+export function getAdminOrder(id: string): Promise<AdminOrderDetail> {
+  return requestJson(`/admin/orders/${id}`).then((body) => adminOrderDetailSchema.parse(body));
+}
+
+export function updateAdminOrderStatus(
+  id: string,
+  status: AdminOrderStatus,
+): Promise<AdminOrderDetail> {
+  return requestJson(`/admin/orders/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  }).then((body) => adminOrderDetailSchema.parse(body));
 }
 
 export async function uploadImage(file: File): Promise<{ url: string; public_id: string }> {

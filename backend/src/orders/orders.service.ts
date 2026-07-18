@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -206,10 +207,28 @@ export class OrdersService {
     next: OrderStatus,
   ) {
     assertTransition(order.status, next);
-    return this.prisma.order.update({
-      where: { id: order.id },
+
+    const { count } = await this.prisma.order.updateMany({
+      where: { id: order.id, status: order.status },
       data: { status: next },
+    });
+
+    if (count !== 1) {
+      const current = await this.prisma.order.findUnique({
+        where: { id: order.id },
+        select: { status: true },
+      });
+      if (!current) throw new NotFoundException('Order not found');
+      throw new ConflictException(
+        'Order status changed; refresh the order and try again',
+      );
+    }
+
+    const updated = await this.prisma.order.findUnique({
+      where: { id: order.id },
       include: ORDER_INCLUDE,
     });
+    if (!updated) throw new NotFoundException('Order not found');
+    return updated;
   }
 }

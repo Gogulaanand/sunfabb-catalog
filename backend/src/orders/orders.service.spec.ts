@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { financialYear } from './order-number.js';
@@ -56,6 +60,8 @@ const mockPrisma = {
     findMany: jest.fn(),
     count: jest.fn(),
     findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    updateMany: jest.fn(),
     update: jest.fn(),
   },
 };
@@ -283,15 +289,45 @@ describe('OrdersService', () => {
   });
 
   describe('transition', () => {
-    it('persists a legal transition', async () => {
-      mockPrisma.order.update.mockResolvedValue({ id: 'o1', status: 'PAID' });
+    it('persists a legal transition only when the current status still matches', async () => {
+      mockPrisma.order.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: 'o1',
+        status: 'PAID',
+        items: [],
+      });
+
       await service.transition({ id: 'o1', status: 'PENDING_PAYMENT' }, 'PAID');
-      expect(mockPrisma.order.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 'o1' },
-          data: { status: 'PAID' },
-        }),
-      );
+      expect(mockPrisma.order.updateMany).toHaveBeenCalledWith({
+        where: { id: 'o1', status: 'PENDING_PAYMENT' },
+        data: { status: 'PAID' },
+      });
+      expect(mockPrisma.order.findUnique).toHaveBeenCalledWith({
+        where: { id: 'o1' },
+        include: { items: true },
+      });
+    });
+
+    it('rejects a stale transition with a conflict without persisting', async () => {
+      mockPrisma.order.updateMany.mockResolvedValue({ count: 0 });
+      mockPrisma.order.findUnique.mockResolvedValue({
+        id: 'o1',
+        status: 'PAID',
+      });
+
+      await expect(
+        service.transition({ id: 'o1', status: 'PENDING_PAYMENT' }, 'PAID'),
+      ).rejects.toThrow(ConflictException);
+      expect(mockPrisma.order.updateMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects an unknown order after a conditional update misses', async () => {
+      mockPrisma.order.updateMany.mockResolvedValue({ count: 0 });
+      mockPrisma.order.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.transition({ id: 'o1', status: 'PENDING_PAYMENT' }, 'PAID'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('rejects an illegal transition without persisting', async () => {
@@ -301,7 +337,7 @@ describe('OrdersService', () => {
           'DELIVERED',
         ),
       ).rejects.toThrow(BadRequestException);
-      expect(mockPrisma.order.update).not.toHaveBeenCalled();
+      expect(mockPrisma.order.updateMany).not.toHaveBeenCalled();
     });
   });
 });

@@ -650,3 +650,26 @@ block in `webhooks.service.spec.ts`.
 Trust pages deferred out of Wave 0 keeps that wave code-only so it can ship immediately without
 waiting on owner business decisions.
 **Status:** Locked (2026-07-16).
+
+### D43 - Admin order management consumes the shared state machine; refund effects remain deferred [6.8]
+**Decision:**
+1. The single-admin `/admin/orders` resource is the read and mutation boundary for order management.
+   Its controller uses the existing admin JWT guard, DTOs validate every route input, and the service
+   delegates status changes to `OrdersService.transition()` so `assertTransition()` remains the sole
+   transition authority.
+2. Status updates use a conditional database update against the status observed by the service. A
+   concurrent update therefore cannot overwrite a newer status; the losing request receives 409 and
+   the client refreshes from the server. The frontend does not duplicate the transition map: it uses
+   server-computed `allowed_next_statuses`, validates responses with Zod, and rolls back optimistic
+   state when a mutation fails.
+3. Milestone 6.8 does not invent Razorpay refund operations, refund amounts, or stock/payment side
+   effects for a generic `{ status }` PATCH. The existing state machine exposes refund states, but the
+   current payment service has no refund provider operation and the requested API has no refund
+   amount or authorization contract. Refund/payment side effects require a dedicated payment-domain
+   decision and are deferred rather than silently approximated by an admin status write.
+
+**Why:** This keeps the backend authoritative and race-safe while preserving the existing order
+state-machine contract. It also prevents an admin UI milestone from introducing an incomplete or
+unsafe refund implementation. The 6.8 API and UI are intentionally limited to the requested order
+inspection and state-management surface.
+**Status:** Locked (2026-07-18).
