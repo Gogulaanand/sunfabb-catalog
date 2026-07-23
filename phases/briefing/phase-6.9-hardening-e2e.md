@@ -3,8 +3,8 @@
 ## Status
 
 Implementation and runtime verification are complete on `feature/6.9-hardening-e2e`, based on
-`main` at `4f327a0`. No commit has been created. The final suite ran against a temporary isolated
-PostgreSQL 16 container and built NestJS/Next.js services.
+`main` at `4f327a0`. Commit `6788b93` is published in PR #39. The final suite ran against a
+temporary isolated PostgreSQL 16 container and built NestJS/Next.js services.
 
 ## Delivered
 

@@ -26,7 +26,9 @@ patterns and learning.
 - **Phases 0-5** done and merged (scaffold, catalog backend, auth, storefront, admin UI, deploy,
   hardening, Playwright e2e, audit fixes).
 - **Phase 6 e-commerce:** 6.0-6.4 done and merged (schema foundations, customer accounts, cart,
-  checkout & orders, Razorpay payments); C9 (abandoned-checkout expiry) closed.
+  checkout & orders, Razorpay payments); C9 (abandoned-checkout expiry) closed. Milestone 6.8
+  (admin order management) is implemented on `feature/6.8-admin-orders` and its PR to `main` is
+  open.
   See milestone table below.
 - **Live URLs:** frontend `https://sunfabb.com` (Vercel project `sunfabb-storefront`), backend
   `https://sunfabb-backend.onrender.com` (Render, free tier).
@@ -55,11 +57,11 @@ Also needed before any of these: **Razorpay test-mode account** (free, instant -
 When registering the webhook endpoint subscribe to **four** events: `payment.captured`,
 `order.paid`, `payment.failed`, `order.expired`.
 
-### Stream B - Phase 6.9 hardening and purchase verification
+### Stream B - Phase 6.9 hardening and purchase verification (PR #39)
 
 Growth Wave 0 SEO is **done** (PR #26, merged 2026-07-17). Phase 6.8 admin order management is
-implemented on `main`. Phase 6.9 hardening is implemented and runtime-verified on the isolated
-branch `feature/6.9-hardening-e2e`; it is paused before commit for owner approval. See
+implemented on `main`. Phase 6.9 hardening is committed and runtime-verified on
+`feature/6.9-hardening-e2e`; PR #39 is open for owner monitoring and merge. See
 `phases/briefing/phase-6.9-hardening-e2e.md` for the exact evidence.
 
 ### UX improvement plan (parallel track)
@@ -115,7 +117,7 @@ independently whenever designs are ready.
 ## Phase 6 milestone table
 
 Full scope decisions: **`.omc/plans/2026-06-21-phase6-ecommerce.md`**.
-ADRs locked: **D32-D41** in `docs/DECISIONS.md`.
+ADRs locked: **D32-D43** in `docs/DECISIONS.md`.
 
 | # | Milestone | Status |
 |---|-----------|--------|
@@ -127,8 +129,8 @@ ADRs locked: **D32-D41** in `docs/DECISIONS.md`.
 | 6.5 | GST invoicing - HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | ⬜ todo - needs accountant inputs |
 | 6.6 | Shipping (Shiprocket) - serviceability/rates, AWB/label, tracking webhook | ⬜ todo - needs Shiprocket account |
 | 6.7 | Email (Resend) - replace `EmailService` stub, verified domain | ⬜ todo - needs Resend domain verify |
-| 6.8 | Admin order management UI | ✅ implemented on `main` |
-| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ✅ implemented and runtime-verified; awaiting approval |
+| 6.8 | Admin order management UI | ✅ merged on `main` - PR #38 |
+| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ✅ implemented and runtime-verified - PR #39 open |
 | 6.10 | Go-live (gated on Razorpay + Shiprocket KYC, Render Starter upgrade) | ⬜ todo |
 
 ---
@@ -267,8 +269,14 @@ Update only at phase boundaries or feature merges.
   Google Search Console verified + sitemap submitted.
   Bing Webmaster Tools imported from Search Console.
   209/209 tests green.
+- _(2026-07-18)_ **Milestone 6.8 - admin order management UI** (PR #38, merged).
+  Added JWT-protected `GET /admin/orders`, `GET /admin/orders/:id`, and
+  `PATCH /admin/orders/:id/status` endpoints with DTO validation, pagination/date/status filters,
+  customer/item/payment detail mapping, and illegal-transition rejection through the shared order
+  state machine. Added responsive Chakra UI list/detail screens, status timeline, legal-next-state
+  dropdown, optimistic rollback, Zod response validation, and the Orders navigation link.
 - _(2026-07-22)_ **Phase 6.9 hardening and purchase E2E implemented and verified** on
   `feature/6.9-hardening-e2e`. Added verified-customer order gating, exact CORS allowlist, explicit
   non-production payment stub, checkout Zod contract validation, and blocking Playwright coverage.
   Backend unit/E2E, frontend, lint, typecheck, builds, and the full 10-test Playwright suite passed.
-  Changes are intentionally uncommitted pending owner approval.
+  Commit `6788b93` is published in PR #39.

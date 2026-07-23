@@ -2,7 +2,7 @@
 
 import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Box, Button, HStack, Link } from "@chakra-ui/react";
+import { Box, Button, HStack, Link, Stack } from "@chakra-ui/react";
 
 const LINKS = [
   { href: "/admin", label: "Dashboard" },
@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/admin/materials", label: "Materials" },
   { href: "/admin/colors", label: "Colors" },
   { href: "/admin/products", label: "Products" },
+  { href: "/admin/orders", label: "Orders" },
 ];
 
 export function AdminNav() {
@@ -24,12 +25,17 @@ export function AdminNav() {
 
   return (
     <Box as="nav" borderBottomWidth="1px" borderColor="border" bg="bg.panel">
-      <HStack maxW="6xl" mx="auto" px="6" h="16" justify="space-between">
-        <HStack gap="6">
+      <Stack maxW="6xl" mx="auto" px="6" py="3" gap="3">
+        <HStack justify="space-between">
           <Box fontFamily="heading" fontWeight="600" fontSize="lg">
             Sunfabb Admin
           </Box>
-          <HStack gap="4" fontSize="sm">
+          <Button size="sm" variant="outline" onClick={handleLogout}>
+            Log out
+          </Button>
+        </HStack>
+        <Box overflowX="auto" maxW="100%">
+          <HStack gap="4" fontSize="sm" minW="max-content" whiteSpace="nowrap">
             {LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -41,11 +47,8 @@ export function AdminNav() {
               </Link>
             ))}
           </HStack>
-        </HStack>
-        <Button size="sm" variant="outline" onClick={handleLogout}>
-          Log out
-        </Button>
-      </HStack>
+        </Box>
+      </Stack>
     </Box>
   );
 }
