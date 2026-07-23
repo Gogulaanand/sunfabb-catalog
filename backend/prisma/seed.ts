@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import * as bcrypt from 'bcryptjs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client.js';
 
@@ -210,6 +211,31 @@ async function main() {
         },
       });
     }
+  }
+
+  // The Playwright purchase flow opts into this fixture explicitly through CI
+  // environment variables. It is intentionally absent from normal seed runs
+  // so test credentials cannot appear in a developer or production database.
+  if (process.env.E2E_CUSTOMER_PASSWORD) {
+    const email = process.env.E2E_CUSTOMER_EMAIL ?? 'e2e-customer@sunfabb.com';
+    await prisma.customer.upsert({
+      where: { email },
+      update: {
+        password_hash: await bcrypt.hash(process.env.E2E_CUSTOMER_PASSWORD, 10),
+        full_name: 'E2E Customer',
+        phone: '+91 98765 43210',
+        email_verified: true,
+        is_active: true,
+        token_version: 0,
+      },
+      create: {
+        email,
+        password_hash: await bcrypt.hash(process.env.E2E_CUSTOMER_PASSWORD, 10),
+        full_name: 'E2E Customer',
+        phone: '+91 98765 43210',
+        email_verified: true,
+      },
+    });
   }
 
   console.log('Seed complete.');

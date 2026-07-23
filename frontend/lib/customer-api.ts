@@ -1,6 +1,12 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { z } from "zod";
+import {
+  orderSchema,
+  placeOrderResultSchema,
+  type Order,
+  type PlaceOrderResult,
+} from "./checkout-contract";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -255,59 +261,6 @@ const quoteSchema = z.object({
   totalPaise: z.number().int(),
 });
 
-export const orderStatusSchema = z.enum([
-  "PENDING_PAYMENT",
-  "PAID",
-  "PROCESSING",
-  "SHIPPED",
-  "DELIVERED",
-  "CANCELLED",
-  "PAYMENT_FAILED",
-  "REFUNDED",
-  "PARTIALLY_REFUNDED",
-]);
-
-// Frozen snapshot of the address as stored on the order (denormalised Json),
-// mirrored from the backend snapshotAddress() shape (D30 — validate, don't cast).
-const shippingAddressSnapshotSchema = z.object({
-  full_name: z.string(),
-  phone: z.string(),
-  line1: z.string(),
-  line2: z.string().nullable(),
-  city: z.string(),
-  state: z.string(),
-  pincode: z.string(),
-  country: z.string(),
-});
-
-const orderItemSchema = z.object({
-  id: z.string(),
-  variant_id: z.string(),
-  product_name: z.string(),
-  variant_label: z.string(),
-  sku: z.string(),
-  hsn_code: z.string().nullable(),
-  unit_price_paise: z.number().int(),
-  quantity: z.number().int(),
-  line_total_paise: z.number().int(),
-});
-
-const orderSchema = z.object({
-  id: z.string(),
-  order_number: z.string(),
-  status: orderStatusSchema,
-  email: z.string(),
-  subtotal_paise: z.number().int(),
-  shipping_paise: z.number().int(),
-  tax_paise: z.number().int(),
-  discount_paise: z.number().int(),
-  total_paise: z.number().int(),
-  currency: z.string(),
-  shipping_address: shippingAddressSnapshotSchema,
-  created_at: z.string(),
-  items: z.array(orderItemSchema),
-});
-
 const ordersListSchema = z.object({
   orders: z.array(orderSchema),
   total: z.number().int(),
@@ -315,29 +268,14 @@ const ordersListSchema = z.object({
   limit: z.number().int(),
 });
 
-// The hosted-Checkout params returned alongside a newly placed order (6.4). `key`
-// is the Razorpay publishable key id — safe to hand to the browser; amount/order
-// id are server-authoritative (D34 / §7.1), never derived from client input.
-const razorpayCheckoutParamsSchema = z.object({
-  key: z.string(),
-  razorpayOrderId: z.string(),
-  amountPaise: z.number().int(),
-  currency: z.string(),
-  orderNumber: z.string(),
-});
-
-const placeOrderResultSchema = z.object({
-  order: orderSchema,
-  payment: razorpayCheckoutParamsSchema,
-});
-
 export type Quote = z.infer<typeof quoteSchema>;
-export type OrderStatus = z.infer<typeof orderStatusSchema>;
-export type Order = z.infer<typeof orderSchema>;
-export type OrderItem = z.infer<typeof orderItemSchema>;
 export type OrdersList = z.infer<typeof ordersListSchema>;
-export type RazorpayCheckoutParams = z.infer<typeof razorpayCheckoutParamsSchema>;
-export type PlaceOrderResult = z.infer<typeof placeOrderResultSchema>;
+export type {
+  Order,
+  OrderItem,
+  OrderStatus,
+  PlaceOrderResult,
+} from "./checkout-contract";
 
 export interface PlaceOrderInput {
   addressId: string;

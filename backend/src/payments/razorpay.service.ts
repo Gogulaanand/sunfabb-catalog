@@ -52,6 +52,26 @@ export class RazorpayService {
   async createOrder(
     params: CreateRazorpayOrderParams,
   ): Promise<RazorpayOrderResult> {
+    if (process.env.E2E_PAYMENT_MODE === 'stub') {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('E2E_PAYMENT_MODE cannot be enabled in production');
+      }
+
+      // Keep all payment configuration explicit even in the isolated test
+      // adapter. The callback still verifies a real HMAC with the configured
+      // key secret, and no security-sensitive fallback is introduced.
+      getRazorpayKeyId();
+      getRazorpayKeySecret();
+      getRazorpayWebhookSecret();
+
+      return {
+        id: `order_e2e_${params.receipt}`,
+        amount: params.amountPaise,
+        currency: 'INR',
+        status: 'created',
+      };
+    }
+
     const order = await this.getClient().orders.create({
       amount: params.amountPaise, // paise — matches our integer-paise money (D6)
       currency: 'INR',

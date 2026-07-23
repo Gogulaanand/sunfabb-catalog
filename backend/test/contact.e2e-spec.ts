@@ -5,6 +5,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module.js';
 import { TurnstileService } from '../src/contact/turnstile.service.js';
+import { PrismaService } from '../src/prisma/prisma.service.js';
 
 const validBody = {
   name: 'Anand',
@@ -14,11 +15,18 @@ const validBody = {
   turnstile_token: 'test-token',
 };
 
+const contactMessageCreate = jest.fn().mockResolvedValue({
+  id: 'contact-e2e-1',
+  created_at: new Date('2026-07-22T00:00:00.000Z'),
+});
+
 async function buildApp(
   turnstileOk: boolean,
   opts: { skipThrottle?: boolean } = {},
 ): Promise<INestApplication<App>> {
   const builder = Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(PrismaService)
+    .useValue({ contactMessage: { create: contactMessageCreate } })
     .overrideProvider(TurnstileService)
     .useValue({ verify: jest.fn().mockResolvedValue(turnstileOk) });
 
@@ -43,6 +51,7 @@ describe('POST /contact — happy path', () => {
   let app: INestApplication<App>;
 
   beforeAll(async () => {
+    contactMessageCreate.mockClear();
     app = await buildApp(true);
   });
 
@@ -60,6 +69,15 @@ describe('POST /contact — happy path', () => {
     expect(res.body).toHaveProperty('created_at');
     expect(res.body).not.toHaveProperty('message');
     expect(res.body).not.toHaveProperty('name');
+    expect(contactMessageCreate).toHaveBeenCalledWith({
+      data: {
+        name: validBody.name,
+        phone: validBody.phone,
+        email: validBody.email,
+        message: validBody.message,
+      },
+      select: { id: true, created_at: true },
+    });
   });
 });
 

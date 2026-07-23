@@ -81,8 +81,15 @@ jobs:
       ADMIN_EMAIL: admin@sunfabb.com
       ADMIN_PASSWORD_HASH: "$2b$10$9CEKsC6jEirw8PyvwAlFcOCzalNHsvy9tSki0DyeOSqYUxt/BzrgW"
       E2E_ADMIN_PASSWORD: TestPassword123!
+      E2E_PAYMENT_MODE: stub
+      RAZORPAY_KEY_ID: rzp_test_e2e
+      RAZORPAY_KEY_SECRET: e2e-test-key-secret
+      RAZORPAY_WEBHOOK_SECRET: e2e-test-webhook-secret
+      E2E_CUSTOMER_EMAIL: e2e-customer@sunfabb.com
+      E2E_CUSTOMER_PASSWORD: TestCustomerPassword123!
       FRONTEND_URL: http://localhost:3001
       NEXT_PUBLIC_API_URL: http://localhost:3000
+      ECOMMERCE_ENABLED: "true"
       PORT: 3000
     steps:
       - uses: actions/checkout@v4
@@ -127,7 +134,7 @@ jobs:
           npx playwright install --with-deps chromium
 
       - name: Run e2e suite
-        run: npx playwright test --config=e2e/playwright.config.ts e2e/specs/golden-path.spec.ts
+        run: npx playwright test --config=e2e/playwright.config.ts e2e/specs/golden-path.spec.ts e2e/specs/purchase-flow.spec.ts
 
       - name: Upload Playwright report on failure
         if: failure()

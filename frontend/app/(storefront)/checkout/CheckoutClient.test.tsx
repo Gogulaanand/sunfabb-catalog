@@ -73,7 +73,42 @@ const ADDRESS: Address = {
 };
 
 const PLACE_ORDER_RESPONSE = {
-  order: { order_number: "SF-2026-000007" },
+  order: {
+    id: "o1",
+    order_number: "SF-2026-000007",
+    status: "PENDING_PAYMENT",
+    email: "jane@example.com",
+    subtotal_paise: 899800,
+    shipping_paise: 0,
+    tax_paise: 0,
+    discount_paise: 0,
+    total_paise: 899800,
+    currency: "INR",
+    shipping_address: {
+      full_name: "Jane Doe",
+      phone: "9876543210",
+      line1: "12 MG Road",
+      line2: null,
+      city: "Bengaluru",
+      state: "Karnataka",
+      pincode: "560001",
+      country: "India",
+    },
+    created_at: "2026-06-27T00:00:00.000Z",
+    items: [
+      {
+        id: "oi1",
+        variant_id: "v1",
+        product_name: "Heritage Linen Bedspread",
+        variant_label: "Queen · White · Linen",
+        sku: "BSP-HLB-LIN-WHT-Q",
+        hsn_code: null,
+        unit_price_paise: 449900,
+        quantity: 2,
+        line_total_paise: 899800,
+      },
+    ],
+  },
   payment: {
     key: "rzp_test_key",
     razorpayOrderId: "order_rzp_1",
@@ -244,6 +279,24 @@ describe("CheckoutClient", () => {
       expect(screen.getByText("Insufficient stock for SKU-1")).toBeInTheDocument(),
     );
     expect(push).not.toHaveBeenCalled();
+    expect(clearCart).not.toHaveBeenCalled();
+  });
+
+  it("rejects a malformed successful order response at the API boundary", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ order: { order_number: "SF-2026-000007" } }),
+    });
+
+    render(<CheckoutClient quote={QUOTE} addresses={[ADDRESS]} />);
+    fireEvent.click(screen.getByRole("button", { name: /Place Order/i }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Something went wrong placing your order/i),
+      ).toBeInTheDocument(),
+    );
+    expect(capturedRazorpayOptions).toBeNull();
     expect(clearCart).not.toHaveBeenCalled();
   });
 

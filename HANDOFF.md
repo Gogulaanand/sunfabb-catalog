@@ -57,11 +57,12 @@ Also needed before any of these: **Razorpay test-mode account** (free, instant -
 When registering the webhook endpoint subscribe to **four** events: `payment.captured`,
 `order.paid`, `payment.failed`, `order.expired`.
 
-### Stream B - milestone 6.8 admin order-management UI (PR open)
+### Stream B - Phase 6.9 hardening and purchase verification (PR #39)
 
-Growth Wave 0 SEO is **done** (PR #26, merged 2026-07-17).
-Milestone **6.8 admin order-management UI** is implemented (order list/detail + status transitions
-via the existing `transition()` guard) and awaiting PR merge. No vendor account is needed.
+Growth Wave 0 SEO is **done** (PR #26, merged 2026-07-17). Phase 6.8 admin order management is
+implemented on `main`. Phase 6.9 hardening is committed and runtime-verified on
+`feature/6.9-hardening-e2e`; PR #39 is open for owner monitoring and merge. See
+`phases/briefing/phase-6.9-hardening-e2e.md` for the exact evidence.
 
 ### UX improvement plan (parallel track)
 
@@ -128,8 +129,8 @@ ADRs locked: **D32-D43** in `docs/DECISIONS.md`.
 | 6.5 | GST invoicing - HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | ⬜ todo - needs accountant inputs |
 | 6.6 | Shipping (Shiprocket) - serviceability/rates, AWB/label, tracking webhook | ⬜ todo - needs Shiprocket account |
 | 6.7 | Email (Resend) - replace `EmailService` stub, verified domain | ⬜ todo - needs Resend domain verify |
-| 6.8 | Admin order management UI | 🟡 implementation complete - PR open |
-| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ⬜ todo |
+| 6.8 | Admin order management UI | ✅ merged on `main` - PR #38 |
+| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ✅ implemented and runtime-verified - PR #39 open |
 | 6.10 | Go-live (gated on Razorpay + Shiprocket KYC, Render Starter upgrade) | ⬜ todo |
 
 ---
@@ -268,12 +269,14 @@ Update only at phase boundaries or feature merges.
   Google Search Console verified + sitemap submitted.
   Bing Webmaster Tools imported from Search Console.
   209/209 tests green.
-- _(2026-07-18)_ **Milestone 6.8 - admin order management UI** (PR open).
+- _(2026-07-18)_ **Milestone 6.8 - admin order management UI** (PR #38, merged).
   Added JWT-protected `GET /admin/orders`, `GET /admin/orders/:id`, and
   `PATCH /admin/orders/:id/status` endpoints with DTO validation, pagination/date/status filters,
   customer/item/payment detail mapping, and illegal-transition rejection through the shared order
   state machine. Added responsive Chakra UI list/detail screens, status timeline, legal-next-state
   dropdown, optimistic rollback, Zod response validation, and the Orders navigation link.
-  Backend unit/integration tests and frontend tests/lint/type-check/build pass. The existing backend
-  e2e suite still has two unrelated baseline failures: the stale root-route scaffold assertion and
-  a remote Prisma timeout in the contact happy path.
+- _(2026-07-22)_ **Phase 6.9 hardening and purchase E2E implemented and verified** on
+  `feature/6.9-hardening-e2e`. Added verified-customer order gating, exact CORS allowlist, explicit
+  non-production payment stub, checkout Zod contract validation, and blocking Playwright coverage.
+  Backend unit/E2E, frontend, lint, typecheck, builds, and the full 10-test Playwright suite passed.
+  Commit `6788b93` is published in PR #39.
