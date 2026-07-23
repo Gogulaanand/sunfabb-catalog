@@ -25,10 +25,10 @@ patterns and learning.
 
 - **Phases 0-5** done and merged (scaffold, catalog backend, auth, storefront, admin UI, deploy,
   hardening, Playwright e2e, audit fixes).
-- **Phase 6 e-commerce:** 6.0-6.4 done and merged (schema foundations, customer accounts, cart,
-  checkout & orders, Razorpay payments); C9 (abandoned-checkout expiry) closed. Milestone 6.8
-  (admin order management) is implemented on `feature/6.8-admin-orders` and its PR to `main` is
-  open.
+- **Phase 6 e-commerce:** 6.0-6.4, 6.8 (admin order management, PR #38), and 6.9 (hardening +
+  purchase e2e, PR #39) done and merged; C9 (abandoned-checkout expiry) closed.
+  Remaining: 6.5/6.6/6.7 (vendor-gated) and 6.10 (go-live), each with a detailed implementation
+  plan in `docs/plans/`.
   See milestone table below.
 - **Live URLs:** frontend `https://sunfabb.com` (Vercel project `sunfabb-storefront`), backend
   `https://sunfabb-backend.onrender.com` (Render, free tier).
@@ -44,12 +44,14 @@ patterns and learning.
 
 These are ready to build the moment the owner supplies the required vendor accounts/inputs.
 Nothing else blocks them.
+Each has a self-contained implementation plan in `docs/plans/` with a full owner-inputs checklist;
+recommended build order is **6.7 → 6.5 → 6.6** (email first, tax engine before shipping charges).
 
 | Milestone | What it needs from the owner |
 |-----------|------------------------------|
-| **6.5 GST invoicing** - HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | GSTIN + HSN codes + rates from your accountant |
-| **6.6 Shiprocket** - serviceability/rates, AWB/label, tracking webhook | Create a Shiprocket sandbox account |
-| **6.7 Resend email** - replace the `EmailService` stub, transactional flows | Create a Resend account + verify a sending domain on `sunfabb.com` |
+| **6.5 GST invoicing** ([plan](docs/plans/phase-6.5-gst-invoicing.md)) | GSTIN + HSN codes + rates from your accountant |
+| **6.6 Shiprocket** ([plan](docs/plans/phase-6.6-shipping-shiprocket.md)) | Shiprocket account + API user + flat/free shipping amounts + variant weights |
+| **6.7 Resend email** ([plan](docs/plans/phase-6.7-email-resend.md)) | Resend account + verify a sending domain on `sunfabb.com` |
 
 Also needed before any of these: **Razorpay test-mode account** (free, instant - KYC only gates
 *live* keys) with `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` added to
@@ -57,12 +59,14 @@ Also needed before any of these: **Razorpay test-mode account** (free, instant -
 When registering the webhook endpoint subscribe to **four** events: `payment.captured`,
 `order.paid`, `payment.failed`, `order.expired`.
 
-### Stream B - Phase 6.9 hardening and purchase verification (PR #39)
+### Stream B - done through 6.9
 
-Growth Wave 0 SEO is **done** (PR #26, merged 2026-07-17). Phase 6.8 admin order management is
-implemented on `main`. Phase 6.9 hardening is committed and runtime-verified on
-`feature/6.9-hardening-e2e`; PR #39 is open for owner monitoring and merge. See
-`phases/briefing/phase-6.9-hardening-e2e.md` for the exact evidence.
+Growth Wave 0 SEO is **done** (PR #26, merged 2026-07-17).
+Milestone **6.8 admin order-management UI** merged as PR #38 (2026-07-18).
+Milestone **6.9 hardening + purchase e2e** merged as PR #39 (2026-07-23); see
+`phases/briefing/phase-6.9-hardening-e2e.md` for the evidence.
+Stream B is complete; remaining Phase 6 work is Stream A (6.5/6.6/6.7) and then 6.10 go-live
+([plan](docs/plans/phase-6.10-go-live.md), including the refund webhook sync and cutover checklist).
 
 ### UX improvement plan (parallel track)
 
@@ -107,10 +111,11 @@ independently whenever designs are ready.
   `/shipping-policy`, `/returns-policy`, `/faq`) need owner business inputs before Claude can draft
   them (legal entity name, GSTIN display, contact channels, return window, shipping coverage).
   These are also prerequisites for Razorpay live mode and Google Merchant Center.
-- **6.1 security hardening backlog** - none block current work, revisit at 6.8/6.9:
-  - L3: gate sensitive actions on `email_verified` before order placement - still an open decision.
-  - L4: CORS allowlist if Vercel preview deploys need to call the API.
-  - Info-4: `npm audit` - transitive advisories in `hono`/`multer`/`platform-express`.
+- **6.1 security hardening backlog** - mostly closed by 6.9 (PR #39):
+  - L3: ✅ verified-customer order gating shipped in 6.9.
+  - L4: ✅ exact CORS allowlist shipped in 6.9.
+  - Info-4: `npm audit` - transitive advisories in `hono`/`multer`/`platform-express`; re-run at
+    6.10 go-live (see `docs/plans/phase-6.10-go-live.md`).
 
 ---
 
@@ -126,12 +131,12 @@ ADRs locked: **D32-D43** in `docs/DECISIONS.md`.
 | 6.2 | Cart - server `Cart`/`CartItem` + Zustand guest store, merge-on-login, price re-read | ✅ done - PR #20 |
 | 6.3 | Checkout & orders - totals engine, `Order`/`OrderItem` snapshots, stock reserve/release, state machine | ✅ done - PR #21 |
 | 6.4 | Razorpay payments - Orders API, dual HMAC verify, webhook + idempotency; C9 abandoned-checkout expiry (D40, D41) | ✅ done - PRs #22/#23 |
-| 6.5 | GST invoicing - HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | ⬜ todo - needs accountant inputs |
-| 6.6 | Shipping (Shiprocket) - serviceability/rates, AWB/label, tracking webhook | ⬜ todo - needs Shiprocket account |
-| 6.7 | Email (Resend) - replace `EmailService` stub, verified domain | ⬜ todo - needs Resend domain verify |
-| 6.8 | Admin order management UI | ✅ merged on `main` - PR #38 |
-| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ✅ implemented and runtime-verified - PR #39 open |
-| 6.10 | Go-live (gated on Razorpay + Shiprocket KYC, Render Starter upgrade) | ⬜ todo |
+| 6.5 | GST invoicing - HSN, CGST/SGST/IGST, sequential invoice numbers, PDF ([plan](docs/plans/phase-6.5-gst-invoicing.md)) | ⬜ todo - needs accountant inputs |
+| 6.6 | Shipping (Shiprocket) - flat/free shipping rule, AWB/label, tracking webhook ([plan](docs/plans/phase-6.6-shipping-shiprocket.md)) | ⬜ todo - needs Shiprocket account |
+| 6.7 | Email (Resend) - replace `EmailService` stub, verified domain ([plan](docs/plans/phase-6.7-email-resend.md)) | ⬜ todo - needs Resend domain verify |
+| 6.8 | Admin order management UI | ✅ done - PR #38 |
+| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ✅ done - PR #39 (merged 2026-07-23) |
+| 6.10 | Go-live - refund webhook sync + cutover checklist ([plan](docs/plans/phase-6.10-go-live.md)) | ⬜ todo - gated on 6.5-6.7 + Razorpay/Shiprocket KYC |
 
 ---
 
