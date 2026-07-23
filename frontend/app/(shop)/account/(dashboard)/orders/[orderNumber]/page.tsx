@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getOrder, CustomerApiError } from "@/lib/customer-api";
+import { getOrder, CustomerApiError, type Order } from "@/lib/customer-api";
 import { formatPrice } from "@/lib/api";
 import { OrderStatusBadge } from "@/components/account/order-status-badge";
 
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function OrderDetailPage({ params }: Props) {
   const { orderNumber } = await params;
 
-  let order;
+  let order: Order;
   try {
     order = await getOrder(orderNumber);
   } catch (error) {

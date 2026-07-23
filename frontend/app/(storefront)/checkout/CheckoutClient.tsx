@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/api";
 import { useCartStore } from "@/lib/cart-store";
 import type { Quote, Address } from "@/lib/customer-api";
+import { placeOrderResultSchema } from "@/lib/checkout-contract";
 
 // Card/UPI data is entered inside Razorpay's own hosted iframe and never
 // touches this app or our server — that's what keeps us at PCI-DSS SAQ-A
@@ -36,17 +37,6 @@ declare global {
   interface Window {
     Razorpay?: new (options: RazorpayCheckoutOptions) => RazorpayInstance;
   }
-}
-
-interface PlaceOrderResponse {
-  order: { order_number: string };
-  payment: {
-    key: string;
-    razorpayOrderId: string;
-    amountPaise: number;
-    currency: string;
-    orderNumber: string;
-  };
 }
 
 interface Props {
@@ -110,7 +100,7 @@ export default function CheckoutClient({ quote, addresses }: Props) {
         return;
       }
 
-      const { order, payment } = (await res.json()) as PlaceOrderResponse;
+      const { order, payment } = placeOrderResultSchema.parse(await res.json());
 
       // The server cleared the server cart inside the order transaction; reset
       // any lingering local guest cart state too — the order exists now

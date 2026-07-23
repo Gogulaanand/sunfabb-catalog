@@ -1,11 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AddressManager } from "@/components/account/address-manager";
-import { CustomerApiError, listAddresses, me } from "@/lib/customer-api";
+import {
+  CustomerApiError,
+  listAddresses,
+  me,
+  type Address,
+  type SafeCustomer,
+} from "@/lib/customer-api";
 
 export default async function AccountDashboardPage() {
-  let customer;
-  let addresses;
+  let customer: SafeCustomer;
+  let addresses: Address[];
   try {
     [customer, addresses] = await Promise.all([me(), listAddresses()]);
   } catch (error) {

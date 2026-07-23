@@ -55,11 +55,12 @@ Also needed before any of these: **Razorpay test-mode account** (free, instant -
 When registering the webhook endpoint subscribe to **four** events: `payment.captured`,
 `order.paid`, `payment.failed`, `order.expired`.
 
-### Stream B - next unblocked milestone: 6.8 admin order-management UI
+### Stream B - Phase 6.9 hardening and purchase verification
 
-Growth Wave 0 SEO is **done** (PR #26, merged 2026-07-17).
-The next unblocked app milestone is **6.8 admin order-management UI** (order list/detail + status
-transitions via the existing `transition()` guard) - no vendor account needed.
+Growth Wave 0 SEO is **done** (PR #26, merged 2026-07-17). Phase 6.8 admin order management is
+implemented on `main`. Phase 6.9 hardening is implemented and runtime-verified on the isolated
+branch `feature/6.9-hardening-e2e`; it is paused before commit for owner approval. See
+`phases/briefing/phase-6.9-hardening-e2e.md` for the exact evidence.
 
 ### UX improvement plan (parallel track)
 
@@ -126,8 +127,8 @@ ADRs locked: **D32-D41** in `docs/DECISIONS.md`.
 | 6.5 | GST invoicing - HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | ⬜ todo - needs accountant inputs |
 | 6.6 | Shipping (Shiprocket) - serviceability/rates, AWB/label, tracking webhook | ⬜ todo - needs Shiprocket account |
 | 6.7 | Email (Resend) - replace `EmailService` stub, verified domain | ⬜ todo - needs Resend domain verify |
-| 6.8 | Admin order management UI | ⬜ todo - unblocked |
-| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ⬜ todo |
+| 6.8 | Admin order management UI | ✅ implemented on `main` |
+| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ✅ implemented and runtime-verified; awaiting approval |
 | 6.10 | Go-live (gated on Razorpay + Shiprocket KYC, Render Starter upgrade) | ⬜ todo |
 
 ---
@@ -266,3 +267,8 @@ Update only at phase boundaries or feature merges.
   Google Search Console verified + sitemap submitted.
   Bing Webmaster Tools imported from Search Console.
   209/209 tests green.
+- _(2026-07-22)_ **Phase 6.9 hardening and purchase E2E implemented and verified** on
+  `feature/6.9-hardening-e2e`. Added verified-customer order gating, exact CORS allowlist, explicit
+  non-production payment stub, checkout Zod contract validation, and blocking Playwright coverage.
+  Backend unit/E2E, frontend, lint, typecheck, builds, and the full 10-test Playwright suite passed.
+  Changes are intentionally uncommitted pending owner approval.

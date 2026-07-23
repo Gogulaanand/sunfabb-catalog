@@ -131,3 +131,54 @@ describe('RazorpayService — signature verification', () => {
     });
   });
 });
+
+describe('RazorpayService — E2E payment mode', () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+  const originalPaymentMode = process.env.E2E_PAYMENT_MODE;
+
+  afterEach(() => {
+    if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = originalNodeEnv;
+    if (originalPaymentMode === undefined) delete process.env.E2E_PAYMENT_MODE;
+    else process.env.E2E_PAYMENT_MODE = originalPaymentMode;
+    delete process.env.RAZORPAY_KEY_ID;
+    delete process.env.RAZORPAY_KEY_SECRET;
+    delete process.env.RAZORPAY_WEBHOOK_SECRET;
+  });
+
+  it('creates a deterministic INR order without an SDK network call in explicit stub mode', async () => {
+    process.env.NODE_ENV = 'test';
+    process.env.E2E_PAYMENT_MODE = 'stub';
+    process.env.RAZORPAY_KEY_ID = 'rzp_test_e2e';
+    process.env.RAZORPAY_KEY_SECRET = 'e2e-test-key-secret';
+    process.env.RAZORPAY_WEBHOOK_SECRET = 'e2e-test-webhook-secret';
+
+    const service = new RazorpayService();
+
+    await expect(
+      service.createOrder({
+        amountPaise: 125000,
+        receipt: 'SF-2026-000001',
+      }),
+    ).resolves.toEqual({
+      id: 'order_e2e_SF-2026-000001',
+      amount: 125000,
+      currency: 'INR',
+      status: 'created',
+    });
+  });
+
+  it('refuses to enable stub mode in production', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.E2E_PAYMENT_MODE = 'stub';
+    process.env.RAZORPAY_KEY_ID = 'rzp_test_e2e';
+    process.env.RAZORPAY_KEY_SECRET = 'e2e-test-key-secret';
+    process.env.RAZORPAY_WEBHOOK_SECRET = 'e2e-test-webhook-secret';
+
+    const service = new RazorpayService();
+
+    await expect(
+      service.createOrder({ amountPaise: 100, receipt: 'SF-2026-000002' }),
+    ).rejects.toThrow(/E2E_PAYMENT_MODE/);
+  });
+});

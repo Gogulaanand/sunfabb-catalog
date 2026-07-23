@@ -4,6 +4,10 @@ import compression from 'compression';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module.js';
+import {
+  createCorsOriginChecker,
+  parseConfiguredOrigins,
+} from './config/cors-origin.js';
 
 // Node's Happy Eyeballs (autoSelectFamily) can time out connecting to hosts that
 // round-robin across IPv4 + IPv6 (e.g. Neon's pooler) on networks with no IPv6 route.
@@ -18,7 +22,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
+    origin: createCorsOriginChecker(
+      parseConfiguredOrigins(process.env.FRONTEND_URL),
+    ),
   });
 
   app.use(compression());

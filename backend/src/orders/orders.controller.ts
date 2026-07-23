@@ -1,5 +1,6 @@
 import {
   Body,
+  ForbiddenException,
   Controller,
   Get,
   HttpCode,
@@ -38,6 +39,11 @@ export class OrdersController {
     @CurrentCustomer() customer: CurrentCustomerData,
     @Body() dto: CreateOrderDto,
   ) {
+    if (!customer.emailVerified) {
+      throw new ForbiddenException(
+        'Email verification required before placing an order',
+      );
+    }
     const order = await this.ordersService.create(customer, dto);
     const payment = await this.paymentsService.createForOrder(order);
     return { order, payment };
