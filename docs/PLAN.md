@@ -366,18 +366,19 @@ Full scope: **`.omc/plans/2026-06-21-phase6-ecommerce.md`**. ADRs D32-D41 plus D
 | 6.2 | Cart - server `Cart`/`CartItem` + Zustand, merge-on-login, price re-read | ✅ PR #20 |
 | 6.3 | Checkout & orders - totals engine, order snapshots, stock reserve/release, state machine | ✅ PR #21 |
 | 6.4 | Razorpay payments + C9 abandoned-checkout expiry (D40/D41) | ✅ PRs #22/#23 |
-| 6.5 | GST invoicing - HSN, CGST/SGST/IGST, sequential invoice numbers, PDF | ⬜ needs accountant inputs |
-| 6.6 | Shipping (Shiprocket) - serviceability/rates, AWB/label, tracking webhook | ⬜ needs Shiprocket account |
-| 6.7 | Email (Resend) - replace `EmailService` stub, verified domain | ⬜ needs Resend domain verify |
-| 6.8 | Admin order management UI | 🟡 implementation complete - PR open |
-| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ⬜ |
-| 6.10 | Go-live (gated on Razorpay + Shiprocket KYC, Render Starter upgrade) | ⬜ |
+| 6.5 | GST invoicing - HSN, CGST/SGST/IGST, sequential invoice numbers, PDF ([plan](plans/phase-6.5-gst-invoicing.md)) | ⬜ needs accountant inputs |
+| 6.6 | Shipping (Shiprocket) - flat/free shipping rule, AWB/label, tracking webhook ([plan](plans/phase-6.6-shipping-shiprocket.md)) | ⬜ needs Shiprocket account |
+| 6.7 | Email (Resend) - replace `EmailService` stub, verified domain ([plan](plans/phase-6.7-email-resend.md)) | ⬜ needs Resend domain verify |
+| 6.8 | Admin order management UI | ✅ PR #38 |
+| 6.9 | Hardening & Playwright e2e (full purchase, cross-principal test) | ✅ PR #39 |
+| 6.10 | Go-live - refund webhook sync, cutover checklist ([plan](plans/phase-6.10-go-live.md)) | ⬜ gated on 6.5-6.7 + KYC |
 
-**Milestone 6.8 implementation:** The admin order resource and Chakra UI screens are complete on
-`feature/6.8-admin-orders`. The backend exposes paginated/filterable list, detail, and status-update
-routes behind the single-admin JWT guard. The frontend validates every admin-order response with Zod,
-formats paise as INR at the display boundary, and uses the server's `allowed_next_statuses` for the
-status control. The PR is open against `main`; merge is the remaining milestone step.
+**Remaining milestones (6.5/6.6/6.7/6.10):** each has a fully fleshed-out, self-contained
+implementation plan in `docs/plans/` (linked from the table above), written so an executor can
+deliver the milestone end-to-end from the doc alone.
+Recommended build order: **6.7 → 6.5 → 6.6 → 6.10** (email first, tax engine before shipping
+charges, go-live last); the docs degrade gracefully if built out of order.
+Deliberately deferred scope is collected in `docs/plans/PHASE6-BACKLOG.md`.
 
 **Parallel catalog-content track:** ~47 designs in the image-generation pipeline
 (`tools/image-pipeline/CATALOG_PROGRESS.md`); non-blocking for app development.
@@ -391,10 +392,10 @@ pages, or cannot take payment wastes the effort.
 
 | Wave | Theme | Gate | Key items |
 |------|-------|------|-----------|
-| **Wave 0** | Be indexable | None - start now | `robots.ts`, `sitemap.ts`, JSON-LD (`Product`/`Offer`/`BreadcrumbList`), OG/Twitter metadata, `noindex` on cart/checkout/account, GA4; trust pages deferred to Wave 1 |
-| **Wave 1** | Be worth citing | Wave 0 shipped | Trust pages (needs owner business inputs), guides section (MDX), GEO/AI-search robots, Business Profile |
-| **Wave 2** | Be buyable everywhere | Phase 6.10 go-live | Google Shopping feed, Meta catalog, WhatsApp Business, ONDC, post-purchase email flows |
-| **Wave 3** | Pay to amplify | Wave 2 + GA4 funnel verified | Google PMax, Meta retargeting, cold prospecting |
+| **Wave 0** | Be indexable | None - start now | `robots.ts`, `sitemap.ts`, JSON-LD (`Product`/`Offer`/`BreadcrumbList`), OG/Twitter metadata, `noindex` on cart/checkout/account, GA4; trust pages deferred to Wave 1. ✅ Shipped (PR #26) |
+| **Wave 1** | Be worth citing | Wave 0 shipped | Trust pages (needs owner business inputs), guides section (MDX), GEO/AI-search robots, Business Profile. [Plan](plans/growth-wave-1-trust-and-content.md) |
+| **Wave 2** | Be buyable everywhere | Phase 6.10 go-live | Google Shopping feed, Meta catalog, WhatsApp Business, ONDC, post-purchase email flows. [Plan](plans/growth-wave-2-buyable-everywhere.md) |
+| **Wave 3** | Pay to amplify | Wave 2 + GA4 funnel verified | Google PMax, Meta retargeting, cold prospecting. [Plan](plans/growth-wave-3-paid-amplification.md) |
 
 Wave 0 is the current unblocked stream (see HANDOFF "Current focus - two streams").
 Trust pages are deferred out of Wave 0 because they need owner business inputs (legal entity name,

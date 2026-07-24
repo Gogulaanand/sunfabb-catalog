@@ -69,9 +69,13 @@ wastes the effort.
 | Wave | Theme | Gate to start | Status | Touchpoints |
 |------|-------|---------------|--------|-------------|
 | **Wave 0** | Be indexable | None | ✅ **Shipped 2026-07-17** (PR #26) | §3.1 technical SEO, §3.2 crawl performance, §3.5 Search Console/Bing, §3.13 analytics. |
-| **Wave 1** | Be worth citing and following | Wave 0 shipped + owner provides business inputs | ⬜ todo | §3.3 trust pages + content engine, §3.4 AI/LLM search (GEO), §3.7 Business Profile, §3.8 social engine start |
-| **Wave 2** | Be buyable everywhere | Phase 6 go-live (6.10): live payments, shipping, policies | ⬜ todo | §3.6 Google Shopping, §3.8 Meta catalog/product tagging, §3.9 WhatsApp Business, §3.10 ONDC, §3.11 email flows |
-| **Wave 3** | Pay to amplify what converts | Wave 2 live + GA4 shows the funnel converts | ⬜ todo | §3.12 ads (Google PMax, Meta), marketplace expansion, review engine |
+| **Wave 1** | Be worth citing and following | Wave 0 shipped + owner provides business inputs | ⬜ todo - [implementation plan](plans/growth-wave-1-trust-and-content.md) | §3.3 trust pages + content engine, §3.4 AI/LLM search (GEO), §3.7 Business Profile, §3.8 social engine start |
+| **Wave 2** | Be buyable everywhere | Phase 6 go-live (6.10): live payments, shipping, policies | ⬜ todo - [implementation plan](plans/growth-wave-2-buyable-everywhere.md) | §3.6 Google Shopping, §3.8 Meta catalog/product tagging, §3.9 WhatsApp Business, §3.10 ONDC, §3.11 email flows |
+| **Wave 3** | Pay to amplify what converts | Wave 2 live + GA4 shows the funnel converts | ⬜ todo - [implementation plan](plans/growth-wave-3-paid-amplification.md) | §3.12 ads (Google PMax, Meta), marketplace expansion, review engine |
+
+Each pending wave now has a self-contained implementation plan in `docs/plans/` (linked above)
+with owner-input checklists, codebase grounding, locked decisions, and acceptance criteria,
+written so an executor can deliver the wave end-to-end from the doc alone.
 
 **Trust pages note (gap 6):** `/about`, `/contact`, `/privacy-policy`, `/terms`,
 `/shipping-policy`, `/returns-policy`, `/faq` require owner business inputs (legal entity name,
