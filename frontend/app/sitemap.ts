@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getCategories, getProducts } from "@/lib/api";
+import { getAllGuides } from "@/lib/guides";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunfabb.com";
 
@@ -29,6 +30,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  const guideUrls: MetadataRoute.Sitemap = getAllGuides().map((guide) => ({
+    url: `${siteUrl}/guides/${guide.slug}`,
+    lastModified: guide.date,
+    changeFrequency: "yearly",
+    priority: 0.6,
+  }));
+
   return [
     {
       url: siteUrl,
@@ -42,5 +50,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...categoryUrls,
     ...productUrls,
+    {
+      url: `${siteUrl}/guides`,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    ...guideUrls,
+    {
+      url: `${siteUrl}/faq`,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${siteUrl}/contact`,
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
   ];
 }

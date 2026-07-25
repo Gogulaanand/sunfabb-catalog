@@ -233,7 +233,9 @@ describe("admin-api", () => {
     ["createColor", () => createColor({ name: "Indigo" }), "/colors", "POST"],
     ["updateColor", () => updateColor("1", { name: "x" }), "/colors/1", "PATCH"],
     ["deleteColor", () => deleteColor("1"), "/colors/1", "DELETE"],
-    ["getAdminProducts", () => getAdminProducts(), "/products/admin?limit=100", "GET"],
+    // getAdminProducts is not in this list: it runtime-validates its response,
+    // so the shared `{}` mock body would fail the parse. It has dedicated
+    // tests below that assert against the real payload shape.
     [
       "createProduct",
       () => createProduct({ name: "x", slug: "x", category_id: "1" }),
@@ -267,6 +269,65 @@ describe("admin-api", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain(path);
     expect(init.method ?? "GET").toBe(method);
+  });
+
+  it("runtime-validates the admin product list response", async () => {
+    const listFixture = {
+      items: [
+        {
+          id: "d3f1c0a1-0000-4000-8000-000000000001",
+          name: "Royal Bedspread",
+          slug: "royal-bedspread",
+          description: "Woven in Karur.",
+          care_instructions: "Cold wash.",
+          is_active: true,
+          category: { name: "Bedspreads", slug: "bedspreads" },
+          images: [{ url: "https://res.cloudinary.com/x.jpg" }],
+          _count: { images: 4 },
+          images_missing_alt_text: 1,
+          variants: [{ price: 125000 }],
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 100,
+    };
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => listFixture,
+    });
+
+    await expect(getAdminProducts()).resolves.toEqual(listFixture);
+  });
+
+  it("rejects an admin product list response missing the SEO badge fields", async () => {
+    // The badge has no other source for these, so drift must fail loudly here
+    // rather than render a silently blank column.
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        items: [
+          {
+            id: "d3f1c0a1-0000-4000-8000-000000000001",
+            name: "Royal Bedspread",
+            slug: "royal-bedspread",
+            description: null,
+            care_instructions: null,
+            is_active: true,
+            category: { name: "Bedspreads", slug: "bedspreads" },
+            images: [],
+            variants: [],
+          },
+        ],
+        total: 1,
+        page: 1,
+        limit: 100,
+      }),
+    });
+
+    await expect(getAdminProducts()).rejects.toThrow();
   });
 
   it("runtime-validates the admin product detail response", async () => {

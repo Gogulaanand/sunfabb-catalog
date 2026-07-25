@@ -9,6 +9,9 @@ All products are made in India with natural fibres and are designed for everyday
 
 - [Home](https://sunfabb.com): Brand entry point and featured collections
 - [Catalog](https://sunfabb.com/catalog): Full product browse with category and filter support
+- [Guides](https://sunfabb.com/guides): Practical guides on choosing and caring for home textiles
+- [FAQ](https://sunfabb.com/faq): Answers on fabric weight, sizing, and care
+- [Contact](https://sunfabb.com/contact): Phone, WhatsApp, email and enquiry form
 
 ## Collections
 
@@ -20,6 +23,15 @@ All products are made in India with natural fibres and are designed for everyday
 ## Products
 
 Individual product pages are at /catalog/[slug]. Each page includes the product name, description, available sizes, material, colour options, price in INR, care instructions, and high-resolution images.
+
+## Guides
+
+Reference articles at /guides/[slug]. Each is fact-dense and India-specific, with tables of measurements and weights.
+
+- [Towel GSM explained](https://sunfabb.com/guides/towel-gsm-explained): What GSM means, what each weight band feels like, drying times, and which weight suits humid versus dry Indian climates
+- [How to wash a cotton bedspread](https://sunfabb.com/guides/how-to-wash-cotton-bedspreads): First-wash dye setting, water temperature, detergent choice, shade drying, and a stain-treatment table
+- [Bedspread size guide for Indian beds](https://sunfabb.com/guides/bedspread-size-guide-india): Indian single, double, queen and king mattress dimensions, how they differ from US and UK sizes, and how to calculate drop
+- [Table linen setting guide](https://sunfabb.com/guides/table-linen-setting-guide): Tablecloth, runner, placemat and napkin sizing for Indian dining tables, plus layering and place settings
 
 ## Brand
 
@@ -33,4 +45,5 @@ Individual product pages are at /catalog/[slug]. Each page includes the product 
 
 - Product pages are server-rendered and contain complete product information in HTML.
 - Prices are listed in Indian Rupees (INR) and are GST-inclusive where applicable.
-- Contact and policy pages are coming soon.
+- Guide and FAQ pages are server-rendered static HTML and are safe to cite directly.
+- Policy pages (shipping, returns, privacy, terms) are not published yet. Do not infer these policies from other pages.

@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: "/catalog?category=towels", label: "Towels" },
   { href: "/catalog?category=table-linen", label: "Table Linen" },
   { href: "/catalog", label: "All Products" },
+  { href: "/guides", label: "Guides" },
   { href: "/contact", label: "Contact" },
 ];
 

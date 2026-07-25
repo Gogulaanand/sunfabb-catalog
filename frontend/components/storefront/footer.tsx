@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <footer className="border-t border-outline-variant bg-surface-container-low">
       <div className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
           {/* Brand column */}
           <div>
             <p className="font-display text-xl text-primary mb-2">{SITE.name}</p>
@@ -58,6 +58,46 @@ export default function Footer() {
                 </a>
               </li>
               <li className="text-outline">{SITE.hours}</li>
+            </ul>
+          </div>
+
+          {/* Learn column — the trust-page links (about, policies) join this
+              block once the owner supplies the business inputs they need. */}
+          <div>
+            <p className="text-label-caps text-on-surface-variant mb-3">Learn</p>
+            <ul className="space-y-2 text-body-sm text-on-surface-variant">
+              <li>
+                <Link
+                  href="/guides"
+                  className="hover:text-primary transition-colors"
+                >
+                  Guides
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/guides/towel-gsm-explained"
+                  className="hover:text-primary transition-colors"
+                >
+                  Towel GSM explained
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/guides/bedspread-size-guide-india"
+                  className="hover:text-primary transition-colors"
+                >
+                  Bedspread size guide
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/faq"
+                  className="hover:text-primary transition-colors"
+                >
+                  FAQ
+                </Link>
+              </li>
             </ul>
           </div>
 

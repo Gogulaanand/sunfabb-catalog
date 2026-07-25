@@ -139,23 +139,35 @@ export function deleteColor(id: string): Promise<void> {
 
 // --- Products ---
 
-export interface AdminProductListItem {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  is_active: boolean;
-  category: { name: string; slug: string };
-  images: { url: string }[];
-  variants: { price: number }[];
-}
+// Parsed rather than cast. The SEO-completeness badge reads fields the UI has
+// no other source for, so backend drift has to fail here rather than surface as
+// a silently blank badge — the D30 failure mode, see rule 11 in CLAUDE.md.
+const adminProductListItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  care_instructions: z.string().nullable(),
+  is_active: z.boolean(),
+  category: z.object({ name: z.string(), slug: z.string() }),
+  // Narrowed to the primary gallery image by the backend — thumbnail only.
+  images: z.array(z.object({ url: z.string() })),
+  // Total images on the product, across every role.
+  _count: z.object({ images: z.number() }),
+  // How many of those images have no alt text.
+  images_missing_alt_text: z.number(),
+  variants: z.array(z.object({ price: z.number() })),
+});
 
-export interface AdminProductsResponse {
-  items: AdminProductListItem[];
-  total: number;
-  page: number;
-  limit: number;
-}
+const adminProductsResponseSchema = z.object({
+  items: z.array(adminProductListItemSchema),
+  total: z.number(),
+  page: z.number(),
+  limit: z.number(),
+});
+
+export type AdminProductListItem = z.infer<typeof adminProductListItemSchema>;
+export type AdminProductsResponse = z.infer<typeof adminProductsResponseSchema>;
 
 const adminProductVariantSchema = z.object({
   id: z.string(),
@@ -206,7 +218,9 @@ export interface ProductInput {
 }
 
 export function getAdminProducts(): Promise<AdminProductsResponse> {
-  return request("/products/admin?limit=100");
+  return requestJson("/products/admin?limit=100").then((body) =>
+    adminProductsResponseSchema.parse(body),
+  );
 }
 
 export function getAdminProduct(slug: string): Promise<AdminProduct> {

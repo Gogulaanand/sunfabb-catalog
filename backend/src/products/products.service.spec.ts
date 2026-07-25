@@ -34,6 +34,7 @@ const mockPrisma = {
   },
   productImage: {
     create: jest.fn(),
+    groupBy: jest.fn(),
   },
 };
 
@@ -195,6 +196,11 @@ describe('ProductsService', () => {
   });
 
   describe('findAllAdmin', () => {
+    beforeEach(() => {
+      // Default: nothing is missing alt text. Tests that care override this.
+      mockPrisma.productImage.groupBy.mockResolvedValue([]);
+    });
+
     it('returns paginated products including inactive ones', async () => {
       mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
       mockPrisma.product.count.mockResolvedValue(1);
@@ -203,7 +209,7 @@ describe('ProductsService', () => {
       const result = await service.findAllAdmin(dto);
 
       expect(result).toEqual({
-        items: [mockProduct],
+        items: [{ ...mockProduct, images_missing_alt_text: 0 }],
         total: 1,
         page: 1,
         limit: 20,
@@ -227,9 +233,51 @@ describe('ProductsService', () => {
               orderBy: { price: 'asc' },
               take: 1,
             },
+            _count: { select: { images: true } },
           },
         }),
       );
+    });
+
+    it('annotates each product with its missing-alt-text image count', async () => {
+      const other = { ...mockProduct, id: 'cuid-9' };
+      mockPrisma.product.findMany.mockResolvedValue([mockProduct, other]);
+      mockPrisma.product.count.mockResolvedValue(2);
+      mockPrisma.productImage.groupBy.mockResolvedValue([
+        { product_id: mockProduct.id, _count: { _all: 3 } },
+      ]);
+
+      const result = await service.findAllAdmin({});
+
+      expect(result.items[0].images_missing_alt_text).toBe(3);
+      // A product with no matching rows is complete, not undefined.
+      expect(result.items[1].images_missing_alt_text).toBe(0);
+    });
+
+    it('counts empty-string alt text as missing', async () => {
+      mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
+      mockPrisma.product.count.mockResolvedValue(1);
+
+      await service.findAllAdmin({});
+
+      expect(mockPrisma.productImage.groupBy).toHaveBeenCalledWith({
+        by: ['product_id'],
+        where: {
+          product_id: { in: [mockProduct.id] },
+          OR: [{ alt_text: null }, { alt_text: '' }],
+        },
+        _count: { _all: true },
+      });
+    });
+
+    it('skips the alt-text query entirely when the page is empty', async () => {
+      mockPrisma.product.findMany.mockResolvedValue([]);
+      mockPrisma.product.count.mockResolvedValue(0);
+
+      const result = await service.findAllAdmin({});
+
+      expect(result.items).toEqual([]);
+      expect(mockPrisma.productImage.groupBy).not.toHaveBeenCalled();
     });
 
     it('filters by categorySlug', async () => {
@@ -262,7 +310,10 @@ describe('ProductsService', () => {
       const dto: FindProductsDto = { sortBy: 'price_asc' };
       const result = await service.findAllAdmin(dto);
 
-      expect(result.items).toEqual([cheap, expensive]);
+      expect(result.items).toEqual([
+        { ...cheap, images_missing_alt_text: 0 },
+        { ...expensive, images_missing_alt_text: 0 },
+      ]);
     });
   });
 
