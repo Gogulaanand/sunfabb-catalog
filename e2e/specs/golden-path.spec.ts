@@ -32,6 +32,47 @@ test.describe.serial("golden path: storefront browse + admin CRUD", () => {
     await expect(page.getByText("Turkish Cotton Bath Towel")).not.toBeVisible();
   });
 
+  // The colour filter is judged by shoppers on the photo, not the result
+  // count: it once returned the right products still wearing their default
+  // colourway's photo, which reads as a filter that did nothing.
+  test("color filter narrows results and cards show that colour's photo", async ({
+    page,
+  }) => {
+    await page.goto("/catalog");
+
+    // "Navy Blue" is a seeded colour with variants across several products, so
+    // this exercises the fallback-free path on a multi-product result set.
+    const swatch = page.getByRole("button", { name: "Navy Blue" });
+    await expect(swatch).toBeVisible();
+
+    const unfilteredCount = await page.locator('a[href^="/catalog/"]').count();
+
+    await swatch.click();
+    await expect(page).toHaveURL(/color=/);
+    await expect(swatch).toHaveAttribute("aria-pressed", "true");
+
+    const cards = page.locator('a[href^="/catalog/"]');
+    await expect(cards.first()).toBeVisible();
+    // The filter has to actually narrow, or the image assertion below could
+    // pass against an unfiltered grid.
+    await expect
+      .poll(async () => cards.count())
+      .toBeLessThan(unfilteredCount);
+
+    // Every surviving card must advertise the filtered colour, not the
+    // product's default one. This is the symptom the fix addresses: the right
+    // products showing the wrong colourway's photo.
+    const alts = await cards
+      .locator("img")
+      .evaluateAll((els) =>
+        els.map((el) => (el as HTMLImageElement).alt.toLowerCase()),
+      );
+    expect(alts.length).toBeGreaterThan(0);
+    for (const alt of alts) {
+      expect(alt).toContain("navy blue");
+    }
+  });
+
   test("product detail page shows name, price, and variant options", async ({ page }) => {
     await page.goto("/catalog/heritage-linen-bedspread");
     await expect(page.getByRole("heading", { name: "Heritage Linen Bedspread" })).toBeVisible();

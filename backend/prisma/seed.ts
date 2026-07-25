@@ -211,6 +211,34 @@ async function main() {
         },
       });
     }
+
+    // Give every colourway its own photo, the way real catalog products are
+    // built. Without this the seed has only product-level images, so a colour
+    // filter cannot be distinguished from a broken one: every card would show
+    // the same hero shot whichever colour you picked. The alt text names the
+    // colour so tests can assert on what a shopper actually sees.
+    const variantRows = await prisma.productVariant.findMany({
+      where: { product_id: product.id },
+      include: { color: true },
+    });
+
+    for (const variant of variantRows) {
+      const alreadyHasImage = await prisma.productImage.count({
+        where: { variant_id: variant.id },
+      });
+      if (alreadyHasImage > 0) continue;
+
+      await prisma.productImage.create({
+        data: {
+          product_id: product.id,
+          variant_id: variant.id,
+          url: p.galleryImage,
+          alt_text: `${p.name} in ${variant.color.name}`,
+          sort_order: 2,
+          is_primary: false,
+        },
+      });
+    }
   }
 
   // The Playwright purchase flow opts into this fixture explicitly through CI
