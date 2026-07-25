@@ -15,7 +15,9 @@ export function CategoryIntro({ description }: CategoryIntroProps) {
   if (!trimmed) return null;
 
   return (
-    <p className="text-body-md text-on-surface-variant max-w-2xl mb-10 -mt-4">
+    // Same type and spacing as the generic catalog tagline it replaces, so
+    // swapping between the two does not shift the grid below.
+    <p className="text-body-md text-on-surface-variant mb-10 max-w-2xl">
       {trimmed}
     </p>
   );
