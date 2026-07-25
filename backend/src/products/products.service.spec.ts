@@ -80,7 +80,9 @@ describe('ProductsService', () => {
                 is_primary: true,
                 image_role: ProductImageRole.GALLERY,
               },
+              orderBy: { sort_order: 'asc' },
               take: 1,
+              include: { variant: { select: { color_id: true } } },
             },
             variants: {
               where: { is_active: true },
@@ -131,6 +133,58 @@ describe('ProductsService', () => {
           },
         }),
       );
+    });
+
+    // A colour filter that returns the right products wearing the wrong
+    // colour's photo looks broken to a shopper - the card is what they judge
+    // the filter by, not the result count.
+    it("shows the filtered colour's image on the card, not the primary", async () => {
+      const greenImage = {
+        id: 'img-green',
+        is_primary: false,
+        variant: { color_id: 'cuid-col-green' },
+      };
+      const bluePrimary = {
+        id: 'img-blue',
+        is_primary: true,
+        variant: { color_id: 'cuid-col-blue' },
+      };
+      mockPrisma.product.findMany.mockResolvedValue([
+        { ...mockProduct, images: [bluePrimary, greenImage] },
+      ]);
+      mockPrisma.product.count.mockResolvedValue(1);
+
+      const result = await service.findAll({ colorId: 'cuid-col-green' });
+
+      expect(result.items[0].images).toEqual([greenImage]);
+    });
+
+    it('falls back to the primary image when the colour has no photo', async () => {
+      const bluePrimary = {
+        id: 'img-blue',
+        is_primary: true,
+        variant: { color_id: 'cuid-col-blue' },
+      };
+      mockPrisma.product.findMany.mockResolvedValue([
+        { ...mockProduct, images: [bluePrimary] },
+      ]);
+      mockPrisma.product.count.mockResolvedValue(1);
+
+      const result = await service.findAll({ colorId: 'cuid-col-green' });
+
+      expect(result.items[0].images).toEqual([bluePrimary]);
+    });
+
+    it('leaves images untouched when no colour filter is applied', async () => {
+      const primary = { id: 'img-1', is_primary: true, variant: null };
+      mockPrisma.product.findMany.mockResolvedValue([
+        { ...mockProduct, images: [primary] },
+      ]);
+      mockPrisma.product.count.mockResolvedValue(1);
+
+      const result = await service.findAll({});
+
+      expect(result.items[0].images).toEqual([primary]);
     });
 
     it('paginates correctly', async () => {
