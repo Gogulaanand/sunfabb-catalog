@@ -40,24 +40,36 @@ test.describe.serial("golden path: storefront browse + admin CRUD", () => {
   }) => {
     await page.goto("/catalog");
 
-    const swatch = page.getByRole("button", { name: "Green" });
+    // "Navy Blue" is a seeded colour with variants across several products, so
+    // this exercises the fallback-free path on a multi-product result set.
+    const swatch = page.getByRole("button", { name: "Navy Blue" });
     await expect(swatch).toBeVisible();
-    await swatch.click();
 
+    const unfilteredCount = await page.locator('a[href^="/catalog/"]').count();
+
+    await swatch.click();
     await expect(page).toHaveURL(/color=/);
     await expect(swatch).toHaveAttribute("aria-pressed", "true");
 
     const cards = page.locator('a[href^="/catalog/"]');
     await expect(cards.first()).toBeVisible();
+    // The filter has to actually narrow, or the image assertion below could
+    // pass against an unfiltered grid.
+    await expect
+      .poll(async () => cards.count())
+      .toBeLessThan(unfilteredCount);
 
     // Every surviving card must advertise the filtered colour, not the
-    // product's default one.
-    const alts = await cards.locator("img").evaluateAll((els) =>
-      els.map((el) => (el as HTMLImageElement).alt.toLowerCase()),
-    );
+    // product's default one. This is the symptom the fix addresses: the right
+    // products showing the wrong colourway's photo.
+    const alts = await cards
+      .locator("img")
+      .evaluateAll((els) =>
+        els.map((el) => (el as HTMLImageElement).alt.toLowerCase()),
+      );
     expect(alts.length).toBeGreaterThan(0);
     for (const alt of alts) {
-      expect(alt).toContain("green");
+      expect(alt).toContain("navy blue");
     }
   });
 
