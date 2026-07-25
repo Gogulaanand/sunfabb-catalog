@@ -2,7 +2,8 @@
 
 **Parent plan:** `docs/GROWTH.md` (§3.3 trust pages + content, §3.4 GEO, §3.7 Business Profile, §3.8 social engine start).
 **Gate:** Wave 0 shipped (✅ 2026-07-17, PR #26) + owner business inputs (§2 below).
-**Branch:** `feature/growth-wave1-trust-content` (code); content batches ride separate small PRs.
+**Branch:** `feature/growth-wave1-content-geo` (code); content batches ride separate small PRs.
+**Status:** partially shipped - see §11 for what is done, what is pending, and why.
 **Relationship to Phase 6:** independent of 6.5/6.6 code, but the trust pages are a hard prerequisite for Razorpay live mode and Merchant Center, i.e. for Phase 6.10 and Wave 2. Ship Wave 1 before or alongside Stream A.
 This document is self-contained: an executor should be able to deliver the wave end-to-end from this file plus the cited source files.
 
@@ -127,3 +128,82 @@ cd frontend && npm run lint && npx tsc --noEmit && npm run test && npm run build
 ```
 
 Plus manual: Rich Results Test on `/faq` and a product page; WhatsApp share preview of a guide; footer link sweep on mobile.
+
+## 11. Delivery status (2026-07-25)
+
+The wave was split at the owner-input gate: everything that needed no business inputs was built first, on branch `feature/growth-wave1-content-geo`.
+Commits are local to that branch and not yet pushed or merged.
+
+### 11.1 Shipped
+
+| Plan item | What landed | Commit |
+|---|---|---|
+| §5.2 (all) | MDX pipeline (`@next/mdx` + `remark-gfm`), `/guides` index, `/guides/[slug]`, the four planned guides under `frontend/content/guides/`, `ArticleSchema` + `BreadcrumbSchema` per guide, related-products block driven by a `relatedCategorySlug` frontmatter field, guides added to `sitemap.ts` and `llms.txt` | `6dfdf60` |
+| §5.1 (partial) | `/faq` static page with question-shaped `h2`s; footer gained a "Learn" column linking guides + FAQ; `sitemap.ts` gained `/guides`, `/faq`, `/contact` | `6dfdf60` |
+| §5.3.1 | `CategoryIntro` renders `Category.description` on category-filtered catalog views, in the page shell rather than behind Suspense so non-JS crawlers see it; falls back to the generic tagline where a category has no description | `2641586` |
+| §5.3.3 | Admin SEO-completeness badge: backend annotates admin product rows with a missing-alt-text count via one grouped query, and `lib/admin-api.ts` now parses the admin list with zod instead of casting (rule 11 / D30) | `6dfdf60` |
+| §5.4.1 | `FaqSchema` (FAQPage JSON-LD) on `/faq`, same `safeJsonLd()` pattern as the Wave 0 components | `6dfdf60` |
+| §5.4.3 | `public/llms.txt` refreshed with guides, FAQ and contact, plus an explicit note that policy pages do not exist yet so an LLM does not infer them | `6dfdf60` |
+
+The stretch goal in §5.2.2 (related-products block on guide pages) was delivered, not skipped.
+
+### 11.2 Pending - blocked on owner inputs (§2)
+
+- §5.1.1 `/about`, `/privacy-policy`, `/terms`, `/shipping-policy`, `/returns-policy`.
+  These are five of the seven trust pages and the reason the wave cannot be called done.
+- §5.1.2 the shared prose/`LegalPage` layout component.
+  Not built: with only `/faq` and `/guides` shipped there was nothing to share it with yet, and its shape should be set by the legal pages that will dominate it.
+- §5.1.4 footer trust-page links and social icons.
+  `OrganizationSchema` still has `sameAs: []` and the footer's "Follow" column has no outbound links, both waiting on real handles.
+- §5.3.2 the **product** copy batch (D-W1-4).
+  Category copy is not blocked and not missing - all three live categories already carry a seeded description (verified against production 2026-07-25), so `CategoryIntro` renders real copy the moment this branch deploys.
+  Product copy is the gap, and it needs a per-design fact sheet from the owner: fibre and blend, weave/construction, GSM or weight, finished sizes, reversible or not, origin, and any certification.
+  Those are verifiable claims about physical goods; drafting them from the product name would be inventing product attributes, which is both a false-advertising risk and self-defeating for a wave whose goal is being citable.
+- §5.5 Google Business Profile branch decision (physical presence yes/no).
+- §5.6 social handles, Meta/Pinterest accounts, and the first monthly calendar.
+
+### 11.3 Pending - not blocked, just not done
+
+- §5.4.2 the semantic pass on product pages (one `h1`, spec data in `<dl>`/table structure).
+  Not audited this session.
+- §5.4.5 the monthly AI-citation spot-check.
+  `docs/reports/` does not exist yet.
+
+### 11.4 Pulled forward from Wave 2
+
+Nothing moved out of Wave 1 into Wave 2.
+Movement went the other way: the GA4 e-commerce events from Wave 2 §5.1 were built on this branch (`2d6898c`) because they need no vendor accounts - the measurement ID has been live since Wave 0 - and collecting funnel data early costs nothing.
+All five events ship: `view_item_list`, `view_item`, `add_to_cart`, `begin_checkout`, `purchase`.
+That work also amended **D-W2-7** in `docs/plans/growth-wave-2-buyable-everywhere.md`: `purchase` fires at the payment-confirm step, not on the order-confirmation view, because that route doubles as order history.
+
+Two follow-ups this leaves open, both tracked in the Wave 2 plan rather than here:
+
+1. `NEXT_PUBLIC_GA_MEASUREMENT_ID` must be set in the Vercel frontend project.
+   It is a build-time inline, so events do not fire until a deploy that has it.
+2. The GA4 DebugView walkthrough (Wave 2 §5.1.4) has not been run.
+   Wave 3 is gated on that funnel being visible, so it stays a blocker for Wave 3, not Wave 1.
+
+### 11.5 Acceptance criteria status (against §8)
+
+| # | Criterion | State |
+|---|---|---|
+| 1 | All 7 trust pages live, linked from the footer, indexable | ❌ 2 of 7 (`/faq`, `/contact`) |
+| 2 | 4+ guides live; guides + trust pages in sitemap and llms.txt | ✅ guides done; trust-page half pending with the pages |
+| 3 | All live products have description + care instructions + alt text; categories have intro copy rendering | ⚠️ categories ✅ (all three have copy and will render on deploy); products ❌ - see §11.6 |
+| 4 | FAQ passes the Rich Results Test | ⬜ component shipped, test not run (needs a deploy) |
+| 5 | Social profiles exist; `Organization.sameAs` populated | ❌ blocked on owner |
+| 6 | GBP branch decision recorded | ❌ blocked on owner |
+| 7 | Search Console impressions on non-brand queries | ⬜ trailing indicator, check +30 days after merge |
+
+### 11.6 Live-site content defects found while checking §5.3.2
+
+Audited against production on 2026-07-25 by reading the rendered `<meta name="description">` on each URL in `sitemap.xml`.
+These are data problems, not code problems, and none are fixed by this branch.
+
+1. **All three real designs ship an internal note as their public description.**
+   `bedspread-design-4219`, `-8525` and `-8569` all read "Printed cotton bedspread design NNNN. Color and product details can be refined in the admin catalog."
+   That second sentence is instructions to the catalog operator, published to shoppers and crawlers.
+   It is the highest-value thing on this list to fix and the reason the §5.3.2 fact sheet is worth collecting.
+2. **Test data is live.** `royal-cotton-bedspread` has the description "An edited test product description".
+3. **Seeded demo products are indexable.** `heritage-linen-bedspread`, `quilted-cotton-bedspread`, `turkish-cotton-bath-towel`, `waffle-weave-hand-towel`, `linen-table-runner` and `embroidered-napkin-set` are seed fixtures, not real inventory, but they are in `sitemap.xml` and served to crawlers alongside the three real designs.
+   Decide whether they are deliberate catalog filler or should be deactivated (soft delete per rule 4) before Search Console starts indexing them as real products.

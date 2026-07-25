@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,11 @@ import { formatPrice } from "@/lib/api";
 import { useCartStore } from "@/lib/cart-store";
 import type { Quote, Address } from "@/lib/customer-api";
 import { placeOrderResultSchema } from "@/lib/checkout-contract";
+import {
+  trackBeginCheckout,
+  trackPurchase,
+  type AnalyticsItem,
+} from "@/lib/analytics";
 
 // Card/UPI data is entered inside Razorpay's own hosted iframe and never
 // touches this app or our server — that's what keeps us at PCI-DSS SAQ-A
@@ -58,6 +63,24 @@ export default function CheckoutClient({ quote, addresses }: Props) {
 
   const hasAddress = addresses.length > 0;
 
+  const analyticsItems: AnalyticsItem[] = quote.items.map((line) => ({
+    item_id: line.variantId,
+    item_name: line.productName,
+    price_paise: line.unitPricePaise,
+    quantity: line.quantity,
+    item_variant: line.variantLabel,
+  }));
+
+  const beginCheckoutTracked = useRef(false);
+  useEffect(() => {
+    if (beginCheckoutTracked.current || quote.items.length === 0) return;
+    beginCheckoutTracked.current = true;
+    trackBeginCheckout(analyticsItems);
+    // Deliberately mount-only: the quote object is rebuilt on every render, so
+    // depending on it would re-fire the event continuously.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function confirmPayment(
     response: RazorpaySuccessResponse,
     orderNumber: string,
@@ -76,6 +99,19 @@ export default function CheckoutClient({ quote, addresses }: Props) {
         }),
       });
     } finally {
+      // Fired here rather than on the order-detail page: that route doubles as
+      // order history, so firing there would count a `purchase` every time a
+      // customer opened an old order. Razorpay's handler having succeeded is
+      // the actual conversion moment. trackPurchase dedupes by order number,
+      // so a retried confirm cannot double-count.
+      trackPurchase({
+        orderNumber,
+        totalPaise: quote.totalPaise,
+        shippingPaise: quote.shippingPaise,
+        taxPaise: quote.taxPaise,
+        items: analyticsItems,
+      });
+
       router.push(`/account/orders/${orderNumber}`);
       router.refresh();
       setSubmitting(false);

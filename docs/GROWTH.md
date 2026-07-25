@@ -43,8 +43,8 @@ automation), and "owner only" (accounts, KYC, budget, brand approvals - things o
 | 2 | No `robots.txt` and no `sitemap.xml` | Blocker | ✅ Fixed - PR #26 |
 | 3 | Zero structured data (no Product, Offer, Organization, BreadcrumbList JSON-LD) | Critical | ✅ Fixed - PR #26 |
 | 4 | No Open Graph / Twitter cards, no `metadataBase` | Critical | ✅ Fixed - PR #26 |
-| 5 | No GA4, no Search Console, no conversion events | Critical | ✅ GA4 live (G-PXJJRTCMXW), Search Console verified + sitemap submitted, Bing imported. Conversion events deferred to Wave 2 |
-| 6 | No policy/info pages: privacy, terms, returns/refunds, shipping, contact, about, FAQ | Critical | ⬜ Deferred to Wave 1 - needs owner business inputs |
+| 5 | No GA4, no Search Console, no conversion events | Critical | ✅ GA4 live (G-PXJJRTCMXW), Search Console verified + sitemap submitted, Bing imported. Conversion events built 2026-07-25 (pulled forward from Wave 2); pending `NEXT_PUBLIC_GA_MEASUREMENT_ID` in Vercel + a DebugView check |
+| 6 | No policy/info pages: privacy, terms, returns/refunds, shipping, contact, about, FAQ | Critical | 🟡 `/faq` + `/contact` live; the five policy/about pages still need owner business inputs |
 | 7 | Home/catalog metadata static; filter permutations indexable duplicates; no canonicals | High | ✅ Fixed - PR #26 |
 | 8 | Cart/checkout/account pages indexable (no `noindex`) | Medium | ✅ Fixed - PR #26 |
 | 9 | No social presence links, no NAP, no brand entity signals | Medium | ⬜ Wave 1 |
@@ -69,8 +69,8 @@ wastes the effort.
 | Wave | Theme | Gate to start | Status | Touchpoints |
 |------|-------|---------------|--------|-------------|
 | **Wave 0** | Be indexable | None | ✅ **Shipped 2026-07-17** (PR #26) | §3.1 technical SEO, §3.2 crawl performance, §3.5 Search Console/Bing, §3.13 analytics. |
-| **Wave 1** | Be worth citing and following | Wave 0 shipped + owner provides business inputs | ⬜ todo - [implementation plan](plans/growth-wave-1-trust-and-content.md) | §3.3 trust pages + content engine, §3.4 AI/LLM search (GEO), §3.7 Business Profile, §3.8 social engine start |
-| **Wave 2** | Be buyable everywhere | Phase 6 go-live (6.10): live payments, shipping, policies | ⬜ todo - [implementation plan](plans/growth-wave-2-buyable-everywhere.md) | §3.6 Google Shopping, §3.8 Meta catalog/product tagging, §3.9 WhatsApp Business, §3.10 ONDC, §3.11 email flows |
+| **Wave 1** | Be worth citing and following | Wave 0 shipped + owner provides business inputs | 🟡 **partially shipped** - content engine + GEO done, trust pages blocked on owner inputs. [Status §11](plans/growth-wave-1-trust-and-content.md#11-delivery-status-2026-07-25) | §3.3 trust pages + content engine, §3.4 AI/LLM search (GEO), §3.7 Business Profile, §3.8 social engine start |
+| **Wave 2** | Be buyable everywhere | Phase 6 go-live (6.10): live payments, shipping, policies | ⬜ todo - [implementation plan](plans/growth-wave-2-buyable-everywhere.md) - **except §3.13 conversion events, pulled forward and shipped with Wave 1** | §3.6 Google Shopping, §3.8 Meta catalog/product tagging, §3.9 WhatsApp Business, §3.10 ONDC, §3.11 email flows |
 | **Wave 3** | Pay to amplify what converts | Wave 2 live + GA4 shows the funnel converts | ⬜ todo - [implementation plan](plans/growth-wave-3-paid-amplification.md) | §3.12 ads (Google PMax, Meta), marketplace expansion, review engine |
 
 Each pending wave now has a self-contained implementation plan in `docs/plans/` (linked above)

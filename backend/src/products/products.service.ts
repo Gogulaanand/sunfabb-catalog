@@ -105,6 +105,10 @@ export class ProductsService {
         orderBy: { price: 'asc' as const },
         take: 1,
       },
+      // Total image count for the admin SEO-completeness badge. The `images`
+      // relation above is narrowed to the single primary image for the
+      // thumbnail, so it cannot be counted for this purpose.
+      _count: { select: { images: true } },
     };
 
     if (sortBy === 'price_asc' || sortBy === 'price_desc') {
@@ -117,7 +121,10 @@ export class ProductsService {
 
       const total = all.length;
       const skip = (page - 1) * limit;
-      return { items: all.slice(skip, skip + limit), total, page, limit };
+      const items = await this.withMissingAltTextCounts(
+        all.slice(skip, skip + limit),
+      );
+      return { items, total, page, limit };
     }
 
     const skip = (page - 1) * limit;
@@ -132,7 +139,47 @@ export class ProductsService {
       this.prisma.product.count({ where }),
     ]);
 
-    return { items, total, page, limit };
+    return {
+      items: await this.withMissingAltTextCounts(items),
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
+   * Annotates admin product rows with how many of their images have no alt
+   * text, for the SEO-completeness badge in the admin product list.
+   *
+   * This is a single grouped query for the whole page rather than one per
+   * product. It cannot be folded into the `_count` on the main query, because
+   * Prisma keys relation counts by relation name — `images` can be counted
+   * once, filtered or unfiltered, but not both.
+   */
+  private async withMissingAltTextCounts<T extends { id: string }>(
+    products: T[],
+  ): Promise<(T & { images_missing_alt_text: number })[]> {
+    if (products.length === 0) return [];
+
+    const grouped = await this.prisma.productImage.groupBy({
+      by: ['product_id'],
+      where: {
+        product_id: { in: products.map((product) => product.id) },
+        // Empty string counts as missing: the admin form submits "" when the
+        // field is cleared, so alt text ends up absent but not null.
+        OR: [{ alt_text: null }, { alt_text: '' }],
+      },
+      _count: { _all: true },
+    });
+
+    const missingByProduct = new Map(
+      grouped.map((row) => [row.product_id, row._count._all]),
+    );
+
+    return products.map((product) => ({
+      ...product,
+      images_missing_alt_text: missingByProduct.get(product.id) ?? 0,
+    }));
   }
 
   findOne(slug: string) {

@@ -14,7 +14,7 @@ with a hidden admin.
 
 ## Current status
 
-**Phase 6 in progress — 6.0-6.4 merged.** Two parallel streams: Stream A (6.5/6.6/6.7, vendor-gated) and Stream B (Growth Wave 0 SEO, unblocked). See `HANDOFF.md` for current state and next steps.
+**Phase 6 in progress — 6.0-6.4, 6.8 and 6.9 merged.** Remaining Phase 6 work is Stream A (6.5/6.6/6.7, vendor-gated) and then 6.10 go-live. Growth Wave 0 SEO shipped; Growth Wave 1 is partially shipped (content engine + GEO done, trust pages blocked on owner business inputs). See `HANDOFF.md` for current state and next steps.
 
 ## Architecture
 

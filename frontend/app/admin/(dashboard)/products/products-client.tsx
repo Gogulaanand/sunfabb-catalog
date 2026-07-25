@@ -16,12 +16,14 @@ import {
   Stack,
   Table,
   Tag,
+  Text,
   Textarea,
 } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import type { Category } from "@/lib/api";
 import type { AdminProductListItem } from "@/lib/admin-api";
 import { formatPrice } from "@/lib/api";
+import { getSeoGaps, SEO_GAP_LABELS } from "@/lib/seo-completeness";
 import { createProductAction } from "./actions";
 
 interface ProductFormState {
@@ -137,6 +139,36 @@ function CreateProductDialog({ categories }: { categories: Category[] }) {
   );
 }
 
+/**
+ * Nudge showing which content a product is still missing. Read-only: it
+ * derives everything from the list payload and never writes.
+ */
+function SeoCompletenessCell({ product }: { product: AdminProductListItem }) {
+  const gaps = getSeoGaps(product);
+
+  if (gaps.length === 0) {
+    return (
+      <Tag.Root colorPalette="green" size="sm" variant="subtle">
+        <Tag.Label>Complete</Tag.Label>
+      </Tag.Root>
+    );
+  }
+
+  return (
+    <HStack gap="1" wrap="wrap">
+      {gaps.map((gap) => (
+        <Tag.Root key={gap} colorPalette="orange" size="sm" variant="subtle">
+          <Tag.Label>
+            {gap === "alt_text"
+              ? `${product.images_missing_alt_text} missing alt text`
+              : SEO_GAP_LABELS[gap]}
+          </Tag.Label>
+        </Tag.Root>
+      ))}
+    </HStack>
+  );
+}
+
 export function ProductsClient({
   products,
   categories,
@@ -144,6 +176,10 @@ export function ProductsClient({
   products: AdminProductListItem[];
   categories: Category[];
 }) {
+  const incompleteCount = products.filter(
+    (product) => getSeoGaps(product).length > 0,
+  ).length;
+
   return (
     <Box>
       <HStack justify="space-between" mb="6">
@@ -153,6 +189,13 @@ export function ProductsClient({
         <CreateProductDialog categories={categories} />
       </HStack>
 
+      {incompleteCount > 0 && (
+        <Text fontSize="sm" color="fg.muted" mb="4">
+          {incompleteCount} of {products.length} products are missing content
+          that search engines and AI assistants rely on.
+        </Text>
+      )}
+
       <Table.Root size="sm" variant="outline">
         <Table.Header>
           <Table.Row>
@@ -160,6 +203,7 @@ export function ProductsClient({
             <Table.ColumnHeader>Category</Table.ColumnHeader>
             <Table.ColumnHeader>From price</Table.ColumnHeader>
             <Table.ColumnHeader>Status</Table.ColumnHeader>
+            <Table.ColumnHeader>Content</Table.ColumnHeader>
             <Table.ColumnHeader textAlign="end">Actions</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
@@ -173,6 +217,9 @@ export function ProductsClient({
                 <Tag.Root colorPalette={product.is_active ? "green" : "gray"} size="sm">
                   <Tag.Label>{product.is_active ? "Active" : "Inactive"}</Tag.Label>
                 </Tag.Root>
+              </Table.Cell>
+              <Table.Cell>
+                <SeoCompletenessCell product={product} />
               </Table.Cell>
               <Table.Cell textAlign="end">
                 <Link asChild fontSize="sm" fontWeight="600">

@@ -80,8 +80,27 @@ Phase E (`feature/pdp-redesign`) merged as PR #34.
 Phase F (`feature/ux-polish-qa`) implemented and in review; see
 `phases/briefing/phase-f-ux-polish-qa.md` for the QA evidence and current blockers.
 
+### Growth Wave 1 (parallel track, partially shipped)
+
 Full growth plan: **`docs/GROWTH.md`** (Phase 7).
-Wave 1 (trust pages + content engine) gates on owner providing business inputs - see GROWTH.md §3.3.
+Branch `feature/growth-wave1-content-geo` holds three unpushed commits covering everything in Wave 1
+that needed no owner business inputs; full breakdown in
+[the wave plan §11](docs/plans/growth-wave-1-trust-and-content.md#11-delivery-status-2026-07-25).
+
+- **Shipped:** MDX guides section (`/guides` + four guides), `/faq` with FAQPage JSON-LD, category
+  intro copy rendering on filtered catalog views, the admin SEO-completeness badge, and a refreshed
+  `llms.txt` / `sitemap.ts`.
+- **Also shipped, pulled forward from Wave 2:** the five GA4 e-commerce events (§3.13). These need
+  `NEXT_PUBLIC_GA_MEASUREMENT_ID` set in Vercel and a GA4 DebugView walkthrough before the funnel
+  can be trusted - that walkthrough is the gate on Wave 3.
+- **Still blocked on owner inputs:** the five remaining trust pages, the product copy batch (needs a
+  per-design fact sheet - fibre, weave, GSM, sizes, origin), social handles for
+  `Organization.sameAs`, and the Google Business Profile branch decision.
+  Category copy is *not* blocked - all three categories already have descriptions in production.
+- **Live-site content defects found 2026-07-25:** the three real designs publish an internal note
+  ("...can be refined in the admin catalog") as their public description, one product still says
+  "An edited test product description", and six seeded demo products are indexable.
+  Details and remediation order in [wave plan §11.6](docs/plans/growth-wave-1-trust-and-content.md).
 
 ---
 
@@ -107,10 +126,11 @@ independently whenever designs are ready.
 - **`home.sunfabb.com`** (old personal homepage, Vercel project `website`) has a broken deployment
   and an expired wildcard cert (`*.sunfabb.com`, expired June 2021).
   Unrelated to the catalog - needs separate attention.
-- **Wave 1 gate:** trust pages (`/about`, `/contact`, `/privacy-policy`, `/terms`,
-  `/shipping-policy`, `/returns-policy`, `/faq`) need owner business inputs before Claude can draft
-  them (legal entity name, GSTIN display, contact channels, return window, shipping coverage).
-  These are also prerequisites for Razorpay live mode and Google Merchant Center.
+- **Wave 1 gate:** the five remaining trust pages (`/about`, `/privacy-policy`, `/terms`,
+  `/shipping-policy`, `/returns-policy`) need owner business inputs before Claude can draft them
+  (legal entity name, GSTIN display, contact channels, return window, shipping coverage).
+  `/faq` and `/contact` are live. These are also prerequisites for Razorpay live mode and Google
+  Merchant Center.
 - **6.1 security hardening backlog** - mostly closed by 6.9 (PR #39):
   - L3: ✅ verified-customer order gating shipped in 6.9.
   - L4: ✅ exact CORS allowlist shipped in 6.9.

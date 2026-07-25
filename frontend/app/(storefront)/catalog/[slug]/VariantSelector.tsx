@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { formatPrice, type ProductVariant } from "@/lib/api";
 import { useCartStore } from "@/lib/cart-store";
+import { trackAddToCart } from "@/lib/analytics";
 
 interface VariantSelectorProps {
   variants: ProductVariant[];
   productName: string;
   productSlug: string;
+  categoryName?: string;
   selectedVariantId: string | null;
   onVariantChange: (variantId: string) => void;
 }
@@ -67,6 +69,7 @@ export function VariantSelector({
   variants,
   productName,
   productSlug,
+  categoryName,
   selectedVariantId,
   onVariantChange,
 }: VariantSelectorProps) {
@@ -137,6 +140,16 @@ export function VariantSelector({
         });
       }
       setAddState("added");
+      // Only after the add actually succeeded — a failed add is not a
+      // conversion step, and counting it would overstate cart adds.
+      trackAddToCart({
+        item_id: selectedVariant.id,
+        item_name: productName,
+        price_paise: selectedVariant.price,
+        quantity: 1,
+        item_category: categoryName,
+        item_variant: variantLabel,
+      });
       resetAddStateAfterDelay();
     } catch {
       setAddState("error");
