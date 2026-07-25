@@ -135,6 +135,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         variants={product.variants}
         productName={product.name}
         productSlug={product.slug}
+        categoryName={product.category.name}
         initialVariantId={initialVariantId}
         detailsBeforeVariant={
           <div className="space-y-4">

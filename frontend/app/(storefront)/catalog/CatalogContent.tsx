@@ -16,6 +16,8 @@ import { CatalogEmptyState } from "./CatalogEmptyState";
 import { ItemListSchema } from "@/components/seo/ItemListSchema";
 import { ProductCard } from "@/components/product/product-card";
 import { StaggerGroup, StaggerItem } from "@/components/motion";
+import { TrackItemList } from "@/components/analytics/track-item-list";
+import type { AnalyticsItem } from "@/lib/analytics";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunfabb.com";
 
@@ -50,11 +52,31 @@ export default async function CatalogContent({
   const hasFilters = Boolean(categorySlug || materialId || colorId);
   const gridKey = [categorySlug, materialId, colorId, sortBy, page].join("-");
 
+  // A card has no selected variant, so the item is the product and the price
+  // is the cheapest variant's — the same number the card shows. `index` is
+  // absolute across pages, not per-page, so page 2 does not report positions
+  // 1-20 a second time.
+  const analyticsItems: AnalyticsItem[] = products.map((product, i) => ({
+    item_id: product.id,
+    item_name: product.name,
+    price_paise: product.variants.length
+      ? Math.min(...product.variants.map((v) => v.price))
+      : 0,
+    item_category: product.category.name,
+    index: (page - 1) * limit + i + 1,
+  }));
+
   return (
     <>
       {products.length > 0 && (
         <ItemListSchema items={products} siteUrl={siteUrl} />
       )}
+      <TrackItemList
+        items={analyticsItems}
+        listName={categorySlug ? `Catalog: ${categorySlug}` : "Catalog"}
+        listId={gridKey}
+        listKey={gridKey}
+      />
       <CatalogTransitionProvider>
         <div className="flex flex-col lg:flex-row gap-(--spacing-gutter-desktop)">
           {/* Filters sidebar */}

@@ -40,7 +40,10 @@ Put the now-transactional catalog everywhere Indian buyers look: Google Shopping
 - **D-W2-4 Pinterest ingests the Meta CSV format family** - one shared feed builder, two serializers max; do not build a third format unless Pinterest rejects the CSV.
 - **D-W2-5 Newsletter = `Subscriber` table + double opt-in reusing the `EmailToken` pattern**; broadcasts sent via Resend from a small admin-triggered endpoint, not a marketing SaaS.
 - **D-W2-6 Abandoned-cart email hooks the existing expiry sweep** (one email per expired order, throttled to one per customer per 7 days); no separate cart-watching infrastructure.
-- **D-W2-7 GA4 events client-side via `sendGAEvent`** (`@next/third-parties`), fired at the natural UI points; `purchase` fires on the order-confirmation view after `/payments/verify` succeeds, deduped by order number in `sessionStorage`. Server-side measurement protocol → backlog (Wave 3 CAPI work may revisit).
+- **D-W2-7 GA4 events client-side via `sendGAEvent`** (`@next/third-parties`), fired at the natural UI points; `purchase` fires in `CheckoutClient.confirmPayment` once Razorpay's handler has succeeded, deduped by order number in `sessionStorage`. Server-side measurement protocol → backlog (Wave 3 CAPI work may revisit).
+  Amended 2026-07-25 during implementation: this originally said "on the order-confirmation view after `/payments/verify` succeeds".
+  That route (`/account/orders/[orderNumber]`) doubles as order history, so firing there would count a `purchase` every time a customer reopened an old order.
+  Firing at the confirm step is also why the call sits in the `finally` block: `/payments/verify` is optimistic UX only and the webhook is the source of truth (§7.1), so a failed verify does not mean a failed purchase.
 
 ## 5. Workstreams
 
@@ -61,7 +64,7 @@ Put the now-transactional catalog everywhere Indian buyers look: Google Shopping
 
 ### 5.3 Conversion events (code - the Wave 3 gate)
 
-1. Frontend GA4 e-commerce events via `sendGAEvent`: `view_item_list` (catalog grid), `view_item` (PDP), `add_to_cart` (VariantSelector success), `begin_checkout` (checkout entry), `purchase` (order-confirmation state; value = `total_paise / 100`, currency INR, items from the order; dedupe per D-W2-7).
+1. Frontend GA4 e-commerce events via `sendGAEvent`: `view_item_list` (catalog grid), `view_item` (PDP), `add_to_cart` (VariantSelector success), `begin_checkout` (checkout entry), `purchase` (payment-confirm step; value = `total_paise / 100`, currency INR, items from the order; dedupe per D-W2-7).
 2. A tiny typed helper (`frontend/lib/analytics.ts`) so event shapes are consistent and unit-testable; no-op when the measurement ID env is absent (dev).
 3. Vitest: helper emits correct payloads; purchase dedupe works.
 4. Manual: verify each event in GA4 DebugView on a test-mode purchase; mark the funnel (view → cart → checkout → purchase) visible in GA4 before declaring Wave 3 unblocked.
