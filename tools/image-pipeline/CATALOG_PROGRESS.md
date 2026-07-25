@@ -260,9 +260,9 @@ to move into swatch/scene generation via the same manual/agent loop used for 856
 | 8569 | bedspread | 4 | uploaded (owner QA signed off, 20/20) |
 | 4219 | bedspread | 4 | uploaded (owner QA signed off, 20/20) |
 | 8525 | bedspread | 4 | uploaded (owner QA signed off, 20/20) |
-| 8555 | bedspread | 4 | generated locally (20/20; owner QA/import/upload pending) |
-| 4461 | bedspread | 4 | generated locally (20/20; owner QA/import/review/upload pending) |
-| 8470 | bedspread | 4 | generated locally (20/20; scene family A; owner visual QA, import, review, and upload pending) |
+| 8555 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 4461 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 8470 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
 | 4388 | bedspread | 4 (pink/yellow/teal/orange - corrected, was fabricated as 8472 beige/blue/yellow/pink) | generated locally (20/20; scene family B; owner visual QA, import, review, and upload pending) |
 | 8571 | bedspread | 3 (grey-blue/yellow/pink - corrected, was fabricated as 4222 brown/teal/grey/red) | generated locally (15/15; scene family C; owner visual QA, import, review, and upload pending) |
 | 4221 | bedspread | 4 (brown/blue-grey/mustard/mauve - corrected, was mislabeled 8498) | generated locally (20/20; scene family D; owner visual QA, import, review, and upload pending) |

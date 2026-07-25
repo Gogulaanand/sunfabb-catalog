@@ -14,6 +14,15 @@ const NAV_LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
+const COMPACT_SCROLL_Y = 40;
+const EXPAND_SCROLL_Y = 8;
+
+export function shouldCompactHeader(scrollY: number, isCompact: boolean) {
+  return isCompact
+    ? scrollY > EXPAND_SCROLL_Y
+    : scrollY > COMPACT_SCROLL_Y;
+}
+
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -21,7 +30,13 @@ export function Header() {
   const openBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => {
+      setScrolled((isCompact) =>
+        shouldCompactHeader(window.scrollY, isCompact),
+      );
+    };
+
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
