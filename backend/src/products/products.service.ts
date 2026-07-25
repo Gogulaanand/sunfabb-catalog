@@ -34,14 +34,28 @@ export class ProductsService {
       where.variants = { some: variantFilter };
     }
 
+    // When a colour filter is on, the card must show that colour's photo. The
+    // default primary image is whichever colourway was uploaded first, so
+    // without this a "green" search returns the right products wearing their
+    // blue photo — which reads to a shopper as a filter that did nothing.
+    // Pull the matching colourway's image alongside the primary and pick
+    // between them below, so a product with no photo for that colour still
+    // falls back to the primary rather than rendering an empty card.
     const include = {
       category: { select: { name: true, slug: true } },
       images: {
-        where: {
-          is_primary: true,
-          image_role: ProductImageRole.GALLERY,
-        },
-        take: 1,
+        where: colorId
+          ? {
+              image_role: ProductImageRole.GALLERY,
+              OR: [{ variant: { color_id: colorId } }, { is_primary: true }],
+            }
+          : {
+              is_primary: true,
+              image_role: ProductImageRole.GALLERY,
+            },
+        orderBy: { sort_order: 'asc' as const },
+        ...(colorId ? {} : { take: 1 }),
+        include: { variant: { select: { color_id: true } } },
       },
       variants: {
         where: { is_active: true },
@@ -64,7 +78,12 @@ export class ProductsService {
 
       const total = all.length;
       const skip = (page - 1) * limit;
-      return { items: all.slice(skip, skip + limit), total, page, limit };
+      return {
+        items: this.pickCardImages(all.slice(skip, skip + limit), colorId),
+        total,
+        page,
+        limit,
+      };
     }
 
     const skip = (page - 1) * limit;
@@ -80,7 +99,31 @@ export class ProductsService {
       this.prisma.product.count({ where }),
     ]);
 
-    return { items, total, page, limit };
+    return { items: this.pickCardImages(items, colorId), total, page, limit };
+  }
+
+  /**
+   * Narrows each product's `images` down to the single image its catalog card
+   * should show: the filtered colour's photo when there is one, otherwise the
+   * primary. Returns one image per product either way, so the list response
+   * shape does not change between filtered and unfiltered requests.
+   */
+  private pickCardImages<
+    T extends {
+      images: { is_primary: boolean; variant: { color_id: string } | null }[];
+    },
+  >(products: T[], colorId?: string): T[] {
+    if (!colorId) return products;
+
+    return products.map((product) => {
+      const forColor = product.images.find(
+        (image) => image.variant?.color_id === colorId,
+      );
+      const chosen =
+        forColor ?? product.images.find((image) => image.is_primary);
+
+      return { ...product, images: chosen ? [chosen] : [] };
+    });
   }
 
   async findAllAdmin(dto: FindProductsDto) {
