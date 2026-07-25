@@ -93,9 +93,14 @@ that needed no owner business inputs; full breakdown in
 - **Also shipped, pulled forward from Wave 2:** the five GA4 e-commerce events (§3.13). These need
   `NEXT_PUBLIC_GA_MEASUREMENT_ID` set in Vercel and a GA4 DebugView walkthrough before the funnel
   can be trusted - that walkthrough is the gate on Wave 3.
-- **Still blocked on owner inputs:** the five remaining trust pages, the product/category copy batch
-  (without it the category intro renders nothing), social handles for `Organization.sameAs`, and the
-  Google Business Profile branch decision.
+- **Still blocked on owner inputs:** the five remaining trust pages, the product copy batch (needs a
+  per-design fact sheet - fibre, weave, GSM, sizes, origin), social handles for
+  `Organization.sameAs`, and the Google Business Profile branch decision.
+  Category copy is *not* blocked - all three categories already have descriptions in production.
+- **Live-site content defects found 2026-07-25:** the three real designs publish an internal note
+  ("...can be refined in the admin catalog") as their public description, one product still says
+  "An edited test product description", and six seeded demo products are indexable.
+  Details and remediation order in [wave plan §11.6](docs/plans/growth-wave-1-trust-and-content.md).
 
 ---
 

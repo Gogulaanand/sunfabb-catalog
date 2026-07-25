@@ -155,8 +155,10 @@ The stretch goal in §5.2.2 (related-products block on guide pages) was delivere
   Not built: with only `/faq` and `/guides` shipped there was nothing to share it with yet, and its shape should be set by the legal pages that will dominate it.
 - §5.1.4 footer trust-page links and social icons.
   `OrganizationSchema` still has `sameAs: []` and the footer's "Follow" column has no outbound links, both waiting on real handles.
-- §5.3.2 the product/category copy batch (D-W1-4).
-  This is what makes §5.3.1 visible: `CategoryIntro` renders nothing on every category today because no `Category.description` is populated.
+- §5.3.2 the **product** copy batch (D-W1-4).
+  Category copy is not blocked and not missing - all three live categories already carry a seeded description (verified against production 2026-07-25), so `CategoryIntro` renders real copy the moment this branch deploys.
+  Product copy is the gap, and it needs a per-design fact sheet from the owner: fibre and blend, weave/construction, GSM or weight, finished sizes, reversible or not, origin, and any certification.
+  Those are verifiable claims about physical goods; drafting them from the product name would be inventing product attributes, which is both a false-advertising risk and self-defeating for a wave whose goal is being citable.
 - §5.5 Google Business Profile branch decision (physical presence yes/no).
 - §5.6 social handles, Meta/Pinterest accounts, and the first monthly calendar.
 
@@ -187,8 +189,21 @@ Two follow-ups this leaves open, both tracked in the Wave 2 plan rather than her
 |---|---|---|
 | 1 | All 7 trust pages live, linked from the footer, indexable | ❌ 2 of 7 (`/faq`, `/contact`) |
 | 2 | 4+ guides live; guides + trust pages in sitemap and llms.txt | ✅ guides done; trust-page half pending with the pages |
-| 3 | All live products have description + care instructions + alt text; categories have intro copy rendering | ⚠️ the rendering path and the admin nudge exist; the copy itself does not |
+| 3 | All live products have description + care instructions + alt text; categories have intro copy rendering | ⚠️ categories ✅ (all three have copy and will render on deploy); products ❌ - see §11.6 |
 | 4 | FAQ passes the Rich Results Test | ⬜ component shipped, test not run (needs a deploy) |
 | 5 | Social profiles exist; `Organization.sameAs` populated | ❌ blocked on owner |
 | 6 | GBP branch decision recorded | ❌ blocked on owner |
 | 7 | Search Console impressions on non-brand queries | ⬜ trailing indicator, check +30 days after merge |
+
+### 11.6 Live-site content defects found while checking §5.3.2
+
+Audited against production on 2026-07-25 by reading the rendered `<meta name="description">` on each URL in `sitemap.xml`.
+These are data problems, not code problems, and none are fixed by this branch.
+
+1. **All three real designs ship an internal note as their public description.**
+   `bedspread-design-4219`, `-8525` and `-8569` all read "Printed cotton bedspread design NNNN. Color and product details can be refined in the admin catalog."
+   That second sentence is instructions to the catalog operator, published to shoppers and crawlers.
+   It is the highest-value thing on this list to fix and the reason the §5.3.2 fact sheet is worth collecting.
+2. **Test data is live.** `royal-cotton-bedspread` has the description "An edited test product description".
+3. **Seeded demo products are indexable.** `heritage-linen-bedspread`, `quilted-cotton-bedspread`, `turkish-cotton-bath-towel`, `waffle-weave-hand-towel`, `linen-table-runner` and `embroidered-napkin-set` are seed fixtures, not real inventory, but they are in `sitemap.xml` and served to crawlers alongside the three real designs.
+   Decide whether they are deliberate catalog filler or should be deactivated (soft delete per rule 4) before Search Console starts indexing them as real products.
