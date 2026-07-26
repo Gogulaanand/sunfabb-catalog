@@ -36,6 +36,8 @@ const PALETTE: Record<string, string> = {
   brown: '#6B4A32',
   burgundy: '#6E1F2E',
   copper: '#B4703A',
+  cream: '#F3EBDD',
+  'dark-grey': '#4A4A4A',
   'grey-blue': '#8296A8',
   'hot-pink': '#E0457B',
   'light-blue': '#A8C6E0',
