@@ -6,7 +6,7 @@ and refill protocol. Workers never choose their own design or scene family.
 ## Pool sizing and lifecycle
 
 1. Determine the runtime's available direct-child capacity.
-2. Set `worker_limit = min(4, available direct-child slots, eligible designs remaining)`.
+2. Set `worker_limit = min(3, available direct-child slots, eligible designs remaining)`.
 3. Spawn one fresh `design_worker` per design until the pool reaches `worker_limit`.
 4. Keep `agents.max_depth = 1`; design workers must not delegate.
 5. When a worker reports completion, move its design from `active` to `reviewing` without assigning

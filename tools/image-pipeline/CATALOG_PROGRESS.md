@@ -25,12 +25,19 @@ update: we are moving away from gemini api calls to openai chatgpt and codex for
 
 - Designs **8569, 4219, and 8525 are complete, owner-QA-signed-off, uploaded to Cloudinary,
   and attached to active catalog products**. They are the first three live catalog sets.
-- `work/state.json` records the 60 signed-off artifacts as uploaded, and `work/uploads.json`
-  contains the Cloudinary URLs used to attach them to the products.
-- Design 8555 is now generation-complete locally (20/20: 4 swatches + 16 scenes), but remains
-  deliberately excluded from this upload until owner visual QA/sign-off and the normal import,
-  review, and upload stages are run.
-- The remaining designs can continue through the same manual/agent generation loop when ready.
+- Designs **8555, 4461, 8470, 4388, 4221, 8501, 4610, 8563, 4216, 8517, 8496,
+  8522, 8519, 4592, and 4195**
+  now have their 16 scene images uploaded to Cloudinary and attached to active catalog products;
+  their four swatch files remain local and are not published.
+- A second production batch on 2026-07-26 published every remaining generated bedspread:
+  **8571, 4207, 4603, 4425, 8473, 4337, 8521, 4217, 8479, 4468, 8476, 8511, 8474,
+  8507, 4210, 8559, 4462, 8481, 8560, 4208, 4607, 8576, and 8545**. The batch created
+  23 active products, 91 variants, and attached 364 Cloudinary scene images. All 23 were
+  verified through the production API and rendered across the live `sunfabb.com` catalog.
+- Local swatches remain unpublished by design. No ordinary `cropped` or generated-but-pending
+  bedspread row remains in the verified queue.
+- Design 4429 remains stopped pending an authorized alternative workflow, and the nonstandard
+  sources below still require Checkpoint A decisions before they are eligible for generation.
 
 ## Status legend
 
@@ -263,42 +270,42 @@ to move into swatch/scene generation via the same manual/agent loop used for 856
 | 8555 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
 | 4461 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
 | 8470 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
-| 4388 | bedspread | 4 (pink/yellow/teal/orange - corrected, was fabricated as 8472 beige/blue/yellow/pink) | generated locally (20/20; scene family B; owner visual QA, import, review, and upload pending) |
-| 8571 | bedspread | 3 (grey-blue/yellow/pink - corrected, was fabricated as 4222 brown/teal/grey/red) | generated locally (15/15; scene family C; owner visual QA, import, review, and upload pending) |
-| 4221 | bedspread | 4 (brown/blue-grey/mustard/mauve - corrected, was mislabeled 8498) | generated locally (20/20; scene family D; owner visual QA, import, review, and upload pending) |
-| 8501 | bedspread | 4 (red/teal/mustard/light-blue - corrected, was mislabeled 4221 with wrong box layout) | generated locally (20/20; scene family A; owner visual QA, import, review, and upload pending) |
-| 4610 | bedspread | 4 | generated locally (20/20; scene family B; owner visual QA, import, review, and upload pending) |
-| 8563 | bedspread | 4 | generated locally (20/20; scene family C; owner visual QA, import, review, and upload pending) |
-| 4216 | bedspread | 4 | generated locally (20/20; scene family D; owner visual QA, import, review, and upload pending) |
-| 8517 | bedspread | 4 | generated locally (20/20; scene family A; owner visual QA, import, review, and upload pending) |
-| 8496 | bedspread | 4 | generated locally (20/20; scene family B; owner visual QA, import, review, and upload pending) |
-| 8522 | bedspread | 4 | generated locally (20/20; scene family C; owner visual QA, import, review, and upload pending) |
-| 8519 | bedspread | 4 | generated locally (20/20; scene family D; owner visual QA, import, review, and upload pending) |
-| 4592 | bedspread | 4 | generated locally (20/20; scene family A; owner visual QA, import, review, and upload pending) |
-| 4195 | bedspread | 4 | generated locally (20/20; scene family B; owner visual QA, import, review, and upload pending) |
-| 4207 | bedspread | 4 | cropped |
+| 4388 | bedspread | 4 (pink/yellow/teal/orange - corrected, was fabricated as 8472 beige/blue/yellow/pink) | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 8571 | bedspread | 3 (grey-blue/yellow/pink - corrected, was fabricated as 4222 brown/teal/grey/red) | uploaded 2026-07-26 (12 scenes live; 3 swatches not uploaded) |
+| 4221 | bedspread | 4 (brown/blue-grey/mustard/mauve - corrected, was mislabeled 8498) | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 8501 | bedspread | 4 (red/teal/mustard/light-blue - corrected, was mislabeled 4221 with wrong box layout) | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 4610 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 8563 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 4216 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 8517 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 8496 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 8522 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 8519 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 4592 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 4195 | bedspread | 4 | uploaded 2026-07-25 (16 scenes live; 4 swatches not uploaded) |
+| 4207 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
 | 4429 | bedspread | 4 (Mickey Mouse novelty print) | generation stopped (Step 1 cyan swatch moderation-blocked on 3 attempts; 0/20 generated; owner review needed for an authorized alternative workflow) |
-| 4603 | bedspread | 4 | cropped |
-| 4425 | bedspread | 4 | cropped |
-| 8473 | bedspread | 4 | cropped |
-| 4337 | bedspread | 4 | cropped |
-| 8521 | bedspread | 4 | cropped |
-| 4217 | bedspread | 4 | cropped |
-| 8479 | bedspread | 4 | cropped |
-| 4468 | bedspread | 4 | cropped |
-| 8476 | bedspread | 4 | cropped |
-| 8511 | bedspread | 4 | cropped |
-| 8474 | bedspread | 4 | cropped |
-| 8507 | bedspread | 4 | cropped |
-| 4210 | bedspread | 4 | cropped |
-| 8559 | bedspread | 4 | cropped |
-| 4462 | bedspread | 4 | cropped |
-| 8481 | bedspread | 4 | cropped |
-| 8560 | bedspread | 4 | cropped |
-| 4208 | bedspread | 4 | cropped |
-| 4607 | bedspread | 4 | cropped |
-| 8576 | bedspread | 4 | cropped |
-| 8545 ("108\" Gloria (Cotton)") | bedspread | 4 | cropped |
+| 4603 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 4425 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8473 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 4337 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8521 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 4217 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8479 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 4468 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8476 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8511 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8474 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8507 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 4210 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8559 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 4462 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8481 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8560 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 4208 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 4607 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8576 | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
+| 8545 ("108\" Gloria (Cotton)") | bedspread | 4 | uploaded 2026-07-26 (16 scenes live; 4 swatches not uploaded) |
 
 That's 40 of the 50 - the "standard" 4-colorway bedspread pattern. The remaining 10 need a
 judgment call at Checkpoint A before cropping:
