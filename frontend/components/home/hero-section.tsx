@@ -4,9 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
 
-// TODO: Replace with a Cloudinary brand asset once one is uploaded to the media library
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1920&q=75";
+const HERO_IMAGE = "/images/home/sunfabb-hero-option-e.png";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -14,7 +12,7 @@ export function HeroSection() {
   return (
     <section
       className="relative flex items-end overflow-hidden"
-      style={{ height: "min(100svh, 900px)", minHeight: "600px" }}
+      style={{ height: "calc(100svh - 5rem)", minHeight: "600px" }}
     >
       {/* Ken Burns image - MotionProvider's reducedMotion="user" disables on prefers-reduced-motion */}
       <motion.div
@@ -30,7 +28,7 @@ export function HeroSection() {
       >
         <Image
           src={HERO_IMAGE}
-          alt="Linen bedspread styled in a sun-lit bedroom"
+          alt="Sunfabb bedspread, towels and table linen in a sunlit home"
           fill
           priority
           sizes="100vw"
