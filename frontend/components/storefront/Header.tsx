@@ -93,14 +93,15 @@ export function Header() {
   }
 
   return (
-    <header
+    <>
+      <header
       className={`sticky top-0 z-30 transition-[height,background-color,box-shadow,border-color] duration-[150ms] ease-out ${
         scrolled
           ? "h-14 border-b border-outline-variant/60 bg-surface/98 backdrop-blur-md shadow-sm"
           : "h-20 border-b border-outline-variant bg-surface/95 backdrop-blur-sm"
       }`}
-    >
-      <div className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) h-full flex items-center justify-between">
+      >
+        <div className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) h-full flex items-center justify-between">
         <Link
           href="/"
           className="font-display text-2xl text-primary tracking-tight rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
@@ -151,7 +152,8 @@ export function Header() {
             </svg>
           </button>
         </div>
-      </div>
+        </div>
+      </header>
 
       {/* Mobile overlay */}
       <AnimatePresence>
@@ -223,6 +225,6 @@ export function Header() {
           </>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }
