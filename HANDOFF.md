@@ -16,8 +16,10 @@ India market, INR only.
 It's a deliberate full-stack learning project for a frontend engineer: a **separate NestJS backend +
 Next.js frontend + PostgreSQL/Prisma** monorepo, chosen specifically to maximize backend learning
 depth.
-Catalog is small (20-30 products, won't exceed ~100), so scale is a non-issue - optimize for clean
-patterns and learning.
+The current catalogue has **41 numbered production designs and five active non-production demos**;
+see [`docs/LAUNCH_STATUS.md`](docs/LAUNCH_STATUS.md) for the canonical launch truth.
+
+**Last verified:** 2026-08-01 (Asia/Kolkata)
 
 ---
 
@@ -97,20 +99,20 @@ that needed no owner business inputs; full breakdown in
   per-design fact sheet - fibre, weave, GSM, sizes, origin), social handles for
   `Organization.sameAs`, and the Google Business Profile branch decision.
   Category copy is *not* blocked - all three categories already have descriptions in production.
-- **Live-site content defects found 2026-07-25:** the three real designs publish an internal note
-  ("...can be refined in the admin catalog") as their public description, one product still says
-  "An edited test product description", and six seeded demo products are indexable.
+- **Live-site content defects found 2026-07-25:** published designs include internal or test copy,
+  and non-production demo products remain indexable. The current counts and remediation order are
+  maintained in [`docs/LAUNCH_STATUS.md`](docs/LAUNCH_STATUS.md) and the launch plan.
   Details and remediation order in [wave plan §11.6](docs/plans/growth-wave-1-trust-and-content.md).
 
 ---
 
 ## Parallel track - catalog content
 
-3 designs are live on sunfabb.com (8569, 4219, 8525).
-~47 more are in the image-generation pipeline tracked locally in
-`tools/image-pipeline/CATALOG_PROGRESS.md` (kept uncommitted at the owner's request; gitignored).
-This track is fully non-blocking for app development - it feeds Cloudinary/admin uploads
-independently whenever designs are ready.
+41 numbered production designs are live on sunfabb.com, while five non-production demo products
+remain active. The current image-generation and classification state is tracked in
+`tools/image-pipeline/CATALOG_PROGRESS.md`, which is now committed and authoritative for catalogue
+production. This track is fully non-blocking for app development - it feeds Cloudinary/admin
+uploads independently whenever designs are ready.
 
 ---
 
