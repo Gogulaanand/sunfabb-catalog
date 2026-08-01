@@ -42,9 +42,7 @@ export default async function CatalogContent({
     getCategories().catch(() => []),
     getMaterials().catch(() => []),
     getColors().catch(() => []),
-    getProducts({ categorySlug, materialId, colorId, sortBy, page, limit }).catch(
-      () => ({ items: [], total: 0, page: 1, limit }),
-    ),
+    getProducts({ categorySlug, materialId, colorId, sortBy, page, limit }),
   ]);
 
   const { items: products, total } = productsData;

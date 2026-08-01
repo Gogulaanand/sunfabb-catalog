@@ -1,5 +1,13 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { formatPrice, getProducts, getProduct, getCategories } from "./api";
+import {
+  CATALOG_FETCH_RETRY_DELAY_MS,
+  CatalogFetchError,
+  formatPrice,
+  getProducts,
+  getProduct,
+  getCategories,
+  NotFoundError,
+} from "./api";
 
 // Real-shaped fixtures mirroring the actual backend payload (uuid string ids,
 // stock_quantity, sort_order) — see docs/DECISIONS.md D30.
@@ -86,6 +94,7 @@ describe("getProducts", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     fetchMock.mockReset();
+    vi.useRealTimers();
   });
 
   it("builds query params only for provided filters", async () => {
@@ -119,12 +128,54 @@ describe("getProducts", () => {
     fetchMock.mockResolvedValue({ ok: false });
 
     await expect(getProducts()).rejects.toThrow("Failed to fetch products");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries one transient network failure and then returns the parsed response", async () => {
+    vi.useFakeTimers();
+    fetchMock
+      .mockRejectedValueOnce(new Error("connection reset"))
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [], total: 0, page: 1, limit: 20 }),
+      });
+
+    const request = getProducts();
+    await vi.advanceTimersByTimeAsync(CATALOG_FETCH_RETRY_DELAY_MS);
+
+    await expect(request).resolves.toEqual({
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("classifies a repeated timeout without retrying indefinitely", async () => {
+    vi.useFakeTimers();
+    const timeout = new Error("aborted");
+    timeout.name = "AbortError";
+    fetchMock.mockRejectedValue(timeout);
+
+    const request = getProducts().catch((error) => error);
+    await vi.advanceTimersByTimeAsync(CATALOG_FETCH_RETRY_DELAY_MS);
+
+    const error = await request;
+    expect(error).toBeInstanceOf(CatalogFetchError);
+    expect(error).toMatchObject({ kind: "timeout" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("returns parsed products matching the real backend shape", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
-      json: async () => ({ items: [listProductFixture], total: 1, page: 1, limit: 20 }),
+      json: async () => ({
+        items: [listProductFixture],
+        total: 1,
+        page: 1,
+        limit: 20,
+      }),
     });
 
     const result = await getProducts();
@@ -168,9 +219,20 @@ describe("getProduct", () => {
     fetchMock.mockResolvedValue({ ok: false });
 
     await expect(getProduct("royal-cotton-bedspread")).rejects.toThrow(
-      "Failed to fetch product: royal-cotton-bedspread"
+      "Failed to fetch product: royal-cotton-bedspread",
     );
-    expect(fetchMock.mock.calls[0][0]).toContain("/products/royal-cotton-bedspread");
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      "/products/royal-cotton-bedspread",
+    );
+  });
+
+  it("preserves a real product 404 without retrying it", async () => {
+    fetchMock.mockResolvedValue({ status: 404, ok: false });
+
+    await expect(getProduct("missing-product")).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("returns a parsed product matching the real backend shape", async () => {
@@ -187,7 +249,10 @@ describe("getProduct", () => {
     void stock_quantity;
     fetchMock.mockResolvedValue({
       ok: true,
-      json: async () => ({ ...productFixture, variants: [variantWithoutStock] }),
+      json: async () => ({
+        ...productFixture,
+        variants: [variantWithoutStock],
+      }),
     });
 
     await expect(getProduct("royal-cotton-bedspread")).rejects.toThrow();

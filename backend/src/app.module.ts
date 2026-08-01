@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module.js';
@@ -21,6 +21,8 @@ import { WebhooksModule } from './webhooks/webhooks.module.js';
 import { OrderExpiryModule } from './expiry/order-expiry.module.js';
 import { ContactModule } from './contact/contact.module.js';
 import { AdminOrdersModule } from './admin/orders/admin-orders.module.js';
+import { HealthModule } from './health/health.module.js';
+import { CatalogTimingMiddleware } from './observability/catalog-timing.middleware.js';
 
 @Module({
   imports: [
@@ -49,6 +51,11 @@ import { AdminOrdersModule } from './admin/orders/admin-orders.module.js';
     OrderExpiryModule,
     ContactModule,
     AdminOrdersModule,
+    HealthModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CatalogTimingMiddleware).forRoutes('*');
+  }
+}
