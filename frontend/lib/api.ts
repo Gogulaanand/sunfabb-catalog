@@ -2,6 +2,31 @@ import { z } from "zod";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
+// The documented Render free-tier cold start is roughly 24 seconds. This
+// remains below Vercel's usual function budget while allowing one cold fetch
+// to complete until the backend is moved to an always-on instance.
+export const CATALOG_FETCH_TIMEOUT_MS = 30_000;
+export const CATALOG_FETCH_RETRY_DELAY_MS = 250;
+const MAX_TRANSIENT_RETRIES = 1;
+
+export type CatalogFetchErrorKind =
+  | "timeout"
+  | "network"
+  | "http"
+  | "invalid_response";
+
+export class CatalogFetchError extends Error {
+  readonly name = "CatalogFetchError";
+
+  constructor(
+    message: string,
+    readonly kind: CatalogFetchErrorKind,
+    readonly status?: number,
+  ) {
+    super(message);
+  }
+}
+
 export class NotFoundError extends Error {
   constructor() {
     super('Not found');
@@ -129,16 +154,119 @@ export function formatPrice(paise: number): string {
   });
 }
 
+function requestPath(url: string): string {
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return url.split("?")[0] ?? url;
+  }
+}
+
+function isAbortError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.name === "AbortError" || error.name === "TimeoutError")
+  );
+}
+
+function logCatalogRequest(
+  event: "catalog_api_retry" | "catalog_api_failure",
+  url: string,
+  attempt: number,
+  error: CatalogFetchError,
+  durationMs: number,
+): void {
+  console.warn(
+    JSON.stringify({
+      event,
+      path: requestPath(url),
+      attempt,
+      error_kind: error.kind,
+      status_code: error.status,
+      duration_ms: durationMs,
+    }),
+  );
+}
+
+async function fetchOnce<T>(
+  url: string,
+  schema: z.ZodType<T>,
+  init: RequestInit,
+  errorMessage: string,
+): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    CATALOG_FETCH_TIMEOUT_MS,
+  );
+
+  try {
+    const res = await fetch(url, { ...init, signal: controller.signal });
+    if (res.status === 404) throw new NotFoundError();
+    if (!res.ok) {
+      throw new CatalogFetchError(errorMessage, "http", res.status);
+    }
+
+    try {
+      return schema.parse(await res.json());
+    } catch {
+      throw new CatalogFetchError(errorMessage, "invalid_response");
+    }
+  } catch (error) {
+    if (error instanceof NotFoundError || error instanceof CatalogFetchError) {
+      throw error;
+    }
+
+    throw new CatalogFetchError(
+      isAbortError(error) ? `${errorMessage} timed out` : errorMessage,
+      isAbortError(error) ? "timeout" : "network",
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function fetchAndParse<T>(
   url: string,
   schema: z.ZodType<T>,
   init: RequestInit,
   errorMessage: string,
 ): Promise<T> {
-  const res = await fetch(url, { ...init, signal: AbortSignal.timeout(8000) });
-  if (res.status === 404) throw new NotFoundError();
-  if (!res.ok) throw new Error(errorMessage);
-  return schema.parse(await res.json());
+  for (let attempt = 1; attempt <= MAX_TRANSIENT_RETRIES + 1; attempt += 1) {
+    const startedAt = Date.now();
+    try {
+      return await fetchOnce(url, schema, init, errorMessage);
+    } catch (error) {
+      if (!(error instanceof CatalogFetchError)) throw error;
+
+      const canRetry =
+        (error.kind === "timeout" || error.kind === "network") &&
+        attempt <= MAX_TRANSIENT_RETRIES;
+      if (!canRetry) {
+        logCatalogRequest(
+          "catalog_api_failure",
+          url,
+          attempt,
+          error,
+          Date.now() - startedAt,
+        );
+        throw error;
+      }
+
+      logCatalogRequest(
+        "catalog_api_retry",
+        url,
+        attempt,
+        error,
+        Date.now() - startedAt,
+      );
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, CATALOG_FETCH_RETRY_DELAY_MS);
+      });
+    }
+  }
+
+  throw new Error("Unreachable catalogue request state");
 }
 
 export function getCategories(): Promise<Category[]> {
@@ -168,10 +296,13 @@ export function getColors(): Promise<Color[]> {
   );
 }
 
-export function getProducts(query: ProductsQuery = {}): Promise<ProductsResponse> {
+export function getProducts(
+  query: ProductsQuery = {},
+): Promise<ProductsResponse> {
   const params = new URLSearchParams();
   if (query.categorySlug) params.set('categorySlug', query.categorySlug);
-  if (query.materialId !== undefined) params.set('materialId', query.materialId);
+  if (query.materialId !== undefined)
+    params.set('materialId', query.materialId);
   if (query.colorId !== undefined) params.set('colorId', query.colorId);
   if (query.sortBy) params.set('sortBy', query.sortBy);
   if (query.page !== undefined) params.set('page', String(query.page));
