@@ -1,7 +1,9 @@
 # Image pipeline - session handoff
 
-Written 2026-07-04.
-Everything here is UNCOMMITTED by owner request.
+Written 2026-07-04; status cross-checked 2026-08-01 (Asia/Kolkata).
+This file preserves pipeline implementation context. For current production catalogue status,
+read `../docs/LAUNCH_STATUS.md` and `CATALOG_PROGRESS.md` first.
+Pipeline code changes may still be uncommitted; the production tracker itself is now committed.
 When ready to commit, use a dedicated branch (suggested: `feature/image-pipeline`), not `feature/phase6.4-payments`.
 
 ## What this is
