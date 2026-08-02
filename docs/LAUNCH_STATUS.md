@@ -2,7 +2,7 @@
 
 Canonical operational status for the production-ready MVP plan.
 
-**Last verified:** 2026-08-01 (Asia/Kolkata)
+**Last verified:** 2026-08-02 (Asia/Kolkata)
 
 Read this file first for launch status. `tools/image-pipeline/CATALOG_PROGRESS.md` is the
 authoritative tracker for catalogue production and local image-pipeline work. The relevant phase
@@ -15,10 +15,10 @@ The recommended first release is a lead-generation catalogue with WhatsApp as th
 conversion path. Transactional commerce remains disabled for launch purposes until the production
 operations and go-live gates are complete.
 
-The repository is not launch-ready yet. The most urgent unresolved risks are catalogue/PDP
-timeouts, public contact placeholders, a mismatch between commerce UI and readiness, internal
-development copy, demo products exposed in the public catalogue, unsupported taxonomy, and
-incomplete trust/policy content.
+The repository is not launch-ready yet. Phase 1 reliability and security work is complete; the next
+urgent risks are the mismatch between commerce UI and readiness, internal development copy, demo
+products exposed in the public catalogue, unsupported taxonomy, and incomplete trust/policy
+content.
 
 ## Current catalogue truth
 
@@ -45,9 +45,9 @@ incomplete trust/policy content.
 
 | Phase | Status | Dependency / next gate |
 |---|---|---|
-| 0 - Establish one launch truth | Complete | Begin with [#47 catalogue/PDP timeout diagnosis](https://github.com/Gogulaanand/sunfabb-catalog/issues/47) |
-| 1 - Customer safety and reliability | Not started | Phase 0 queue; production/Vercel/Render evidence required |
-| 2 - Public hygiene and catalogue truth | Not started | Follows reliability work; requires verified catalogue data |
+| 0 - Establish one launch truth | Complete | Canonical launch truth and issues #46-#64 established |
+| 1 - Customer safety and reliability | Complete with owner-accepted infrastructure deviations | PRs #66-#69; Render Free retained with backend-only HeyOnCall mitigation, email-only alerts, and JWT rotation deferred pending a concrete security concern |
+| 2 - Public hygiene and catalogue truth | Next | Start with explicit lead-generation storefront mode and removal of the five non-production demos |
 | 3 - Trust and conversion foundation | Not started | Requires owner business, contact, legal, and policy inputs |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
 | 5 - Catalogue MVP release validation | Not started | Follows phases 1-4 and human release checks |
