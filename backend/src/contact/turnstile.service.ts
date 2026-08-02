@@ -4,6 +4,18 @@ import { getTurnstileSecretKey } from './turnstile-config.js';
 const TURNSTILE_VERIFY_URL =
   'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
+function isTurnstileVerificationResponse(
+  value: unknown,
+): value is { success: boolean } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    'success' in value &&
+    typeof value.success === 'boolean'
+  );
+}
+
 @Injectable()
 export class TurnstileService {
   private readonly logger = new Logger(TurnstileService.name);
@@ -38,7 +50,19 @@ export class TurnstileService {
       return false;
     }
 
-    const data = (await res.json()) as { success: boolean };
-    return data.success === true;
+    let data: unknown;
+    try {
+      data = await res.json();
+    } catch {
+      this.logger.error('Turnstile response JSON could not be parsed');
+      return false;
+    }
+
+    if (!isTurnstileVerificationResponse(data)) {
+      this.logger.error('Turnstile response payload was invalid');
+      return false;
+    }
+
+    return data.success;
   }
 }

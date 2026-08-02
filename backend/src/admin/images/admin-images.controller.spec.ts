@@ -52,7 +52,7 @@ describe('AdminImagesController', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
-  it('maps a Cloudinary 4xx error to BadRequestException', async () => {
+  it('maps a Cloudinary 4xx error to a generic BadRequestException', async () => {
     mockAdminImagesService.uploadImage.mockRejectedValue(
       new CloudinaryUploadError('Invalid image file', 400),
     );
@@ -60,9 +60,21 @@ describe('AdminImagesController', () => {
       buffer: Buffer.from('fake-data'),
     } as Express.Multer.File;
 
-    await expect(controller.upload(mockFile)).rejects.toThrow(
-      BadRequestException,
-    );
+    let error: unknown;
+    try {
+      await controller.upload(mockFile);
+    } catch (caught) {
+      error = caught;
+    }
+
+    expect(error).toBeInstanceOf(BadRequestException);
+    if (!(error instanceof BadRequestException)) {
+      throw new Error('Expected a BadRequestException');
+    }
+    expect(error.getStatus()).toBe(400);
+    expect(error.getResponse()).toMatchObject({
+      message: 'Image upload failed',
+    });
   });
 
   it('rethrows a Cloudinary 5xx error as-is', async () => {
