@@ -3,11 +3,12 @@
 import { useRef, useState } from "react";
 import TurnstileWidget from "./turnstile-widget";
 import { whatsappLink } from "@/lib/site-config";
+import {
+  contactErrorMessage,
+  contactSubmissionResponseSchema,
+} from "@/lib/contact-contract";
 
-interface SubmitResult {
-  id: string;
-  created_at: string;
-}
+type SubmitResult = ReturnType<typeof contactSubmissionResponseSchema.parse>;
 
 export default function ContactForm() {
   const [name, setName] = useState("");
@@ -22,6 +23,7 @@ export default function ContactForm() {
   // Ref to trigger a widget re-key after a failed submit (single-use token).
   const widgetKeyRef = useRef(0);
   const [widgetKey, setWidgetKey] = useState(0);
+  const whatsappHref = whatsappLink();
 
   function resetTurnstile() {
     widgetKeyRef.current += 1;
@@ -44,8 +46,15 @@ export default function ContactForm() {
       });
 
       if (res.status === 201) {
-        const data = (await res.json()) as SubmitResult;
-        setSuccess(data);
+        const parsed = contactSubmissionResponseSchema.safeParse(
+          await res.json(),
+        );
+        if (parsed.success) {
+          setSuccess(parsed.data);
+        } else {
+          setError("Unexpected response. Please try again.");
+          resetTurnstile();
+        }
       } else if (res.status === 429) {
         setError("Too many requests. Please wait a minute and try again.");
         resetTurnstile();
@@ -53,9 +62,8 @@ export default function ContactForm() {
         setError("CAPTCHA verification failed. Please try again.");
         resetTurnstile();
       } else {
-        const body = await res.json().catch(() => ({})) as Record<string, unknown>;
-        const msg = typeof body.message === "string" ? body.message : "Something went wrong. Please try again.";
-        setError(msg);
+        const body: unknown = await res.json().catch(() => null);
+        setError(contactErrorMessage(body));
         resetTurnstile();
       }
     } catch {
@@ -72,11 +80,15 @@ export default function ContactForm() {
         <p className="font-display text-xl text-primary mb-2">Thank you!</p>
         <p className="text-body-sm text-on-surface-variant">
           We&apos;ve received your enquiry and will get back to you soon.
-          You can also reach us directly on{" "}
-          <a href={whatsappLink()} className="text-primary underline">
-            WhatsApp
-          </a>{" "}
-          for a faster response.
+          {whatsappHref && (
+            <>
+              {" "}You can also reach us directly on{" "}
+              <a href={whatsappHref} className="text-primary underline">
+                WhatsApp
+              </a>{" "}
+              for a faster response.
+            </>
+          )}
         </p>
       </div>
     );

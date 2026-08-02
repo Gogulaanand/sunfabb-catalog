@@ -43,7 +43,29 @@ export class ContactService {
         message: dto.message,
       });
     } catch (err) {
-      this.logger.error('Contact notification email failed', err);
+      this.logger.error(
+        JSON.stringify({
+          event: 'contact.email_failed',
+          kind: 'contact-notification',
+          contact_id: record.id,
+          error_type: err instanceof Error ? err.name : 'unknown',
+        }),
+      );
+    }
+
+    if (dto.email) {
+      try {
+        await this.email.sendContactAcknowledgement(dto.email, dto.name);
+      } catch (err) {
+        this.logger.error(
+          JSON.stringify({
+            event: 'contact.email_failed',
+            kind: 'contact-acknowledgement',
+            contact_id: record.id,
+            error_type: err instanceof Error ? err.name : 'unknown',
+          }),
+        );
+      }
     }
 
     return record;

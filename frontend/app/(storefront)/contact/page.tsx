@@ -6,33 +6,37 @@ import ContactForm from "@/components/storefront/contact-form";
 export const metadata: Metadata = {
   title: "Contact Us | Sunfabb",
   description:
-    "Get in touch with Sunfabb for enquiries about our premium bedspreads, towels, napkins, and table linen. Call, WhatsApp, or send us a message.",
+    "Get in touch with Sunfabb about our premium bedspreads, towels, napkins, and table linen.",
 };
 
-// LocalBusiness JSON-LD helps Google surface the business in Maps and local search.
-// Intentionally omitted when fields are still placeholders — fake structured data
-// is worse than none (it can trigger Google penalties).
-const isPlaceholder =
-  SITE.phone.e164.includes("X") ||
-  SITE.address.mapsUrl.includes("...");
+const whatsappHref = whatsappLink();
+const hasPhone = Boolean(SITE.phone.display && telLink);
+const hasEmail = Boolean(SITE.email && mailtoLink);
+const hasAddress = SITE.address.lines.length > 0 && Boolean(SITE.address.mapsUrl);
+const hasHours = Boolean(SITE.hours);
+const hasDirectContact = hasPhone || Boolean(whatsappHref) || hasEmail || hasAddress;
 
-const jsonLd = isPlaceholder
-  ? null
-  : {
-      "@context": "https://schema.org",
-      "@type": "HomeGoodsStore",
-      name: SITE.name,
-      telephone: SITE.phone.e164,
-      email: SITE.email,
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: SITE.address.lines[0],
-        addressCountry: "IN",
-      },
-      openingHours: "Mo-Sa 09:30-18:30",
-      sameAs: [SITE.instagramUrl],
-      url: "https://sunfabb.com",
-    };
+// LocalBusiness JSON-LD is only emitted after the owner has supplied a legal
+// entity, address, and at least one verified direct contact channel.
+const jsonLd =
+  SITE.trust.legalEntityName &&
+  hasAddress &&
+  (hasPhone || hasEmail)
+    ? {
+        "@context": "https://schema.org",
+        "@type": "HomeGoodsStore",
+        name: SITE.trust.legalEntityName,
+        ...(hasPhone ? { telephone: SITE.phone.e164 } : {}),
+        ...(hasEmail ? { email: SITE.email } : {}),
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: SITE.address.lines.join(", "),
+          addressCountry: "IN",
+        },
+        ...(hasHours ? { openingHours: SITE.hours } : {}),
+        url: SITE.url,
+      }
+    : null;
 
 export default function ContactPage() {
   return (
@@ -56,13 +60,16 @@ export default function ContactPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Left column — contact channels */}
-        <div className="space-y-8">
-          <div>
+        {(hasDirectContact || hasHours) && (
+          <div className="space-y-8">
+            {hasDirectContact && (
+              <div>
             <p className="text-label-caps text-on-surface-variant mb-4">
               Reach us directly
             </p>
             <ul className="space-y-4">
-              <li>
+              {hasPhone && (
+                <li>
                 <a
                   href={telLink}
                   className="flex items-start gap-3 group"
@@ -81,11 +88,13 @@ export default function ContactPage() {
                     <span className="text-body-sm text-outline">Call us</span>
                   </span>
                 </a>
-              </li>
+                </li>
+              )}
 
-              <li>
+              {whatsappHref && (
+                <li>
                 <a
-                  href={whatsappLink()}
+                  href={whatsappHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-start gap-3 group"
@@ -106,9 +115,11 @@ export default function ContactPage() {
                     </span>
                   </span>
                 </a>
-              </li>
+                </li>
+              )}
 
-              <li>
+              {hasEmail && (
+                <li>
                 <a
                   href={mailtoLink}
                   className="flex items-start gap-3 group"
@@ -127,9 +138,11 @@ export default function ContactPage() {
                     <span className="text-body-sm text-outline">Email us</span>
                   </span>
                 </a>
-              </li>
+                </li>
+              )}
 
-              <li>
+              {hasAddress && (
+                <li>
                 <a
                   href={SITE.address.mapsUrl}
                   target="_blank"
@@ -153,17 +166,22 @@ export default function ContactPage() {
                     </span>
                   </span>
                 </a>
-              </li>
+                </li>
+              )}
             </ul>
-          </div>
+              </div>
+            )}
 
-          <div>
-            <p className="text-label-caps text-on-surface-variant mb-2">
-              Business hours
-            </p>
-            <p className="text-body-sm text-on-surface-variant">{SITE.hours}</p>
+            {hasHours && (
+              <div>
+                <p className="text-label-caps text-on-surface-variant mb-2">
+                  Business hours
+                </p>
+                <p className="text-body-sm text-on-surface-variant">{SITE.hours}</p>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Right column — enquiry form */}
         <div>

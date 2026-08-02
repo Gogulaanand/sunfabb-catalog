@@ -3,6 +3,7 @@ import { Playfair_Display, Inter } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { OrganizationSchema } from "@/components/seo/OrganizationSchema";
+import { SITE_URL } from "@/lib/site-config";
 import "./globals.css";
 
 const playfairDisplay = Playfair_Display({
@@ -15,10 +16,8 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunfabb.com";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
     template: "%s | Sunfabb",
     default:
@@ -33,7 +32,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@sunfabb",
   },
 };
 

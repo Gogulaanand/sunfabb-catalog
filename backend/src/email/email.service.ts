@@ -1,79 +1,161 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import type { EmailTemplate } from './mail-transport.js';
+import {
+  MAIL_TRANSPORT,
+  type MailAttachment,
+  type MailTransport,
+} from './mail-transport.js';
+import { ResendTransportError } from './resend.transport.js';
+import { buildContactAcknowledgementEmail } from './templates/contact-acknowledgement.js';
+import {
+  buildContactNotificationEmail,
+  type ContactEmailSubmission,
+} from './templates/contact-notification.js';
+import {
+  buildOrderConfirmationEmail,
+  defaultOrderUrl,
+  type OrderConfirmationInput,
+  type OrderConfirmationLine,
+} from './templates/order-confirmation.js';
+import { buildOrderDeliveredEmail } from './templates/delivered.js';
+import { buildOrderShippedEmail } from './templates/shipped.js';
+import { buildPasswordResetEmail } from './templates/password-reset.js';
+import { buildVerificationEmail } from './templates/verification.js';
 
-/**
- * Transactional email.
- *
- * This is a STUB until Resend is wired in Phase 6.7 — it logs the action (and
- * the link, in dev) instead of sending. The token generation/validation logic
- * in CustomerAuthService is real; only delivery is stubbed, so the
- * verify-email and password-reset flows are fully exercisable now.
- */
+export type ContactSubmission = ContactEmailSubmission;
+
+export interface OrderConfirmationDetails {
+  orderUrl?: string;
+  lines?: OrderConfirmationLine[];
+  totalPaise?: number;
+}
+
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
 
-  private link(path: string, token: string): string {
-    const base = process.env.APP_BASE_URL ?? 'http://localhost:3001';
-    return `${base}${path}?token=${token}`;
+  constructor(
+    @Inject(MAIL_TRANSPORT) private readonly transport: MailTransport,
+  ) {}
+
+  async sendVerificationEmail(to: string, token: string): Promise<void> {
+    await this.deliver('verification', to, () => buildVerificationEmail(token));
   }
 
-  sendVerificationEmail(to: string, token: string): Promise<void> {
-    this.logLink('verify-email', to, this.link('/account/verify-email', token));
-    return Promise.resolve();
-  }
-
-  sendPasswordResetEmail(to: string, token: string): Promise<void> {
-    this.logLink(
-      'password-reset',
-      to,
-      this.link('/account/reset-password', token),
+  async sendPasswordResetEmail(to: string, token: string): Promise<void> {
+    await this.deliver('password-reset', to, () =>
+      buildPasswordResetEmail(token),
     );
-    return Promise.resolve();
   }
 
-  // Order confirmation, sent when a payment is confirmed (6.4). Still a stub
-  // until Resend (6.7); logs instead of sending. Callers must never let an
-  // email failure fail the payment webhook (§12 acceptance #7) — this resolves
-  // (and in prod only warns) so a stubbed send can't break the money path.
-  sendOrderConfirmation(to: string, orderNumber: string): Promise<void> {
-    const url = `${process.env.APP_BASE_URL ?? 'http://localhost:3001'}/account/orders/${orderNumber}`;
-    this.logLink('order-confirmation', to, url);
-    return Promise.resolve();
+  async sendOrderConfirmation(
+    to: string,
+    orderNumber: string,
+    invoicePdf?: Buffer,
+  ): Promise<void>;
+  async sendOrderConfirmation(
+    to: string,
+    orderNumber: string,
+    details?: OrderConfirmationDetails,
+    invoicePdf?: Buffer,
+  ): Promise<void>;
+  async sendOrderConfirmation(
+    to: string,
+    orderNumber: string,
+    detailsOrInvoice?: OrderConfirmationDetails | Buffer,
+    invoicePdf?: Buffer,
+  ): Promise<void> {
+    const details = Buffer.isBuffer(detailsOrInvoice)
+      ? undefined
+      : detailsOrInvoice;
+    const attachment = Buffer.isBuffer(detailsOrInvoice)
+      ? detailsOrInvoice
+      : invoicePdf;
+
+    await this.deliver(
+      'order-confirmation',
+      to,
+      () => {
+        const input: OrderConfirmationInput = {
+          orderNumber,
+          orderUrl: details?.orderUrl ?? defaultOrderUrl(orderNumber),
+          lines: details?.lines ?? [],
+          totalPaise: details?.totalPaise ?? 0,
+        };
+        return buildOrderConfirmationEmail(input);
+      },
+      attachment
+        ? [{ filename: `invoice-${orderNumber}.pdf`, content: attachment }]
+        : undefined,
+    );
   }
 
-  // Notify the owner of a new contact enquiry. Recipient from CONTACT_NOTIFY_EMAIL;
-  // if unset, logs and skips — notification is best-effort, the DB is the source
-  // of truth. Stub until Resend (6.7); never throws (ContactService catches and logs).
-  sendContactNotification(submission: {
-    id: string;
-    name: string;
-    phone: string;
-    email?: string;
-    message: string;
-  }): Promise<void> {
-    const to = process.env.CONTACT_NOTIFY_EMAIL;
+  async sendContactNotification(submission: ContactSubmission): Promise<void> {
+    const to = process.env.CONTACT_NOTIFY_EMAIL?.trim();
     if (!to) {
       this.logger.warn(
-        'CONTACT_NOTIFY_EMAIL not set — skipping contact notification',
+        JSON.stringify({
+          event: 'email.delivery.skipped',
+          kind: 'contact-notification',
+          reason: 'CONTACT_NOTIFY_EMAIL_not_configured',
+          required_for: 'internal_delivery',
+        }),
       );
-      return Promise.resolve();
+      return;
     }
-    const preview = submission.message.slice(0, 200);
-    this.logger.log(
-      `[stub] contact-notification → ${to} | from: ${submission.name} (${submission.phone}) | id: ${submission.id} | preview: "${preview}"`,
+    await this.deliver('contact-notification', to, () =>
+      buildContactNotificationEmail(submission),
     );
-    return Promise.resolve();
   }
 
-  // Never log a raw token link in production — that would be a credential leak.
-  // The real Resend integration (6.7) replaces this stub entirely.
-  private logLink(kind: string, to: string, url: string): void {
-    if (process.env.NODE_ENV === 'production') {
-      this.logger.warn(
-        `EmailService stub invoked in production (${kind} → ${to}); no email sent. Wire Resend (6.7).`,
+  async sendContactAcknowledgement(to: string, name: string): Promise<void> {
+    await this.deliver('contact-acknowledgement', to, () =>
+      buildContactAcknowledgementEmail(name),
+    );
+  }
+
+  async sendOrderShipped(
+    to: string,
+    orderNumber: string,
+    courierName: string,
+    trackingUrl: string,
+  ): Promise<void> {
+    await this.deliver('order-shipped', to, () =>
+      buildOrderShippedEmail(orderNumber, courierName, trackingUrl),
+    );
+  }
+
+  async sendOrderDelivered(to: string, orderNumber: string): Promise<void> {
+    await this.deliver('order-delivered', to, () =>
+      buildOrderDeliveredEmail(orderNumber),
+    );
+  }
+
+  private async deliver(
+    kind: string,
+    to: string,
+    build: () => EmailTemplate,
+    attachments?: MailAttachment[],
+  ): Promise<void> {
+    try {
+      const content = build();
+      const message = attachments
+        ? { ...content, to, attachments }
+        : { ...content, to };
+      await this.transport.send(message);
+    } catch (error: unknown) {
+      const metadata =
+        error instanceof ResendTransportError
+          ? { error_code: error.code, status_code: error.statusCode }
+          : { error_type: error instanceof Error ? error.name : 'unknown' };
+      this.logger.error(
+        JSON.stringify({
+          event: 'email.delivery.failed',
+          kind,
+          recipient: to,
+          ...metadata,
+        }),
       );
-    } else {
-      this.logger.log(`[stub] ${kind} → ${to}: ${url}`);
     }
   }
 }

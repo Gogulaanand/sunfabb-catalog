@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { contactErrorMessage, contactSubmissionResponseSchema } from "@/lib/contact-contract";
 
 // Boundary validation (CLAUDE.md rule 11): validate the incoming body before
 // forwarding, and validate the 201 response before returning to the client.
@@ -11,11 +12,6 @@ const requestSchema = z.object({
   message: z.string().min(10).max(2000),
   turnstile_token: z.string().min(1),
   company: z.string().max(0).optional(),
-});
-
-const responseSchema = z.object({
-  id: z.string().uuid(),
-  created_at: z.string(),
 });
 
 export async function POST(request: NextRequest) {
@@ -57,12 +53,15 @@ export async function POST(request: NextRequest) {
   }
 
   if (res.status !== 201) {
-    const errBody = await res.json().catch(() => ({}));
-    return NextResponse.json(errBody, { status: res.status });
+    const errBody: unknown = await res.json().catch(() => null);
+    return NextResponse.json(
+      { message: contactErrorMessage(errBody) },
+      { status: res.status },
+    );
   }
 
-  const raw = await res.json();
-  const validated = responseSchema.safeParse(raw);
+  const raw: unknown = await res.json();
+  const validated = contactSubmissionResponseSchema.safeParse(raw);
   if (!validated.success) {
     return NextResponse.json(
       { message: "Unexpected response from backend" },
