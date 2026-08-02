@@ -1,20 +1,28 @@
-name: Keep Backend Alive
+name: Production Synthetic Checks
 
 on:
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
+concurrency:
+  group: production-synthetic-checks
+  cancel-in-progress: false
+
 jobs:
-  ping:
-    name: Ping backend
+  probe:
+    name: Probe critical routes
     runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      FRONTEND_URL: ${{ vars.PRODUCTION_FRONTEND_URL || 'https://sunfabb.com' }}
+      BACKEND_URL: ${{ vars.PRODUCTION_BACKEND_URL || 'https://sunfabb-backend.onrender.com' }}
     steps:
-      - name: Curl categories endpoint
-        continue-on-error: true
-        run: |
-          if [ -z "${{ secrets.BACKEND_URL }}" ]; then
-            echo "BACKEND_URL secret is not set yet — skipping (set it once the Render backend is deployed)."
-            exit 0
-          fi
-          curl -fsS --max-time 90 "${{ secrets.BACKEND_URL }}/categories" -o /dev/null
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Probe production
+        run: bash tools/production-monitor.sh

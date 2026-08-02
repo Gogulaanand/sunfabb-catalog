@@ -6,6 +6,15 @@ on:
   pull_request:
 
 jobs:
+  production-monitor-script:
+    name: Production monitor script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test production monitor behavior
+        run: bash tools/production-monitor.test.sh
+
   backend:
     name: Backend
     runs-on: ubuntu-latest
