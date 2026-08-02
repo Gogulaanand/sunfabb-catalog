@@ -1,18 +1,18 @@
-import Link from 'next/link';
+import Link from "next/link";
 import {
   SITE,
   TRUST_PAGE_LINKS,
   mailtoLink,
   telLink,
   whatsappLink,
-} from '@/lib/site-config';
+} from "@/lib/site-config";
 
 export default function Footer() {
   const whatsappHref = whatsappLink();
   const hasAddress =
     SITE.address.lines.length > 0 && Boolean(SITE.address.mapsUrl);
   const columnCountClass =
-    SITE.socialProfiles.length > 0 ? 'lg:grid-cols-4' : 'lg:grid-cols-3';
+    SITE.socialProfiles.length > 0 ? "lg:grid-cols-4" : "lg:grid-cols-3";
 
   return (
     <footer className="border-t border-outline-variant bg-surface-container-low">
@@ -22,11 +22,10 @@ export default function Footer() {
         >
           {/* Brand column */}
           <div>
-            <p className="font-display text-xl text-primary mb-2">
-              {SITE.name}
-            </p>
+            <p className="font-display text-xl text-primary mb-2">{SITE.name}</p>
             <p className="text-body-sm text-on-surface-variant max-w-xs">
-              Bedspreads, towels, napkins and table linen from India.
+              Premium bedspreads, towels, napkins and table linen — made in
+              India, built to last.
             </p>
           </div>
 

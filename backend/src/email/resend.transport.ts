@@ -1,8 +1,3 @@
-import {
-  Resend,
-  type CreateEmailOptions,
-  type CreateEmailResponse,
-} from 'resend';
 import type { EmailConfig } from './email-config.js';
 import type { MailMessage, MailTransport } from './mail-transport.js';
 
@@ -28,14 +23,6 @@ export class ResendTransportError extends Error {
   }
 }
 
-export interface ResendEmailClient {
-  send(payload: CreateEmailOptions): Promise<CreateEmailResponse>;
-}
-
-interface ResendClient {
-  emails: ResendEmailClient;
-}
-
 interface ResendSuccessResponse {
   id: string;
 }
@@ -50,22 +37,9 @@ function isResendSuccessResponse(
 }
 
 export class ResendTransport implements MailTransport {
-  private readonly client?: ResendClient;
+  private static readonly endpoint = 'https://api.resend.com/emails';
 
-  constructor(
-    private readonly config: EmailConfig,
-    client?: ResendClient,
-  ) {
-    this.client =
-      client ??
-      (config.resendApiKey
-        ? {
-            emails: new Resend(config.resendApiKey, {
-              userAgent: 'sunfabb-catalog/1.0',
-            }).emails,
-          }
-        : undefined);
-  }
+  constructor(private readonly config: EmailConfig) {}
 
   async send(message: MailMessage): Promise<void> {
     if (!this.config.resendApiKey) {
@@ -74,14 +48,10 @@ export class ResendTransport implements MailTransport {
     if (!this.config.emailFrom) {
       throw new ResendTransportError('missing_email_from');
     }
-    if (!this.client) {
-      throw new ResendTransportError('missing_api_key');
-    }
 
-    const payload: CreateEmailOptions = {
+    const payload = {
       from: this.config.emailFrom,
       to: [message.to],
-      ...(message.replyTo ? { replyTo: message.replyTo } : {}),
       subject: message.subject,
       html: message.html,
       text: message.text,
@@ -89,28 +59,40 @@ export class ResendTransport implements MailTransport {
         ? {
             attachments: message.attachments.map((attachment) => ({
               filename: attachment.filename,
-              content: attachment.content,
+              content: attachment.content.toString('base64'),
             })),
           }
         : {}),
     };
 
-    let response: CreateEmailResponse;
+    let response: Response;
     try {
-      response = await this.client.emails.send(payload);
+      response = await fetch(ResendTransport.endpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.config.resendApiKey}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'sunfabb-catalog/1.0',
+        },
+        body: JSON.stringify(payload),
+      });
     } catch {
       throw new ResendTransportError('network_error');
     }
 
-    if (response.error) {
-      throw new ResendTransportError(
-        'http_error',
-        response.error.statusCode ?? undefined,
-      );
+    if (!response.ok) {
+      throw new ResendTransportError('http_error', response.status);
     }
 
-    if (!isResendSuccessResponse(response.data)) {
-      throw new ResendTransportError('invalid_response');
+    let responseBody: unknown;
+    try {
+      responseBody = await response.json();
+    } catch {
+      throw new ResendTransportError('invalid_response', response.status);
+    }
+
+    if (!isResendSuccessResponse(responseBody)) {
+      throw new ResendTransportError('invalid_response', response.status);
     }
   }
 }

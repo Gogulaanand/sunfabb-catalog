@@ -103,12 +103,8 @@ export class EmailService {
       );
       return;
     }
-    await this.deliver(
-      'contact-notification',
-      to,
-      () => buildContactNotificationEmail(submission),
-      undefined,
-      submission.email,
+    await this.deliver('contact-notification', to, () =>
+      buildContactNotificationEmail(submission),
     );
   }
 
@@ -140,13 +136,12 @@ export class EmailService {
     to: string,
     build: () => EmailTemplate,
     attachments?: MailAttachment[],
-    replyTo?: string,
   ): Promise<void> {
     try {
       const content = build();
       const message = attachments
-        ? { ...content, to, attachments, ...(replyTo ? { replyTo } : {}) }
-        : { ...content, to, ...(replyTo ? { replyTo } : {}) };
+        ? { ...content, to, attachments }
+        : { ...content, to };
       await this.transport.send(message);
     } catch (error: unknown) {
       const metadata =

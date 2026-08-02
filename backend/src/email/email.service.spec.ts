@@ -10,7 +10,6 @@ import { buildOrderConfirmationEmail } from './templates/order-confirmation.js';
 import { buildOrderShippedEmail } from './templates/shipped.js';
 import { escapeHtml } from './templates/layout.js';
 import { EmailService } from './email.service.js';
-import type { ResendEmailClient } from './resend.transport.js';
 
 const originalEnv = { ...process.env };
 
@@ -26,6 +25,14 @@ function restoreEmailEnv(): void {
     if (original === undefined) delete process.env[key];
     else process.env[key] = original;
   }
+}
+
+function response(value: unknown, ok = true, status = 200): Response {
+  return {
+    ok,
+    status,
+    json: () => Promise.resolve(value),
+  } as Response;
 }
 
 describe('email configuration and transport selection', () => {
@@ -57,37 +64,20 @@ describe('email configuration and transport selection', () => {
 });
 
 describe('ResendTransport', () => {
-  function createSendMock(
-    response: Awaited<ReturnType<ResendEmailClient['send']>>,
-  ): jest.MockedFunction<ResendEmailClient['send']> {
-    const sendMock = jest.fn() as unknown as jest.MockedFunction<
-      ResendEmailClient['send']
-    >;
-    sendMock.mockResolvedValue(response);
-    return sendMock;
-  }
+  const originalFetch = globalThis.fetch;
 
-  function clientWith(send: jest.MockedFunction<ResendEmailClient['send']>): {
-    client: { emails: ResendEmailClient };
-    sendMock: jest.MockedFunction<ResendEmailClient['send']>;
-  } {
-    return { client: { emails: { send } }, sendMock: send };
-  }
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
 
-  it('sends the validated message shape and attachment through the Resend SDK', async () => {
-    const sendMock = createSendMock({
-      data: { id: 'email-1' },
-      error: null,
-      headers: null,
+  it('sends the validated message shape and base64 attachment through the HTTP API', async () => {
+    const fetchMock: jest.MockedFunction<typeof fetch> = jest.fn();
+    fetchMock.mockResolvedValue(response({ id: 'email-1' }));
+    globalThis.fetch = fetchMock;
+    const transport = new ResendTransport({
+      resendApiKey: 're_test_key',
+      emailFrom: 'Sunfabb <orders@example.com>',
     });
-    const { client } = clientWith(sendMock);
-    const transport = new ResendTransport(
-      {
-        resendApiKey: 're_test_key',
-        emailFrom: 'Sunfabb <orders@example.com>',
-      },
-      client,
-    );
 
     await transport.send({
       to: 'customer@example.com',
@@ -97,36 +87,44 @@ describe('ResendTransport', () => {
       attachments: [{ filename: 'invoice.pdf', content: Buffer.from('pdf') }],
     });
 
-    const payload = sendMock.mock.calls[0]?.[0];
-    if (!payload) throw new Error('Expected a Resend payload');
+    const request = fetchMock.mock.calls[0];
+    expect(request?.[0]).toBe('https://api.resend.com/emails');
+    expect(request?.[1]?.method).toBe('POST');
+    expect(request?.[1]?.headers).toEqual({
+      Authorization: 'Bearer re_test_key',
+      'Content-Type': 'application/json',
+      'User-Agent': 'sunfabb-catalog/1.0',
+    });
+    const requestInit = request?.[1];
+    if (!requestInit || typeof requestInit.body !== 'string') {
+      throw new Error('Expected a JSON request body');
+    }
+    const payload = JSON.parse(requestInit.body) as {
+      from: string;
+      to: string[];
+      attachments: { filename: string; content: string }[];
+    };
     expect(payload.from).toBe('Sunfabb <orders@example.com>');
     expect(payload.to).toEqual(['customer@example.com']);
     expect(payload.attachments).toEqual([
       {
         filename: 'invoice.pdf',
-        content: Buffer.from('pdf'),
+        content: Buffer.from('pdf').toString('base64'),
       },
     ]);
   });
 
-  it('surfaces a provider error without exposing its body', async () => {
-    const sendMock = createSendMock({
-      data: null,
-      error: {
-        name: 'validation_error',
-        message: 'provider body must not leak',
-        statusCode: 422,
-      },
-      headers: null,
+  it('surfaces a non-2xx provider response without exposing its body', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(
+        response({ message: 'provider body must not leak' }, false, 422),
+      );
+    globalThis.fetch = fetchMock;
+    const transport = new ResendTransport({
+      resendApiKey: 're_test_key',
+      emailFrom: 'orders@example.com',
     });
-    const { client } = clientWith(sendMock);
-    const transport = new ResendTransport(
-      {
-        resendApiKey: 're_test_key',
-        emailFrom: 'orders@example.com',
-      },
-      client,
-    );
 
     await expect(
       transport.send({
@@ -150,22 +148,13 @@ describe('ResendTransport', () => {
   });
 
   it('rejects a successful response that does not match the Resend shape', async () => {
-    const sendMock = jest.fn() as unknown as jest.MockedFunction<
-      ResendEmailClient['send']
-    >;
-    sendMock.mockResolvedValue({
-      data: { unexpected: 'shape' },
-      error: null,
-      headers: null,
-    } as unknown as Awaited<ReturnType<ResendEmailClient['send']>>);
-    const { client } = clientWith(sendMock);
-    const transport = new ResendTransport(
-      {
-        resendApiKey: 're_test_key',
-        emailFrom: 'orders@example.com',
-      },
-      client,
-    );
+    const fetchMock: jest.MockedFunction<typeof fetch> = jest.fn();
+    fetchMock.mockResolvedValue(response({ data: { id: 'sdk-shaped-id' } }));
+    globalThis.fetch = fetchMock;
+    const transport = new ResendTransport({
+      resendApiKey: 're_test_key',
+      emailFrom: 'orders@example.com',
+    });
 
     await expect(
       transport.send({
@@ -334,26 +323,6 @@ describe('EmailService', () => {
       expect.stringContaining('CONTACT_NOTIFY_EMAIL_not_configured'),
     );
     loggerWarn.mockRestore();
-  });
-
-  it('sets the submitter as reply-to for owner notifications', async () => {
-    process.env.CONTACT_NOTIFY_EMAIL = 'owner@sunfabb.com';
-    transport.send.mockResolvedValue(undefined);
-
-    await service.sendContactNotification({
-      id: 'contact-1',
-      name: 'Anand',
-      phone: '+91 98765 43210',
-      email: 'customer@example.com',
-      message: 'Please call me',
-    });
-
-    expect(transport.send.mock.calls[0]?.[0]).toEqual(
-      expect.objectContaining({
-        to: 'owner@sunfabb.com',
-        replyTo: 'customer@example.com',
-      }),
-    );
   });
 
   it('supports acknowledgement and the forward shipping/delivery methods', async () => {
