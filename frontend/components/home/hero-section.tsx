@@ -28,7 +28,7 @@ export function HeroSection() {
       >
         <Image
           src={HERO_IMAGE}
-          alt="Sunfabb bedspread, towels and table linen in a sunlit home"
+          alt="Sunfabb textile in a sunlit home"
           fill
           priority
           sizes="100vw"
@@ -52,7 +52,7 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: EASE }}
         >
-          Crafted for Comfort
+          Bedspread Designs
         </motion.h1>
 
         <motion.p
@@ -61,8 +61,8 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: EASE, delay: 0.12 }}
         >
-          Premium bedspreads, towels, napkins and table linen - made in India,
-          built to last.
+          Explore Sunfabb bedspread designs and enquire about colours and
+          availability.
         </motion.p>
 
         <motion.div
@@ -74,7 +74,7 @@ export function HeroSection() {
             href="/catalog"
             className="inline-flex items-center justify-center h-12 px-10 rounded bg-primary text-on-primary text-label-caps hover:bg-primary-container transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
-            Shop Now
+            Explore Collection
           </Link>
         </motion.div>
       </div>

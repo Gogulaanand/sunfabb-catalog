@@ -58,6 +58,26 @@ describe('CategoriesService', () => {
     });
   });
 
+  describe('findPublic', () => {
+    it('returns only active categories without unapproved public descriptions', async () => {
+      const category = {
+        ...mockCategory,
+        description: 'Internal category description',
+        image_url: 'https://images.example/category.jpg',
+      };
+      mockPrisma.category.findMany.mockResolvedValue([category]);
+
+      const result = await service.findPublic();
+
+      expect(result).toEqual([{ ...category, description: null }]);
+      expect(category.description).toBe('Internal category description');
+      expect(mockPrisma.category.findMany).toHaveBeenCalledWith({
+        where: { products: { some: { is_active: true } } },
+        orderBy: { name: 'asc' },
+      });
+    });
+  });
+
   describe('findOne', () => {
     it('returns category when found by slug', async () => {
       mockPrisma.category.findUnique.mockResolvedValue(mockCategory);

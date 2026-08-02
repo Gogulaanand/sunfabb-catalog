@@ -13,6 +13,20 @@ export class ColorsService {
     });
   }
 
+  findPublic() {
+    return this.prisma.color.findMany({
+      where: {
+        variants: {
+          some: {
+            is_active: true,
+            product: { is_active: true },
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   create(dto: CreateColorDto) {
     return this.prisma.color.create({ data: dto });
   }

@@ -1,30 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { getCategories, getProducts, formatPrice } from "@/lib/api";
+import { getPublicCategories, getProducts, formatPrice } from "@/lib/api";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion";
 import { ProductCard } from "@/components/product/product-card";
 import { HeroSection } from "@/components/home/hero-section";
 
 export const metadata: Metadata = {
   title: {
-    absolute:
-      "Sunfabb - Premium Cotton Bedspreads, Towels & Table Linen Online India",
+    absolute: "Sunfabb - Bedspread Designs",
   },
   description:
-    "Shop premium handcrafted home textiles from India. Sunfabb brings you bedspreads, towels, napkins and table linen crafted for comfort and lasting quality.",
+    "Explore Sunfabb's active bedspread design collection and enquire about colours and availability.",
   openGraph: {
-    title:
-      "Sunfabb - Premium Cotton Bedspreads, Towels & Table Linen Online India",
+    title: "Sunfabb - Bedspread Designs",
     description:
-      "Shop premium handcrafted home textiles from India. Crafted for comfort, built to last.",
+      "Explore Sunfabb's active bedspread design collection and enquire about colours and availability.",
     url: "/",
   },
 };
 
 export default async function HomePage() {
   const [categories, featured] = await Promise.all([
-    getCategories().catch(() => []),
+    getPublicCategories().catch(() => []),
     getProducts({ limit: 4 }).catch(() => ({
       items: [],
       total: 0,
@@ -37,15 +35,15 @@ export default async function HomePage() {
     <>
       <HeroSection />
 
-      {/* Curated Collections */}
+      {/* Active Collections */}
       <section className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-14 md:py-24 lg:py-32">
         <Reveal>
           <div className="mb-10 md:mb-14 text-center">
             <h2 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface mb-2">
-              Curated Collections
+              Active Collections
             </h2>
             <p className="text-body-sm text-on-surface-variant">
-              Each piece chosen for craft and character
+              Browse the current Sunfabb collection
             </p>
           </div>
         </Reveal>
@@ -132,10 +130,10 @@ export default async function HomePage() {
           <div className="flex items-baseline justify-between mb-10 md:mb-14">
             <div>
               <h2 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface mb-1">
-                Featured Pieces
+                Featured Designs
               </h2>
               <p className="text-body-sm text-on-surface-variant">
-                Thoughtfully sourced, quietly luxurious
+                Explore the active collection
               </p>
             </div>
             <Link

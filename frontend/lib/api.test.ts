@@ -6,6 +6,9 @@ import {
   getProducts,
   getProduct,
   getCategories,
+  getPublicCategories,
+  getPublicMaterials,
+  getPublicColors,
   NotFoundError,
 } from "./api";
 
@@ -300,5 +303,32 @@ describe("getCategories", () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => categories });
 
     await expect(getCategories()).resolves.toEqual(categories);
+  });
+});
+
+describe("public taxonomy lookups", () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    fetchMock.mockReset();
+  });
+
+  it("reads categories, materials, and colors from public taxonomy routes", async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => [] });
+
+    await getPublicCategories();
+    await getPublicMaterials();
+    await getPublicColors();
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      expect.stringContaining("/categories/public"),
+      expect.stringContaining("/materials/public"),
+      expect.stringContaining("/colors/public"),
+    ]);
   });
 });

@@ -296,6 +296,33 @@ export function getColors(): Promise<Color[]> {
   );
 }
 
+export function getPublicCategories(): Promise<Category[]> {
+  return fetchAndParse(
+    `${API_BASE}/categories/public`,
+    z.array(categorySchema),
+    { next: { revalidate: 60 } },
+    'Failed to fetch public categories',
+  );
+}
+
+export function getPublicMaterials(): Promise<Material[]> {
+  return fetchAndParse(
+    `${API_BASE}/materials/public`,
+    z.array(materialSchema),
+    { next: { revalidate: 60 } },
+    'Failed to fetch public materials',
+  );
+}
+
+export function getPublicColors(): Promise<Color[]> {
+  return fetchAndParse(
+    `${API_BASE}/colors/public`,
+    z.array(colorSchema),
+    { next: { revalidate: 60 } },
+    'Failed to fetch public colors',
+  );
+}
+
 export function getProducts(
   query: ProductsQuery = {},
 ): Promise<ProductsResponse> {

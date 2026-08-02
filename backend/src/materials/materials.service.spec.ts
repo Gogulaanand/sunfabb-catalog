@@ -50,6 +50,27 @@ describe('MaterialsService', () => {
     });
   });
 
+  describe('findPublic', () => {
+    it('returns materials represented by active variants of active products', async () => {
+      mockPrisma.material.findMany.mockResolvedValue([mockMaterial]);
+
+      const result = await service.findPublic();
+
+      expect(result).toEqual([mockMaterial]);
+      expect(mockPrisma.material.findMany).toHaveBeenCalledWith({
+        where: {
+          variants: {
+            some: {
+              is_active: true,
+              product: { is_active: true },
+            },
+          },
+        },
+        orderBy: { name: 'asc' },
+      });
+    });
+  });
+
   describe('create', () => {
     it('creates a material', async () => {
       const dto = { name: 'Linen' };

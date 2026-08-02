@@ -23,6 +23,11 @@ export class CategoriesController {
     return this.categoriesService.findAll();
   }
 
+  @Get('public')
+  findPublic() {
+    return this.categoriesService.findPublic();
+  }
+
   @Get(':slug')
   async findOne(@Param('slug') slug: string) {
     const category = await this.categoriesService.findOne(slug);

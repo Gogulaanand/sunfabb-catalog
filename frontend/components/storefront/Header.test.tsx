@@ -43,7 +43,9 @@ describe("Header mobile menu", () => {
   });
 
   it("renders navigation links in the opened menu", () => {
-    render(<Header />);
+    render(
+      <Header categories={[{ name: "Bedspreads", slug: "bedspreads" }]} />,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
 
@@ -53,6 +55,8 @@ describe("Header mobile menu", () => {
     expect(menuQueries.getByRole("link", { name: "Bedspreads" })).toBeVisible();
     expect(menuQueries.getByRole("link", { name: "All Products" })).toBeVisible();
     expect(menuQueries.getByRole("link", { name: "Account" })).toBeVisible();
+    expect(menuQueries.queryByRole("link", { name: "Towels" })).toBeNull();
+    expect(menuQueries.queryByRole("link", { name: "Table Linen" })).toBeNull();
   });
 
   it("hides cart and account controls in lead-generation mode", () => {

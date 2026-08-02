@@ -5,15 +5,25 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import CartIcon from "@/components/cart/cart-icon";
 import { isTransactionalCommerceEnabled } from "@/lib/storefront-mode";
+import type { Category } from "@/lib/api";
 
-const NAV_LINKS = [
-  { href: "/catalog?category=bedspreads", label: "Bedspreads" },
-  { href: "/catalog?category=towels", label: "Towels" },
-  { href: "/catalog?category=table-linen", label: "Table Linen" },
+const FIXED_NAV_LINKS = [
   { href: "/catalog", label: "All Products" },
   { href: "/guides", label: "Guides" },
   { href: "/contact", label: "Contact" },
 ];
+
+type PublicCategory = Pick<Category, "name" | "slug">;
+
+export function buildNavLinks(categories: PublicCategory[]) {
+  return [
+    ...categories.map((category) => ({
+      href: `/catalog?category=${category.slug}`,
+      label: category.name,
+    })),
+    ...FIXED_NAV_LINKS,
+  ];
+}
 
 const COMPACT_SCROLL_Y = 40;
 const EXPAND_SCROLL_Y = 8;
@@ -24,8 +34,9 @@ export function shouldCompactHeader(scrollY: number, isCompact: boolean) {
     : scrollY > COMPACT_SCROLL_Y;
 }
 
-export function Header() {
+export function Header({ categories = [] }: { categories?: PublicCategory[] }) {
   const transactionalCommerceEnabled = isTransactionalCommerceEnabled();
+  const navLinks = buildNavLinks(categories);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -112,7 +123,7 @@ export function Header() {
         </Link>
 
         <nav className="hidden sm:flex items-center gap-8 text-label-caps text-on-surface-variant">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -207,7 +218,7 @@ export function Header() {
                 </button>
               </div>
               <nav className="flex flex-col py-2 text-label-caps text-on-surface-variant flex-1 overflow-y-auto">
-                {NAV_LINKS.map((link) => (
+                {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}

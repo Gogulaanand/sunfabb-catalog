@@ -7,6 +7,7 @@ const mockMaterial = { id: 'cuid-1', name: 'Cotton' };
 
 const mockMaterialsService = {
   findAll: jest.fn(),
+  findPublic: jest.fn(),
   create: jest.fn(),
   update: jest.fn(),
   remove: jest.fn(),
@@ -39,6 +40,17 @@ describe('MaterialsController', () => {
 
       expect(result).toEqual([mockMaterial]);
       expect(mockMaterialsService.findAll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('findPublic', () => {
+    it('returns the public material list', async () => {
+      mockMaterialsService.findPublic.mockResolvedValue([mockMaterial]);
+
+      const result = await controller.findPublic();
+
+      expect(result).toEqual([mockMaterial]);
+      expect(mockMaterialsService.findPublic).toHaveBeenCalledTimes(1);
     });
   });
 

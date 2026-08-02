@@ -13,6 +13,20 @@ export class MaterialsService {
     });
   }
 
+  findPublic() {
+    return this.prisma.material.findMany({
+      where: {
+        variants: {
+          some: {
+            is_active: true,
+            product: { is_active: true },
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   create(dto: CreateMaterialDto) {
     return this.prisma.material.create({ data: dto });
   }

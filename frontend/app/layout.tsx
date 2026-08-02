@@ -22,10 +22,10 @@ export const metadata: Metadata = {
   title: {
     template: "%s | Sunfabb",
     default:
-      "Sunfabb - Premium Cotton Bedspreads, Towels & Table Linen Online India",
+      "Sunfabb - Bedspread Designs",
   },
   description:
-    "Premium handcrafted home textiles from India. Shop bedspreads, towels, napkins and table linen at Sunfabb.",
+    "Explore Sunfabb's active bedspread design collection and enquire about colours and availability.",
   openGraph: {
     type: "website",
     locale: "en_IN",

@@ -22,6 +22,11 @@ export class ColorsController {
     return this.colorsService.findAll();
   }
 
+  @Get('public')
+  findPublic() {
+    return this.colorsService.findPublic();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() dto: CreateColorDto) {

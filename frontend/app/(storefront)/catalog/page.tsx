@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { getCategories, type ProductsQuery } from "@/lib/api";
+import { getPublicCategories, type ProductsQuery } from "@/lib/api";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import CatalogContent from "./CatalogContent";
 import CatalogGridSkeleton from "./CatalogGridSkeleton";
@@ -25,12 +25,12 @@ export async function generateMetadata({
     : `${siteUrl}/catalog`;
 
   if (categorySlug) {
-    const categories = await getCategories().catch(() => []);
+    const categories = await getPublicCategories().catch(() => []);
     const category = categories.find((c) => c.slug === categorySlug);
     const title = category ? `${category.name} Collection` : "Catalog";
     const description =
       category?.description ??
-      `Browse Sunfabb's ${category?.name ?? ""} collection - premium handcrafted home textiles from India.`;
+      `Explore Sunfabb's active ${category?.name ?? ""} collection.`;
     return {
       title,
       description,
@@ -40,8 +40,7 @@ export async function generateMetadata({
 
   return {
     title: "All Products",
-    description:
-      "Browse the full Sunfabb range - premium handcrafted bedspreads, towels, napkins and table linen from India.",
+    description: "Browse Sunfabb's active bedspread design collection.",
     alternates: { canonical },
   };
 }
@@ -77,7 +76,7 @@ export default async function CatalogPage({ searchParams }: PageProps) {
   // ISR-cached call generateMetadata already makes for category views, and
   // the unfiltered catalog skips it entirely.
   const categoryDescription = categorySlug
-    ? await getCategories()
+    ? await getPublicCategories()
         .catch(() => [])
         .then((categories) => categories.find((c) => c.slug === categorySlug)?.description)
     : undefined;
@@ -118,7 +117,7 @@ export default async function CatalogPage({ searchParams }: PageProps) {
         <CategoryIntro description={categoryDescription} />
       ) : (
         <p className="text-body-md text-on-surface-variant mb-10 max-w-2xl">
-          Elevate your everyday with sustainably sourced, premium woven textiles.
+          Explore the active Sunfabb collection.
         </p>
       )}
 

@@ -89,6 +89,41 @@ describe('ProductsService', () => {
       expect(result.total).toBe(1);
     });
 
+    it.each([
+      [
+        'internal admin copy',
+        'Colour and product details can be refined in the admin catalog.',
+      ],
+      ['test copy', 'An edited test product description'],
+      [
+        'generation copy',
+        'Generated from a generation prompt; review pending.',
+      ],
+    ])(
+      'returns null for %s while preserving the rest of the public product',
+      async (_label, description) => {
+        const product = {
+          ...mockProduct,
+          description,
+          care_instructions: 'Wash gently and dry in shade.',
+          variants: [{ price: 250000, stock_quantity: 10, sku: 'BED-Q-WHT' }],
+          images: [{ id: 'image-1', url: 'https://example.com/image.jpg' }],
+        };
+        mockPrisma.product.findMany.mockResolvedValue([product]);
+        mockPrisma.product.count.mockResolvedValue(1);
+
+        const result = await service.findAll({});
+
+        expect(result).toEqual({
+          items: [{ ...product, description: null }],
+          total: 1,
+          page: 1,
+          limit: 20,
+        });
+        expect(product.description).toBe(description);
+      },
+    );
+
     it('returns paginated products with defaults', async () => {
       mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
       mockPrisma.product.count.mockResolvedValue(1);
@@ -327,6 +362,21 @@ describe('ProductsService', () => {
       );
     });
 
+    it('keeps blocked descriptions visible in the admin response for correction', async () => {
+      const adminProduct = {
+        ...mockProduct,
+        description: 'Internal generation note for admin correction.',
+      };
+      mockPrisma.product.findMany.mockResolvedValue([adminProduct]);
+      mockPrisma.product.count.mockResolvedValue(1);
+
+      const result = await service.findAllAdmin({});
+
+      expect(result.items[0]).toMatchObject({
+        description: adminProduct.description,
+      });
+    });
+
     it('annotates each product with its missing-alt-text image count', async () => {
       const other = { ...mockProduct, id: 'cuid-9' };
       mockPrisma.product.findMany.mockResolvedValue([mockProduct, other]);
@@ -456,6 +506,33 @@ describe('ProductsService', () => {
           images: expect.any(Object) as unknown,
         }) as unknown,
       });
+    });
+
+    it('redacts known internal copy from the public detail response', async () => {
+      const fullProduct = {
+        ...mockProduct,
+        description: 'Internal generation note for admin correction.',
+        care_instructions: 'Wash gently and dry in shade.',
+        variants: [
+          {
+            id: 'variant-1',
+            price: 250000,
+            stock_quantity: 10,
+            sku: 'BED-Q-WHT',
+          },
+        ],
+        images: [
+          {
+            id: 'image-1',
+            url: 'https://example.com/image.jpg',
+          },
+        ],
+      };
+      mockPrisma.product.findUnique.mockResolvedValue(fullProduct);
+
+      const result = await service.findOne('classic-bedspread');
+
+      expect(result).toEqual({ ...fullProduct, description: null });
     });
 
     it('returns null when product does not exist', async () => {

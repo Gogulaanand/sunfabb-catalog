@@ -7,6 +7,14 @@ import { CreateVariantDto } from './dto/create-variant.dto.js';
 import { CreateProductImageDto } from './dto/create-product-image.dto.js';
 import { ProductImageRole } from '../../generated/prisma/enums.js';
 
+const PUBLIC_DESCRIPTION_BLOCKED_MARKERS = [
+  /\binternal\b/i,
+  /\btest(?:ing)?\b/i,
+  /\bgeneration\b/i,
+  /\bgenerated\b/i,
+  /\badmin(?:istrator|istration)?\b/i,
+];
+
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -79,7 +87,9 @@ export class ProductsService {
       const total = all.length;
       const skip = (page - 1) * limit;
       return {
-        items: this.pickCardImages(all.slice(skip, skip + limit), colorId),
+        items: this.sanitizePublicProducts(
+          this.pickCardImages(all.slice(skip, skip + limit), colorId),
+        ),
         total,
         page,
         limit,
@@ -99,7 +109,39 @@ export class ProductsService {
       this.prisma.product.count({ where }),
     ]);
 
-    return { items: this.pickCardImages(items, colorId), total, page, limit };
+    return {
+      items: this.sanitizePublicProducts(this.pickCardImages(items, colorId)),
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
+   * Public catalog responses must not expose descriptions that still contain
+   * internal, test, generation, or admin-facing copy. The returned object is
+   * a shallow copy, so stored Prisma records and admin responses are untouched.
+   */
+  private sanitizePublicProducts<T extends { description: string | null }>(
+    products: T[],
+  ): T[] {
+    return products.map((product) => this.sanitizePublicProduct(product));
+  }
+
+  private sanitizePublicProduct<T extends { description: string | null }>(
+    product: T,
+  ): T {
+    const { description } = product;
+    if (
+      description !== null &&
+      PUBLIC_DESCRIPTION_BLOCKED_MARKERS.some((marker) =>
+        marker.test(description),
+      )
+    ) {
+      return { ...product, description: null };
+    }
+
+    return product;
   }
 
   /**
@@ -225,8 +267,8 @@ export class ProductsService {
     }));
   }
 
-  findOne(slug: string) {
-    return this.prisma.product.findUnique({
+  async findOne(slug: string) {
+    const product = await this.prisma.product.findUnique({
       where: { slug, is_active: true },
       include: {
         category: { select: { name: true, slug: true } },
@@ -240,6 +282,8 @@ export class ProductsService {
         images: { orderBy: { sort_order: 'asc' } },
       },
     });
+
+    return product ? this.sanitizePublicProduct(product) : null;
   }
 
   create(dto: CreateProductDto) {

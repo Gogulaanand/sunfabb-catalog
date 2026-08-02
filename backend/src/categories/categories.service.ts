@@ -13,6 +13,22 @@ export class CategoriesService {
     });
   }
 
+  async findPublic() {
+    const categories = await this.prisma.category.findMany({
+      where: {
+        products: {
+          some: { is_active: true },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    return categories.map((category) => ({
+      ...category,
+      description: null,
+    }));
+  }
+
   findOne(slug: string) {
     return this.prisma.category.findUnique({
       where: { slug },

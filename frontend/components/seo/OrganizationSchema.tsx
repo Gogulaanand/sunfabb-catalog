@@ -17,7 +17,7 @@ export function buildOrganizationSchemas(siteUrl: string): OrganizationGraphData
         name: "Sunfabb",
         url: siteUrl,
         description:
-          "Premium handcrafted home textiles from India - bedspreads, towels, napkins and table linen.",
+          "Sunfabb's active bedspread design collection.",
         sameAs: [],
       },
       {

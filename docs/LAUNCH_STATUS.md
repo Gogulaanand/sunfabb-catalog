@@ -47,7 +47,7 @@ internal development copy, unsupported taxonomy, and incomplete trust/policy con
 |---|---|---|
 | 0 - Establish one launch truth | Complete | Canonical launch truth and issues #46-#64 established |
 | 1 - Customer safety and reliability | Complete with owner-accepted infrastructure deviations | PRs #66-#69; Render Free retained with backend-only HeyOnCall mitigation, email-only alerts, and JWT rotation deferred pending a concrete security concern |
-| 2 - Public hygiene and catalogue truth | In progress | 2A/2B merged in PR #71; Phase 2C report covers all 41 numbered designs, but five live non-numbered products still need reconciliation |
+| 2 - Public hygiene and catalogue truth | In progress | 2A/2B merged in PR #71; Phase 2C audit delivered in PR #73; live reconciliation confirms the five named non-numbered products are no longer public; this branch implements the bounded 2D/2E source changes, pending deployment proof |
 | 3 - Trust and conversion foundation | Not started | Requires owner business, contact, legal, and policy inputs |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
 | 5 - Catalogue MVP release validation | Not started | Follows phases 1-4 and human release checks |
@@ -60,8 +60,26 @@ The read-only [41-design public-data audit](audits/PHASE2C_41_DESIGN_PUBLIC_DATA
 generated from the public API on 2026-08-02. It covers 41 numbered designs and 163 variants. It
 does not approve public claims: dimensions, set contents, product names, materials, sizes, prices,
 stock source, care instructions, and publication approval remain missing or blocked until matched
-to owner-approved release records. The current numbered list is a working set, not the final
-catalogue; additional raw supplier inputs remain pending for later image-pipeline processing.
+to owner-approved release records. The report's five-product discrepancy was a point-in-time
+finding before the subsequent production reconciliation; a fresh live probe on 2026-08-02 confirmed
+41 public products, no non-numbered products, no cleaned slug in the list, and 404 detail routes for
+all five cleaned slugs. The current numbered list is a working set, not the final catalogue;
+additional raw supplier inputs remain pending for later image-pipeline processing.
+
+### Phase 2D/2E implementation state
+
+This source branch adds a public product-boundary filter that removes descriptions containing
+internal, test, generation, or admin-facing markers while leaving stored records and admin
+responses unchanged. It also adds public taxonomy routes: categories are limited to categories with
+active products, and materials and colours are limited to active variants of active products. The
+storefront catalog, filters, navigation, home page, metadata, and sitemap now consume those public
+routes, so unsupported empty taxonomy entries are not rendered as public destinations.
+
+The implementation is locally verified, but has not yet been deployed; the live API remains the
+source of truth until a merged deployment is probed. Owner-approved product fact sheets,
+publication approval, and approved category imagery remain blocked and are intentionally not
+inferred or changed here. Phase 3 trust, contact, policy, and WhatsApp inputs are outside this
+branch.
 
 ## Release guardrails
 
@@ -82,8 +100,11 @@ Phase 0 created these GitHub milestones:
 
 The ordered implementation queue is represented by these issues:
 
-Phase 2A/2B implementation is delivered in [PR #71](https://github.com/Gogulaanand/sunfabb-catalog/pull/71).
-The next bounded work item is issue #52, the 41-design public-data audit.
+Phase 2A/2B implementation is delivered in [PR #71](https://github.com/Gogulaanand/sunfabb-catalog/pull/71),
+and the read-only Phase 2C audit is delivered in [PR #73](https://github.com/Gogulaanand/sunfabb-catalog/pull/73).
+The five named non-numbered products were reconciled in production after that audit; this source branch
+does not repeat or undo that operation. Issues #53/#54 are implemented in this branch as the next
+bounded source scope, with deployment and owner-dependent gates still pending.
 
 | Order | Issue | Milestone |
 |---:|---|---|

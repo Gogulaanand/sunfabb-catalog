@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <p className="font-display text-xl text-primary mb-2">{SITE.name}</p>
             <p className="text-body-sm text-on-surface-variant max-w-xs">
-              Premium bedspreads, towels, napkins and table linen — made in India, built to last.
+              Explore Sunfabb&apos;s active bedspread design collection.
             </p>
           </div>
 

@@ -22,6 +22,11 @@ export class MaterialsController {
     return this.materialsService.findAll();
   }
 
+  @Get('public')
+  findPublic() {
+    return this.materialsService.findPublic();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() dto: CreateMaterialDto) {

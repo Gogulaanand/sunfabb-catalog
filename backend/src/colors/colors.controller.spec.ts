@@ -7,6 +7,7 @@ const mockColor = { id: 'cuid-1', name: 'White', hex_code: '#FFFFFF' };
 
 const mockColorsService = {
   findAll: jest.fn(),
+  findPublic: jest.fn(),
   create: jest.fn(),
   update: jest.fn(),
   remove: jest.fn(),
@@ -37,6 +38,17 @@ describe('ColorsController', () => {
 
       expect(result).toEqual([mockColor]);
       expect(mockColorsService.findAll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('findPublic', () => {
+    it('returns the public color list', async () => {
+      mockColorsService.findPublic.mockResolvedValue([mockColor]);
+
+      const result = await controller.findPublic();
+
+      expect(result).toEqual([mockColor]);
+      expect(mockColorsService.findPublic).toHaveBeenCalledTimes(1);
     });
   });
 
