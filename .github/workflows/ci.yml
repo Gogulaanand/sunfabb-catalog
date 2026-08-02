@@ -101,6 +101,10 @@ jobs:
       E2E_CUSTOMER_PASSWORD: TestCustomerPassword123!
       FRONTEND_URL: http://localhost:3001
       NEXT_PUBLIC_API_URL: http://localhost:3000
+      # The E2E suite exercises the separate transactional purchase path.
+      # Production and Vercel Preview use the lead-generation mode instead.
+      STOREFRONT_MODE: TRANSACTIONAL_COMMERCE
+      NEXT_PUBLIC_STOREFRONT_MODE: TRANSACTIONAL_COMMERCE
       ECOMMERCE_ENABLED: "true"
       PORT: 3000
     steps:
