@@ -19,12 +19,16 @@ depth.
 The current catalogue has **41 numbered production designs and five active non-production demos**;
 see [`docs/LAUNCH_STATUS.md`](docs/LAUNCH_STATUS.md) for the canonical launch truth.
 
-**Last verified:** 2026-08-01 (Asia/Kolkata)
+**Last verified:** 2026-08-02 (Asia/Kolkata)
 
 ---
 
 ## Where we are
 
+- **Production-ready MVP plan:** Phase 0 and Phase 1 are complete. Phase 1 shipped catalogue timeout
+  handling, Node 24 runtime alignment, production security basics, and six-route synthetic checks in
+  PRs #66-#69. The next bounded unit is Phase 2A/2B: explicit lead-generation storefront mode plus
+  removal of the five non-production demos.
 - **Phases 0-5** done and merged (scaffold, catalog backend, auth, storefront, admin UI, deploy,
   hardening, Playwright e2e, audit fixes).
 - **Phase 6 e-commerce:** 6.0-6.4, 6.8 (admin order management, PR #38), and 6.9 (hardening +
@@ -118,13 +122,14 @@ uploads independently whenever designs are ready.
 
 ## Open blockers / reminders
 
-- **Local admin password is a dev placeholder.**
-  Before deploying anything new to Render, regenerate a fresh strong password + bcrypt hash and set
-  `ADMIN_EMAIL`/`ADMIN_PASSWORD_HASH` directly as Render env vars - never in a file.
-  `backend/.env` is gitignored and was never committed.
-- **Render free tier sleeps** and causes 24s cold starts on `/catalog`.
-  Upgrade to Render Starter ($7/mo) at Wave 2 go-live (Phase 6.10); keep-alive pings every 10 min
-  to mitigate (BACKEND_URL secret now set, PR #28 fixed the timeout).
+- **Production admin credentials were reset during Phase 1.** Local development credentials remain
+  local-only; `backend/.env` is gitignored and was never committed.
+- **Owner-accepted Phase 1 infrastructure deviations:** Render Free remains in use, with HeyOnCall
+  probing backend health, categories, and products once per minute as background cold-start
+  mitigation. Notifications are email-only; mobile critical alerts are waived. Production
+  `JWT_SECRET` and `CUSTOMER_JWT_SECRET` remain unchanged and will be rotated if a concrete security
+  concern or configuration incident arises. These choices accept residual cold-start and secret-age
+  risk and must not be described as always-on hosting or completed secret rotation.
 - **`home.sunfabb.com`** (old personal homepage, Vercel project `website`) has a broken deployment
   and an expired wildcard cert (`*.sunfabb.com`, expired June 2021).
   Unrelated to the catalog - needs separate attention.

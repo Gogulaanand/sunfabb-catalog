@@ -39,23 +39,26 @@ recorded probes passed; it does not prove continuous availability or that Render
 between runs. GitHub's normal Actions notifications provide a basic failure signal, but they are not
 an on-call alerting system.
 
-Before public distribution, move the backend to an always-on production instance as required by
-`Sunfabb-Production-Ready-MVP-Plan.md`. An external monitor such as HeyOnCall can provide independent
-one-minute probes and mobile alerts, but it is monitoring and temporary cold-start mitigation—not a
-replacement for always-on hosting.
+The production-readiness plan recommends an always-on backend before public distribution. On
+2026-08-02 the owner explicitly accepted the remaining Render Free cold-start risk and chose to keep
+the service on the free tier for the catalogue MVP. HeyOnCall therefore provides only background
+cold-start mitigation; it is not treated as proof of always-on hosting.
 
 ## External monitor
 
-HeyOnCall was configured on 2026-08-02 with all three free-tier outbound probes:
+HeyOnCall was configured on 2026-08-02 with all three free-tier outbound probes pointed directly at
+the Render backend:
 
 - `Backend health` targets `https://sunfabb-backend.onrender.com/health`;
-- `Storefront catalog` targets `https://sunfabb.com/catalog`;
-- `Contact page` targets `https://sunfabb.com/contact`.
+- `Backend categories keep-alive` targets `https://sunfabb-backend.onrender.com/categories`;
+- `Backend products keep-alive` targets
+  `https://sunfabb-backend.onrender.com/products?limit=1`.
 
-The probes use `HEAD`, run independently of GitHub Actions, and alert after five minutes of
-continuous failure. Their first production probes all returned HTTP 200. The backend probe also
-provides one-minute inbound traffic as temporary Render Free cold-start mitigation.
+The probes use `HEAD`, run independently of GitHub Actions, and alert by email after five minutes of
+continuous failure. Their first production probes all returned HTTP 200. This backend-only setup
+replaced the original storefront and contact probes after the one-minute catalogue `HEAD` probe was
+shown to invoke full server rendering and generate synthetic timeout logs.
 
-The `Sunfabb production` service is assigned to the `Sunfabb primary` rotation, and immediate email
-notifications are connected. Email delivery is a fallback channel: install and sign in to the
-HeyOnCall mobile app to enable the recommended critical push notifications.
+The `Sunfabb production` service is assigned to the `Sunfabb primary` rotation, and email
+notifications are connected. The owner chose email-only background monitoring for now and waived
+mobile critical-alert setup.
