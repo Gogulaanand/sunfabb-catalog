@@ -56,6 +56,39 @@ describe('ProductsService', () => {
   });
 
   describe('findAll', () => {
+    it('keeps inactive demo products out of the public list response', async () => {
+      const rows = [
+        mockProduct,
+        {
+          ...mockProduct,
+          id: 'demo-product',
+          slug: 'UNKNOWN-PLAID1',
+          name: 'UNKNOWN-PLAID1',
+          is_active: false,
+        },
+      ];
+      mockPrisma.product.findMany.mockImplementation(
+        ({ where }: { where?: { is_active?: boolean } }) =>
+          Promise.resolve(
+            rows.filter((product) => !where?.is_active || product.is_active),
+          ),
+      );
+      mockPrisma.product.count.mockImplementation(
+        ({ where }: { where?: { is_active?: boolean } }) =>
+          Promise.resolve(
+            rows.filter((product) => !where?.is_active || product.is_active)
+              .length,
+          ),
+      );
+
+      const result = await service.findAll({});
+
+      expect(result.items.map((product) => product.slug)).toEqual([
+        'classic-bedspread',
+      ]);
+      expect(result.total).toBe(1);
+    });
+
     it('returns paginated products with defaults', async () => {
       mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
       mockPrisma.product.count.mockResolvedValue(1);
@@ -376,7 +409,16 @@ describe('ProductsService', () => {
     it.each(DEMO_PRODUCT_IDENTIFIERS)(
       'requires an active product for public demo lookup %s',
       async (identifier) => {
-        mockPrisma.product.findUnique.mockResolvedValue(null);
+        const inactiveDemoProduct = {
+          ...mockProduct,
+          slug: identifier,
+          name: identifier,
+          is_active: false,
+        };
+        mockPrisma.product.findUnique.mockImplementation(
+          ({ where }: { where?: { is_active?: boolean } }) =>
+            Promise.resolve(where?.is_active ? null : inactiveDemoProduct),
+        );
 
         await expect(service.findOne(identifier)).resolves.toBeNull();
 

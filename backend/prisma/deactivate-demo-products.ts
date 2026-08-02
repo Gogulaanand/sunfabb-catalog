@@ -1,10 +1,8 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client.js';
-import {
-  DEMO_PRODUCT_IDENTIFIERS,
-  isDemoProductIdentifier,
-} from '../src/products/demo-product-identifiers.js';
+import { DEMO_PRODUCT_IDENTIFIERS } from '../src/products/demo-product-identifiers.js';
+import { buildDemoDeactivationPlan } from '../src/products/demo-deactivation-plan.js';
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) throw new Error('DATABASE_URL is not set');
@@ -47,34 +45,20 @@ async function deactivateDemoProducts() {
     },
   });
 
-  const matchedIdentifiers = new Set<string>();
-  for (const product of products) {
-    if (isDemoProductIdentifier(product.slug)) {
-      matchedIdentifiers.add(product.slug);
-    }
-    if (isDemoProductIdentifier(product.name)) {
-      matchedIdentifiers.add(product.name);
-    }
-    for (const variant of product.variants) matchedIdentifiers.add(variant.sku);
-  }
-
-  const missing = DEMO_PRODUCT_IDENTIFIERS.filter(
-    (identifier) => !matchedIdentifiers.has(identifier),
-  );
-  if (missing.length > 0) {
+  const plan = buildDemoDeactivationPlan(products);
+  if (plan.missingIdentifiers.length > 0) {
     throw new Error(
-      `Refusing partial demo deactivation; identifiers not found: ${missing.join(', ')}`,
+      `Refusing partial demo deactivation; identifiers not found: ${plan.missingIdentifiers.join(', ')}`,
     );
   }
 
-  const productIds = products.map((product) => product.id);
   const result = await prisma.$transaction(async (tx) => {
     const variants = await tx.productVariant.updateMany({
-      where: { product_id: { in: productIds } },
+      where: { product_id: { in: plan.productIds }, is_active: true },
       data: { is_active: false },
     });
     const deactivatedProducts = await tx.product.updateMany({
-      where: { id: { in: productIds } },
+      where: { id: { in: plan.productIds }, is_active: true },
       data: { is_active: false },
     });
     return { products: deactivatedProducts.count, variants: variants.count };
