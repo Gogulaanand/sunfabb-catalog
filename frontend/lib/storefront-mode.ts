@@ -46,7 +46,7 @@ export function getStorefrontMode(
 }
 
 export function isTransactionalCommerceEnabled(
-  environment: Record<string, string | undefined> = process.env,
+  environment: Record<string, string | undefined> = getRuntimeEnvironment(),
 ): boolean {
   return getStorefrontMode(environment) === STOREFRONT_MODES.TRANSACTIONAL;
 }
