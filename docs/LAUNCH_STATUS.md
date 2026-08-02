@@ -76,8 +76,10 @@ in commit `0878991`:
 The external completion gates are still open: Resend shows `sunfabb.com` as `not started` until
 the displayed DKIM and SPF records are added in Namecheap and DNS verification is run. Owner or
 legal review is also still required for the final business identity, contact channels, shipping,
-returns/refunds, privacy, and terms copy. Phase 3 must not be marked complete until those facts
-are supplied and the live contact delivery path is verified.
+returns/refunds, privacy, and terms copy. The generic seeded category imagery and staged hero asset
+also remain outside this branch because owned-image replacement belongs to the concurrent Phase 2
+catalogue/image work. Phase 3 must not be marked complete until those image and content gates are
+resolved, the facts are supplied, and the live contact delivery path is verified.
 
 ### Phase 2C evidence
 
