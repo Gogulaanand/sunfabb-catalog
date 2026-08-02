@@ -12,6 +12,7 @@ import { VerifyPaymentDto } from './dto/verify-payment.dto.js';
 import { CustomerJwtAuthGuard } from '../customer-auth/guards/customer-jwt-auth.guard.js';
 import { CurrentCustomer } from '../customer-auth/decorators/current-customer.decorator.js';
 import type { CurrentCustomerData } from '../customer-auth/strategies/customer-jwt.strategy.js';
+import { StorefrontModeGuard } from '../config/storefront-mode.guard.js';
 
 @Controller()
 @UseGuards(CustomerJwtAuthGuard)
@@ -24,6 +25,7 @@ export class PaymentsController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @UseGuards(StorefrontModeGuard)
   verify(
     @CurrentCustomer() customer: CurrentCustomerData,
     @Body() dto: VerifyPaymentDto,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isTransactionalCommerceEnabled } from "@/lib/storefront-mode";
 
 const PUBLIC_ACCOUNT_PATHS = [
   "/account/login",
@@ -25,12 +26,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/account")) {
-    // Gate: redirect the entire /account/** subtree to home when e-commerce is not
-    // yet open to users. Flip ECOMMERCE_ENABLED=true in Vercel env + redeploy to open.
-    if (process.env.ECOMMERCE_ENABLED !== "true") {
+  if (
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/cart") ||
+    pathname.startsWith("/checkout")
+  ) {
+    // Lead-generation mode keeps the commerce route tree inaccessible even when
+    // a visitor knows a direct URL. The backend separately rejects mutations.
+    if (!isTransactionalCommerceEnabled()) {
       return NextResponse.redirect(new URL("/", request.url));
     }
+
+    if (!pathname.startsWith("/account")) return NextResponse.next();
 
     if (PUBLIC_ACCOUNT_PATHS.includes(pathname)) {
       return NextResponse.next();
@@ -49,5 +56,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/account/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/account/:path*",
+    "/cart/:path*",
+    "/checkout/:path*",
+  ],
 };

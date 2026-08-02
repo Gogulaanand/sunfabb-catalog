@@ -4,6 +4,7 @@ import { EmailModule } from '../email/email.module.js';
 import { PaymentsController } from './payments.controller.js';
 import { PaymentsService } from './payments.service.js';
 import { RazorpayService } from './razorpay.service.js';
+import { StorefrontModeGuard } from '../config/storefront-mode.guard.js';
 
 // Exports PaymentsService + RazorpayService so OrdersModule (POST /orders wiring)
 // and WebhooksModule (source-of-truth confirmation) can reuse them without a
@@ -12,7 +13,7 @@ import { RazorpayService } from './razorpay.service.js';
 @Module({
   imports: [PrismaModule, EmailModule],
   controllers: [PaymentsController],
-  providers: [PaymentsService, RazorpayService],
+  providers: [PaymentsService, RazorpayService, StorefrontModeGuard],
   exports: [PaymentsService, RazorpayService],
 })
 export class PaymentsModule {}

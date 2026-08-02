@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import type { HTMLAttributes, ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { shouldCompactHeader, Header } from "./Header";
 
 vi.mock("@/components/cart/cart-icon", () => ({
@@ -34,6 +34,14 @@ describe("shouldCompactHeader", () => {
 });
 
 describe("Header mobile menu", () => {
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_STOREFRONT_MODE", "TRANSACTIONAL_COMMERCE");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("renders navigation links in the opened menu", () => {
     render(<Header />);
 
@@ -45,5 +53,21 @@ describe("Header mobile menu", () => {
     expect(menuQueries.getByRole("link", { name: "Bedspreads" })).toBeVisible();
     expect(menuQueries.getByRole("link", { name: "All Products" })).toBeVisible();
     expect(menuQueries.getByRole("link", { name: "Account" })).toBeVisible();
+  });
+
+  it("hides cart and account controls in lead-generation mode", () => {
+    vi.stubEnv("NEXT_PUBLIC_STOREFRONT_MODE", "CATALOG_LEAD_GEN");
+    render(<Header />);
+
+    expect(screen.queryByRole("link", { name: /Cart/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Account" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
+    expect(
+      within(screen.getByRole("dialog", { name: "Navigation menu" })).queryByRole(
+        "link",
+        { name: "Account" },
+      ),
+    ).not.toBeInTheDocument();
   });
 });

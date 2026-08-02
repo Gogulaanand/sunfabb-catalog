@@ -28,6 +28,7 @@ describe("CartIcon", () => {
   const fetchMock = vi.fn();
 
   beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_STOREFRONT_MODE", "TRANSACTIONAL_COMMERCE");
     vi.stubGlobal("fetch", fetchMock);
     // default: guest with empty local cart
     selectorMock.mockImplementation((sel: (s: { items: LocalCartItem[] }) => unknown) =>
@@ -41,6 +42,7 @@ describe("CartIcon", () => {
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.unstubAllGlobals();
     fetchMock.mockReset();
     selectorMock.mockReset();

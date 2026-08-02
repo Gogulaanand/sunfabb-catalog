@@ -4,6 +4,7 @@ import { ProductImageRole } from '../../generated/prisma/enums.js';
 import { ProductsService } from './products.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { FindProductsDto } from './dto/find-products.dto.js';
+import { DEMO_PRODUCT_IDENTIFIERS } from './demo-product-identifiers.js';
 
 const mockProduct = {
   id: 'cuid-1',
@@ -55,6 +56,39 @@ describe('ProductsService', () => {
   });
 
   describe('findAll', () => {
+    it('keeps inactive demo products out of the public list response', async () => {
+      const rows = [
+        mockProduct,
+        {
+          ...mockProduct,
+          id: 'demo-product',
+          slug: 'UNKNOWN-PLAID1',
+          name: 'UNKNOWN-PLAID1',
+          is_active: false,
+        },
+      ];
+      mockPrisma.product.findMany.mockImplementation(
+        ({ where }: { where?: { is_active?: boolean } }) =>
+          Promise.resolve(
+            rows.filter((product) => !where?.is_active || product.is_active),
+          ),
+      );
+      mockPrisma.product.count.mockImplementation(
+        ({ where }: { where?: { is_active?: boolean } }) =>
+          Promise.resolve(
+            rows.filter((product) => !where?.is_active || product.is_active)
+              .length,
+          ),
+      );
+
+      const result = await service.findAll({});
+
+      expect(result.items.map((product) => product.slug)).toEqual([
+        'classic-bedspread',
+      ]);
+      expect(result.total).toBe(1);
+    });
+
     it('returns paginated products with defaults', async () => {
       mockPrisma.product.findMany.mockResolvedValue([mockProduct]);
       mockPrisma.product.count.mockResolvedValue(1);
@@ -372,6 +406,30 @@ describe('ProductsService', () => {
   });
 
   describe('findOne', () => {
+    it.each(DEMO_PRODUCT_IDENTIFIERS)(
+      'requires an active product for public demo lookup %s',
+      async (identifier) => {
+        const inactiveDemoProduct = {
+          ...mockProduct,
+          slug: identifier,
+          name: identifier,
+          is_active: false,
+        };
+        mockPrisma.product.findUnique.mockImplementation(
+          ({ where }: { where?: { is_active?: boolean } }) =>
+            Promise.resolve(where?.is_active ? null : inactiveDemoProduct),
+        );
+
+        await expect(service.findOne(identifier)).resolves.toBeNull();
+
+        expect(mockPrisma.product.findUnique).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: { slug: identifier, is_active: true },
+          }),
+        );
+      },
+    );
+
     it('returns product with variants and images when found', async () => {
       const fullProduct = {
         ...mockProduct,
@@ -391,7 +449,7 @@ describe('ProductsService', () => {
 
       expect(result).toEqual(fullProduct);
       expect(mockPrisma.product.findUnique).toHaveBeenCalledWith({
-        where: { slug: 'classic-bedspread' },
+        where: { slug: 'classic-bedspread', is_active: true },
         include: expect.objectContaining({
           category: expect.any(Object) as unknown,
           variants: expect.any(Object) as unknown,

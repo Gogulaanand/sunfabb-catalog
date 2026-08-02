@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import CartIcon from "@/components/cart/cart-icon";
+import { isTransactionalCommerceEnabled } from "@/lib/storefront-mode";
 
 const NAV_LINKS = [
   { href: "/catalog?category=bedspreads", label: "Bedspreads" },
@@ -24,6 +25,7 @@ export function shouldCompactHeader(scrollY: number, isCompact: boolean) {
 }
 
 export function Header() {
+  const transactionalCommerceEnabled = isTransactionalCommerceEnabled();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -122,13 +124,15 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-1">
-          <CartIcon />
-          <Link
-            href="/account"
-            className="hidden sm:inline text-label-caps text-on-surface-variant hover:text-primary transition-colors ml-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            Account
-          </Link>
+          {transactionalCommerceEnabled && <CartIcon />}
+          {transactionalCommerceEnabled && (
+            <Link
+              href="/account"
+              className="hidden sm:inline text-label-caps text-on-surface-variant hover:text-primary transition-colors ml-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Account
+            </Link>
+          )}
 
           <button
             ref={openBtnRef}
@@ -213,13 +217,15 @@ export function Header() {
                     {link.label}
                   </Link>
                 ))}
-                <Link
-                  href="/account"
-                  onClick={closeMenu}
-                  className="px-5 py-4 hover:text-primary hover:bg-surface-container-low transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
-                >
-                  Account
-                </Link>
+                {transactionalCommerceEnabled && (
+                  <Link
+                    href="/account"
+                    onClick={closeMenu}
+                    className="px-5 py-4 hover:text-primary hover:bg-surface-container-low transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
+                  >
+                    Account
+                  </Link>
+                )}
               </nav>
             </motion.div>
           </>

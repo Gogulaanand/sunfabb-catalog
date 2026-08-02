@@ -18,6 +18,7 @@ import { ListOrdersDto } from './dto/list-orders.dto.js';
 import { CustomerJwtAuthGuard } from '../customer-auth/guards/customer-jwt-auth.guard.js';
 import { CurrentCustomer } from '../customer-auth/decorators/current-customer.decorator.js';
 import type { CurrentCustomerData } from '../customer-auth/strategies/customer-jwt.strategy.js';
+import { StorefrontModeGuard } from '../config/storefront-mode.guard.js';
 
 @Controller()
 @UseGuards(CustomerJwtAuthGuard)
@@ -35,6 +36,7 @@ export class OrdersController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 15, ttl: 60_000 } })
+  @UseGuards(StorefrontModeGuard)
   async create(
     @CurrentCustomer() customer: CurrentCustomerData,
     @Body() dto: CreateOrderDto,

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCartStore } from "@/lib/cart-store";
+import { isTransactionalCommerceEnabled } from "@/lib/storefront-mode";
 
 function isLoggedIn(): boolean {
   if (typeof document === "undefined") return false;
@@ -10,11 +11,12 @@ function isLoggedIn(): boolean {
 }
 
 export default function CartIcon() {
+  const transactionalCommerceEnabled = isTransactionalCommerceEnabled();
   const localItems = useCartStore((s) => s.items);
   const [serverCount, setServerCount] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!isLoggedIn()) return;
+    if (!transactionalCommerceEnabled || !isLoggedIn()) return;
     // Fetch server cart count once on mount for logged-in users.
     fetch("/api/customer/cart")
       .then((r) => (r.ok ? r.json() : null))
@@ -25,7 +27,9 @@ export default function CartIcon() {
         }
       })
       .catch(() => {/* ignore */});
-  }, []);
+  }, [transactionalCommerceEnabled]);
+
+  if (!transactionalCommerceEnabled) return null;
 
   const count =
     serverCount !== null

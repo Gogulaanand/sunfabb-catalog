@@ -17,6 +17,7 @@ import { MergeCartDto } from './dto/merge-cart.dto.js';
 import { CustomerJwtAuthGuard } from '../customer-auth/guards/customer-jwt-auth.guard.js';
 import { CurrentCustomer } from '../customer-auth/decorators/current-customer.decorator.js';
 import type { CurrentCustomerData } from '../customer-auth/strategies/customer-jwt.strategy.js';
+import { StorefrontModeGuard } from '../config/storefront-mode.guard.js';
 
 @Controller('me')
 @UseGuards(CustomerJwtAuthGuard)
@@ -29,6 +30,7 @@ export class CartController {
   }
 
   @Post('cart/items')
+  @UseGuards(StorefrontModeGuard)
   addItem(
     @CurrentCustomer() customer: CurrentCustomerData,
     @Body() dto: AddItemDto,
@@ -37,6 +39,7 @@ export class CartController {
   }
 
   @Patch('cart/items/:id')
+  @UseGuards(StorefrontModeGuard)
   updateItem(
     @CurrentCustomer() customer: CurrentCustomerData,
     @Param('id') id: string,
@@ -47,6 +50,7 @@ export class CartController {
 
   @Delete('cart/items/:id')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(StorefrontModeGuard)
   removeItem(
     @CurrentCustomer() customer: CurrentCustomerData,
     @Param('id') id: string,
@@ -55,6 +59,7 @@ export class CartController {
   }
 
   @Post('cart/merge')
+  @UseGuards(StorefrontModeGuard)
   mergeCart(
     @CurrentCustomer() customer: CurrentCustomerData,
     @Body() dto: MergeCartDto,
