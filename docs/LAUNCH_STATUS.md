@@ -15,18 +15,18 @@ The recommended first release is a lead-generation catalogue with WhatsApp as th
 conversion path. Transactional commerce remains disabled for launch purposes until the production
 operations and go-live gates are complete.
 
-The repository is not launch-ready yet. Phase 1 reliability and security work is complete; the next
-urgent risks are the mismatch between commerce UI and readiness, internal development copy, demo
-products exposed in the public catalogue, unsupported taxonomy, and incomplete trust/policy
-content.
+The repository is not launch-ready yet. Phase 1 reliability and security work is complete, and the
+Phase 2A/2B lead-generation and public-demo gates are shipped. The remaining urgent risks are
+internal development copy, unsupported taxonomy, and incomplete trust/policy content.
 
 ## Current catalogue truth
 
 - **41 numbered production designs** are published and active.
-- **Five non-production demo products** remain active: `UNKNOWN-PLAID1`, `UNKNOWN-PLAID2`,
-  `UNKNOWN-PLAID3`, `UNKNOWN-STRIPE1`, and `UNKNOWN-STRIPE2`.
-- The current live total is therefore **46 active catalogue items**, but only the 41 numbered
-  designs are production catalogue evidence.
+- The five non-production demo identifiers (`UNKNOWN-PLAID1`, `UNKNOWN-PLAID2`,
+  `UNKNOWN-PLAID3`, `UNKNOWN-STRIPE1`, and `UNKNOWN-STRIPE2`) are absent from the public release.
+- The deployed exact-five Prisma operation found no matching product, name, or SKU rows and failed
+  closed without mutation. The live public products response contains none of the identifiers,
+  each backend detail route returns 404, and the catalogue/sitemap contain none of them.
 - Local swatches are reference assets and intentionally unpublished.
 - The complete numbered-design list, release stages, and safety gates live in
   `tools/image-pipeline/CATALOG_PROGRESS.md`.
@@ -47,7 +47,7 @@ content.
 |---|---|---|
 | 0 - Establish one launch truth | Complete | Canonical launch truth and issues #46-#64 established |
 | 1 - Customer safety and reliability | Complete with owner-accepted infrastructure deviations | PRs #66-#69; Render Free retained with backend-only HeyOnCall mitigation, email-only alerts, and JWT rotation deferred pending a concrete security concern |
-| 2 - Public hygiene and catalogue truth | Next | Start with explicit lead-generation storefront mode and removal of the five non-production demos |
+| 2 - Public hygiene and catalogue truth | 2A/2B complete | PR #71 (`927fd66`) shipped lead-generation mode and public demo removal; next is 2C audit of the 41 production designs |
 | 3 - Trust and conversion foundation | Not started | Requires owner business, contact, legal, and policy inputs |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
 | 5 - Catalogue MVP release validation | Not started | Follows phases 1-4 and human release checks |
@@ -72,6 +72,9 @@ Phase 0 created these GitHub milestones:
 - [Catalogue Expansion](https://github.com/Gogulaanand/sunfabb-catalog/milestone/3)
 
 The ordered implementation queue is represented by these issues:
+
+Phase 2A/2B implementation is delivered in [PR #71](https://github.com/Gogulaanand/sunfabb-catalog/pull/71).
+The next bounded work item is issue #52, the 41-design public-data audit.
 
 | Order | Issue | Milestone |
 |---:|---|---|

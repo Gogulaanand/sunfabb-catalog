@@ -16,7 +16,8 @@ India market, INR only.
 It's a deliberate full-stack learning project for a frontend engineer: a **separate NestJS backend +
 Next.js frontend + PostgreSQL/Prisma** monorepo, chosen specifically to maximize backend learning
 depth.
-The current catalogue has **41 numbered production designs and five active non-production demos**;
+The current catalogue has **41 numbered production designs, with the five non-production demo
+identifiers absent from the public release**;
 see [`docs/LAUNCH_STATUS.md`](docs/LAUNCH_STATUS.md) for the canonical launch truth.
 
 **Last verified:** 2026-08-02 (Asia/Kolkata)
@@ -27,8 +28,10 @@ see [`docs/LAUNCH_STATUS.md`](docs/LAUNCH_STATUS.md) for the canonical launch tr
 
 - **Production-ready MVP plan:** Phase 0 and Phase 1 are complete. Phase 1 shipped catalogue timeout
   handling, Node 24 runtime alignment, production security basics, and six-route synthetic checks in
-  PRs #66-#69. The next bounded unit is Phase 2A/2B: explicit lead-generation storefront mode plus
-  removal of the five non-production demos.
+  PRs #66-#69. Phase 2A/2B shipped in PR #71 and is merged into `main`: explicit lead-generation
+  storefront mode is live, and the five non-production demo identifiers are absent from the public
+  catalogue, APIs and sitemap. The exact-five Prisma operation found no matching production rows and
+  failed closed without mutation. The next bounded unit is Phase 2C: audit the 41 production designs.
 - **Phases 0-5** done and merged (scaffold, catalog backend, auth, storefront, admin UI, deploy,
   hardening, Playwright e2e, audit fixes).
 - **Phase 6 e-commerce:** 6.0-6.4, 6.8 (admin order management, PR #38), and 6.9 (hardening +
@@ -103,8 +106,8 @@ that needed no owner business inputs; full breakdown in
   per-design fact sheet - fibre, weave, GSM, sizes, origin), social handles for
   `Organization.sameAs`, and the Google Business Profile branch decision.
   Category copy is *not* blocked - all three categories already have descriptions in production.
-- **Live-site content defects found 2026-07-25:** published designs include internal or test copy,
-  and non-production demo products remain indexable. The current counts and remediation order are
+- **Live-site content defects found 2026-07-25:** published designs include internal or test copy.
+  Phase 2A/2B removed the non-production demo identifiers from the public release. The current counts and remediation order are
   maintained in [`docs/LAUNCH_STATUS.md`](docs/LAUNCH_STATUS.md) and the launch plan.
   Details and remediation order in [wave plan §11.6](docs/plans/growth-wave-1-trust-and-content.md).
 
@@ -112,8 +115,8 @@ that needed no owner business inputs; full breakdown in
 
 ## Parallel track - catalog content
 
-41 numbered production designs are live on sunfabb.com, while five non-production demo products
-remain active. The current image-generation and classification state is tracked in
+41 numbered production designs are live on sunfabb.com, and the five non-production demo identifiers
+are absent from the public release. The current image-generation and classification state is tracked in
 `tools/image-pipeline/CATALOG_PROGRESS.md`, which is now committed and authoritative for catalogue
 production. This track is fully non-blocking for app development - it feeds Cloudinary/admin
 uploads independently whenever designs are ready.
@@ -312,3 +315,8 @@ Update only at phase boundaries or feature merges.
   non-production payment stub, checkout Zod contract validation, and blocking Playwright coverage.
   Backend unit/E2E, frontend, lint, typecheck, builds, and the full 10-test Playwright suite passed.
   Commit `6788b93` is published in PR #39.
+- _(2026-08-02)_ **Production-readiness Phase 2A/2B done** (PR #71, merged as `927fd66`). Added
+  explicit `CATALOG_LEAD_GEN`/`TRANSACTIONAL_COMMERCE` mode enforcement, lead-generation UI and
+  enquiry fallback, guarded commerce mutations, active-only public product reads, and a fail-closed
+  Prisma operation for the five demo identifiers. CI, Vercel production and Render health checks
+  passed; the production database lookup found no matching demo rows, so no mutation was made.
