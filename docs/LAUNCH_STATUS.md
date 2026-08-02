@@ -48,11 +48,36 @@ internal development copy, unsupported taxonomy, and incomplete trust/policy con
 | 0 - Establish one launch truth | Complete | Canonical launch truth and issues #46-#64 established |
 | 1 - Customer safety and reliability | Complete with owner-accepted infrastructure deviations | PRs #66-#69; Render Free retained with backend-only HeyOnCall mitigation, email-only alerts, and JWT rotation deferred pending a concrete security concern |
 | 2 - Public hygiene and catalogue truth | In progress | 2A/2B merged in PR #71; Phase 2C report covers all 41 numbered designs, but five live non-numbered products still need reconciliation |
-| 3 - Trust and conversion foundation | Not started | Requires owner business, contact, legal, and policy inputs |
+| 3 - Trust and conversion foundation | In progress - code implemented, owner/vendor gates pending | Commit `0878991`; requires verified business/contact/legal facts and Resend domain verification |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
 | 5 - Catalogue MVP release validation | Not started | Follows phases 1-4 and human release checks |
 | 6 - Transactional commerce completion | Vendor-gated | Resend, GST, Shiprocket, Razorpay, and go-live inputs/verification |
 | Image catalogue expansion | Parallel, non-blocking | Owner QA and commercial metadata; preserve fail-closed pipeline gates |
+
+### Phase 3 implementation evidence
+
+The isolated Phase 3 branch implements the code portion of the trust and conversion foundation
+in commit `0878991`:
+
+- `/about`, `/shipping-policy`, `/returns-policy`, `/privacy-policy`, and `/terms` are linked from
+  the footer and sitemap. Their copy stays explicit about facts awaiting owner/legal confirmation;
+  it does not invent a seller identity, shipping promise, return window, or legal notice.
+- Contact channels, social profiles, LocalBusiness data, and PDP trust claims fail closed when the
+  corresponding owner-verified value is unavailable.
+- The contact route validates backend success/error payloads at the frontend boundary, and the
+  backend stores submissions independently of best-effort email delivery.
+- Resend transport, transactional templates, contact acknowledgement, owner notification, and
+  safe operational failure logs are implemented. Production requires `RESEND_API_KEY` and
+  `EMAIL_FROM`; `CONTACT_NOTIFY_EMAIL` is configured locally for owner notification.
+- Local verification passed: backend 49 suites / 318 tests, frontend 48 suites / 341 tests,
+  type-checks, linters, formatting, and backend build. The frontend production build remains
+  environment-blocked by the missing Darwin/arm64 Next SWC binary.
+
+The external completion gates are still open: Resend shows `sunfabb.com` as `not started` until
+the displayed DKIM and SPF records are added in Namecheap and DNS verification is run. Owner or
+legal review is also still required for the final business identity, contact channels, shipping,
+returns/refunds, privacy, and terms copy. Phase 3 must not be marked complete until those facts
+are supplied and the live contact delivery path is verified.
 
 ### Phase 2C evidence
 
