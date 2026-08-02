@@ -12,8 +12,18 @@ function isStorefrontMode(value: string | undefined): value is StorefrontMode {
   );
 }
 
+function getRuntimeEnvironment(): Record<string, string | undefined> {
+  // Keep these as direct environment lookups. Next.js replaces public env
+  // properties at build time for client bundles; passing the whole process.env
+  // object through a helper leaves that bundle with an empty environment.
+  return {
+    NODE_ENV: process.env.NODE_ENV,
+    NEXT_PUBLIC_STOREFRONT_MODE: process.env.NEXT_PUBLIC_STOREFRONT_MODE,
+  };
+}
+
 export function getStorefrontMode(
-  environment: Record<string, string | undefined> = process.env,
+  environment: Record<string, string | undefined> = getRuntimeEnvironment(),
 ): StorefrontMode {
   const configured = environment.NEXT_PUBLIC_STOREFRONT_MODE;
 

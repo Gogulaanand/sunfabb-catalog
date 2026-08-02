@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   getStorefrontMode,
   isTransactionalCommerceEnabled,
@@ -6,6 +6,10 @@ import {
 } from "./storefront-mode";
 
 describe("storefront mode", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("defaults non-production environments to lead generation", () => {
     expect(getStorefrontMode({ NODE_ENV: "test" })).toBe(
       STOREFRONT_MODES.LEAD_GENERATION,
