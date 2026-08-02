@@ -47,12 +47,21 @@ internal development copy, unsupported taxonomy, and incomplete trust/policy con
 |---|---|---|
 | 0 - Establish one launch truth | Complete | Canonical launch truth and issues #46-#64 established |
 | 1 - Customer safety and reliability | Complete with owner-accepted infrastructure deviations | PRs #66-#69; Render Free retained with backend-only HeyOnCall mitigation, email-only alerts, and JWT rotation deferred pending a concrete security concern |
-| 2 - Public hygiene and catalogue truth | 2A/2B complete | PR #71 (`927fd66`) shipped lead-generation mode and public demo removal; next is 2C audit of the 41 production designs |
+| 2 - Public hygiene and catalogue truth | In progress | 2A/2B merged in PR #71; Phase 2C report covers all 41 numbered designs, but five live non-numbered products still need reconciliation |
 | 3 - Trust and conversion foundation | Not started | Requires owner business, contact, legal, and policy inputs |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
 | 5 - Catalogue MVP release validation | Not started | Follows phases 1-4 and human release checks |
 | 6 - Transactional commerce completion | Vendor-gated | Resend, GST, Shiprocket, Razorpay, and go-live inputs/verification |
 | Image catalogue expansion | Parallel, non-blocking | Owner QA and commercial metadata; preserve fail-closed pipeline gates |
+
+### Phase 2C evidence
+
+The read-only [41-design public-data audit](audits/PHASE2C_41_DESIGN_PUBLIC_DATA_AUDIT.md) was
+generated from the public API on 2026-08-02. It covers 41 numbered designs and 163 variants. It
+does not approve public claims: dimensions, set contents, product names, materials, sizes, prices,
+stock source, care instructions, and publication approval remain missing or blocked until matched
+to owner-approved release records. The current numbered list is a working set, not the final
+catalogue; additional raw supplier inputs remain pending for later image-pipeline processing.
 
 ## Release guardrails
 
