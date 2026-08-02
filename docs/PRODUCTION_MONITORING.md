@@ -46,10 +46,15 @@ replacement for always-on hosting.
 
 ## External monitor
 
-HeyOnCall was configured on 2026-08-02 with an outbound probe named `Backend health` targeting
-`https://sunfabb-backend.onrender.com/health`. The free-tier probe uses `HEAD`, runs independently
-of GitHub Actions, and alerts after five minutes of continuous failure. Its first production probe
-returned HTTP 200.
+HeyOnCall was configured on 2026-08-02 with all three free-tier outbound probes:
+
+- `Backend health` targets `https://sunfabb-backend.onrender.com/health`;
+- `Storefront catalog` targets `https://sunfabb.com/catalog`;
+- `Contact page` targets `https://sunfabb.com/contact`.
+
+The probes use `HEAD`, run independently of GitHub Actions, and alert after five minutes of
+continuous failure. Their first production probes all returned HTTP 200. The backend probe also
+provides one-minute inbound traffic as temporary Render Free cold-start mitigation.
 
 The `Sunfabb production` service is assigned to the `Sunfabb primary` rotation, and immediate email
 notifications are connected. Email delivery is a fallback channel: install and sign in to the
