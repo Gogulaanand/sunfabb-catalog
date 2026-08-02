@@ -5,6 +5,12 @@ import { motion, AnimatePresence } from "motion/react";
 import { formatPrice, type ProductVariant } from "@/lib/api";
 import { useCartStore } from "@/lib/cart-store";
 import { trackAddToCart } from "@/lib/analytics";
+import { isTransactionalCommerceEnabled } from "@/lib/storefront-mode";
+import {
+  buildProductEnquiryMessage,
+  isWhatsAppConfigured,
+  whatsappLink,
+} from "@/lib/site-config";
 
 interface VariantSelectorProps {
   variants: ProductVariant[];
@@ -73,6 +79,7 @@ export function VariantSelector({
   selectedVariantId,
   onVariantChange,
 }: VariantSelectorProps) {
+  const transactionalCommerceEnabled = isTransactionalCommerceEnabled();
   const [addState, setAddState] = useState<AddState>("idle");
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -301,13 +308,13 @@ export function VariantSelector({
         </p>
       )}
 
-      {/* Add to Cart */}
-      {selectedVariant && (
+      {/* Purchase controls are only available in transactional mode. */}
+      {selectedVariant && transactionalCommerceEnabled && (
         <div role="status" aria-live="polite" className="sr-only">
           {addState !== "idle" ? BUTTON_LABELS[addState] : ""}
         </div>
       )}
-      {selectedVariant && (
+      {selectedVariant && transactionalCommerceEnabled && (
         <motion.button
           layout
           onClick={handleAddToCart}
@@ -341,6 +348,32 @@ export function VariantSelector({
             </motion.span>
           </AnimatePresence>
         </motion.button>
+      )}
+      {selectedVariant && !transactionalCommerceEnabled && (
+        isWhatsAppConfigured() ? (
+          <a
+            href={whatsappLink(
+              buildProductEnquiryMessage(
+                productName,
+                [selectedVariant.size, selectedVariant.color.name, selectedVariant.material.name]
+                  .filter(Boolean)
+                  .join(" · "),
+              ),
+            )}
+            target="_blank"
+            rel="noreferrer"
+            className="block w-full py-3 rounded bg-primary text-on-primary text-label-caps text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 hover:opacity-90 transition-opacity"
+          >
+            Enquire on WhatsApp
+          </a>
+        ) : (
+          <a
+            href="/contact"
+            className="block w-full py-3 rounded bg-primary text-on-primary text-label-caps text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 hover:opacity-90 transition-opacity"
+          >
+            Enquire about this piece
+          </a>
+        )
       )}
     </div>
   );

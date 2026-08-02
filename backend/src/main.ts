@@ -8,6 +8,7 @@ import {
   createCorsOriginChecker,
   parseConfiguredOrigins,
 } from './config/cors-origin.js';
+import { getStorefrontMode } from './config/storefront-mode.js';
 
 // Node's Happy Eyeballs (autoSelectFamily) can time out connecting to hosts that
 // round-robin across IPv4 + IPv6 (e.g. Neon's pooler) on networks with no IPv6 route.
@@ -15,6 +16,11 @@ import {
 setDefaultAutoSelectFamily(false);
 
 async function bootstrap() {
+  // Validate the release mode before Nest starts accepting traffic. In local and
+  // test environments the safe lead-generation default remains available; a
+  // production deployment must choose its mode explicitly.
+  getStorefrontMode();
+
   // rawBody: true exposes the untouched request bytes on req.rawBody, which the
   // Razorpay webhook needs to verify X-Razorpay-Signature — the HMAC is computed
   // over the exact payload Razorpay sent, and the JSON-parsed-then-reserialised

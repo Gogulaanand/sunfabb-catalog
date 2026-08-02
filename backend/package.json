@@ -11,6 +11,7 @@
   "scripts": {
     "postinstall": "prisma generate",
     "data:classify-known-swatches": "tsx prisma/backfill-product-image-roles.ts",
+    "data:deactivate-demos": "tsx prisma/deactivate-demo-products.ts",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

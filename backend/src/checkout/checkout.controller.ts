@@ -9,6 +9,7 @@ import { CheckoutService } from './checkout.service.js';
 import { CustomerJwtAuthGuard } from '../customer-auth/guards/customer-jwt-auth.guard.js';
 import { CurrentCustomer } from '../customer-auth/decorators/current-customer.decorator.js';
 import type { CurrentCustomerData } from '../customer-auth/strategies/customer-jwt.strategy.js';
+import { StorefrontModeGuard } from '../config/storefront-mode.guard.js';
 
 @Controller('checkout')
 @UseGuards(CustomerJwtAuthGuard)
@@ -19,6 +20,7 @@ export class CheckoutController {
   // priced from the live cart; it takes no body (the cart is read from the token).
   @Post('quote')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(StorefrontModeGuard)
   quote(@CurrentCustomer() customer: CurrentCustomerData) {
     return this.checkoutService.quote(customer.customerId);
   }

@@ -3,6 +3,12 @@
 // address, Maps URL, Instagram handle, and business hours before launch.
 // JSON-LD on /contact is suppressed while any field is a placeholder.
 
+const configuredWhatsAppNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.trim();
+const whatsappNumber =
+  configuredWhatsAppNumber && /^\d{10,15}$/.test(configuredWhatsAppNumber)
+    ? configuredWhatsAppNumber
+    : '91XXXXXXXXXX';
+
 export const SITE = {
   name: 'Sunfabb',
   phone: {
@@ -11,7 +17,7 @@ export const SITE = {
   },
   whatsapp: {
     // Digits only, country code, no '+' — wa.me format requires this.
-    number: '91XXXXXXXXXX',     // PLACEHOLDER
+    number: whatsappNumber,      // PLACEHOLDER until owner configures a real number
     defaultMessage: "Hi Sunfabb, I'd like to know more about your products.",
   },
   email: 'hello@sunfabb.com',   // PLACEHOLDER
@@ -25,6 +31,17 @@ export const SITE = {
 
 export function whatsappLink(message: string = SITE.whatsapp.defaultMessage): string {
   return `https://wa.me/${SITE.whatsapp.number}?text=${encodeURIComponent(message)}`;
+}
+
+export function isWhatsAppConfigured(): boolean {
+  return /^\d{10,15}$/.test(SITE.whatsapp.number);
+}
+
+export function buildProductEnquiryMessage(
+  productName: string,
+  variantLabel: string,
+): string {
+  return `Hi Sunfabb, I'd like to enquire about ${productName}${variantLabel ? ` (${variantLabel})` : ''}.`;
 }
 
 export const telLink = `tel:${SITE.phone.e164}`;

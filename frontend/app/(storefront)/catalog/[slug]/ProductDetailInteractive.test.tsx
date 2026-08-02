@@ -71,6 +71,27 @@ function makeGalleryImages(): ProductImage[] {
 }
 
 describe("ProductDetailInteractive", () => {
+  it("keeps variant selection but replaces Add to Cart with an enquiry CTA in lead-generation mode", () => {
+    render(
+      <ProductDetailInteractive
+        images={makeGalleryImages()}
+        variants={variants}
+        productName="Lead-generation bedspread"
+        productSlug="lead-generation-bedspread"
+        initialVariantId="variant-red"
+        detailsBeforeVariant={null}
+        detailsAfterVariant={null}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "Enquire about this piece" })).toHaveAttribute(
+      "href",
+      "/contact",
+    );
+    expect(screen.queryByRole("button", { name: "Add to Cart" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Select color Red" })).toBeInTheDocument();
+  });
+
   it("initially selects the variant linked to the primary gallery image", () => {
     const images = makeGalleryImages();
     const initialVariantId = getInitialVariantId(variants, images);

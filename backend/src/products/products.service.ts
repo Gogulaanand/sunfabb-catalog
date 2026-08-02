@@ -227,7 +227,7 @@ export class ProductsService {
 
   findOne(slug: string) {
     return this.prisma.product.findUnique({
-      where: { slug },
+      where: { slug, is_active: true },
       include: {
         category: { select: { name: true, slug: true } },
         variants: {

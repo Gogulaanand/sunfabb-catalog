@@ -4,6 +4,7 @@ import { ProductImageRole } from '../../generated/prisma/enums.js';
 import { ProductsService } from './products.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { FindProductsDto } from './dto/find-products.dto.js';
+import { DEMO_PRODUCT_IDENTIFIERS } from './demo-product-identifiers.js';
 
 const mockProduct = {
   id: 'cuid-1',
@@ -372,6 +373,21 @@ describe('ProductsService', () => {
   });
 
   describe('findOne', () => {
+    it.each(DEMO_PRODUCT_IDENTIFIERS)(
+      'requires an active product for public demo lookup %s',
+      async (identifier) => {
+        mockPrisma.product.findUnique.mockResolvedValue(null);
+
+        await expect(service.findOne(identifier)).resolves.toBeNull();
+
+        expect(mockPrisma.product.findUnique).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: { slug: identifier, is_active: true },
+          }),
+        );
+      },
+    );
+
     it('returns product with variants and images when found', async () => {
       const fullProduct = {
         ...mockProduct,
@@ -391,7 +407,7 @@ describe('ProductsService', () => {
 
       expect(result).toEqual(fullProduct);
       expect(mockPrisma.product.findUnique).toHaveBeenCalledWith({
-        where: { slug: 'classic-bedspread' },
+        where: { slug: 'classic-bedspread', is_active: true },
         include: expect.objectContaining({
           category: expect.any(Object) as unknown,
           variants: expect.any(Object) as unknown,
