@@ -385,6 +385,13 @@ Never replace missing values with defaults.
 
 ### 2D. Rewrite public product information
 
+**Status: Deferred by owner decision (2026-08-02).**
+
+Do not implement this as a broad public-content cleanup or strip the current storefront
+experience in the name of hygiene. The current public copy and presentation remain retained. Revisit
+only with an explicitly approved, narrowly scoped copy/data change that preserves the intended site
+experience and keeps verified, missing, blocked, and approved facts distinct.
+
 Remove:
 
 * internal admin references,
@@ -407,6 +414,12 @@ A good PDP should clearly state:
 * design/reference number.
 
 ### 2E. Fix catalogue taxonomy
+
+**Status: Deferred by owner decision (2026-08-02).**
+
+Do not remove current categories, filters, or image references under this deferred scope. Revisit
+taxonomy only after an explicit owner-approved inventory decision and approved replacement assets are
+available; no metadata should be invented and no image assets should be deleted.
 
 1. Show only categories with real active products.
 2. Show only materials represented by verified active variants.
