@@ -31,7 +31,9 @@ see [`docs/LAUNCH_STATUS.md`](docs/LAUNCH_STATUS.md) for the canonical launch tr
   PRs #66-#69. Phase 2A/2B shipped in PR #71 and is merged into `main`: explicit lead-generation
   storefront mode is live, and the five non-production demo identifiers are absent from the public
   catalogue, APIs and sitemap. The exact-five Prisma operation found no matching production rows and
-  failed closed without mutation. The next bounded unit is Phase 2C: audit the 41 production designs.
+  failed closed without mutation. Phase 2C is now in progress with the read-only
+  [41-design public-data audit](docs/audits/PHASE2C_41_DESIGN_PUBLIC_DATA_AUDIT.md); the audit found
+  five additional live non-numbered products that still need production-data reconciliation.
 - **Phases 0-5** done and merged (scaffold, catalog backend, auth, storefront, admin UI, deploy,
   hardening, Playwright e2e, audit fixes).
 - **Phase 6 e-commerce:** 6.0-6.4, 6.8 (admin order management, PR #38), and 6.9 (hardening +
@@ -116,10 +118,13 @@ that needed no owner business inputs; full breakdown in
 ## Parallel track - catalog content
 
 41 numbered production designs are live on sunfabb.com, and the five non-production demo identifiers
-are absent from the public release. The current image-generation and classification state is tracked in
+are absent from the public release. Separately, the Phase 2C audit found five named non-numbered
+products still public; they require reconciliation before the public catalogue can be called
+production-only. The current image-generation and classification state is tracked in
 `tools/image-pipeline/CATALOG_PROGRESS.md`, which is now committed and authoritative for catalogue
-production. This track is fully non-blocking for app development - it feeds Cloudinary/admin
-uploads independently whenever designs are ready.
+production. The 41-design list is a working set, not the final catalogue: the owner has additional
+raw supplier inputs to share later, and pending image-generation work must continue through the
+classification, crop, generation, owner-QA, and publication gates independently.
 
 ---
 
