@@ -5,6 +5,7 @@ export interface MailAttachment {
 
 export interface MailMessage {
   to: string;
+  replyTo?: string;
   subject: string;
   html: string;
   text: string;
