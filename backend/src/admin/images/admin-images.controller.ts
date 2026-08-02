@@ -14,6 +14,8 @@ import {
   CloudinaryUploadError,
 } from './admin-images.service.js';
 
+const IMAGE_UPLOAD_ERROR_MESSAGE = 'Image upload failed';
+
 @Controller('admin/images')
 @UseGuards(JwtAuthGuard)
 export class AdminImagesController {
@@ -31,7 +33,7 @@ export class AdminImagesController {
         err.httpCode &&
         err.httpCode < 500
       ) {
-        throw new BadRequestException(err.message);
+        throw new BadRequestException(IMAGE_UPLOAD_ERROR_MESSAGE);
       }
       throw err;
     }

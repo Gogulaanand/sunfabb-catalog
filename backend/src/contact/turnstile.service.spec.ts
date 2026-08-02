@@ -75,6 +75,37 @@ describe('TurnstileService', () => {
     expect(result).toBe(false);
   });
 
+  it.each([
+    ['an object without a boolean success field', {}],
+    ['an object with a non-boolean success field', { success: 'true' }],
+    ['a null response', null],
+    ['a non-object response', 'not-an-object'],
+    ['an array response', []],
+  ])(
+    'fails closed when Cloudflare returns %s',
+    async (_description, payload) => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(payload),
+      });
+
+      const result = await service.verify('some-token');
+
+      expect(result).toBe(false);
+    },
+  );
+
+  it('fails closed when Cloudflare returns an unreadable JSON response', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.reject(new Error('invalid JSON')),
+    });
+
+    const result = await service.verify('some-token');
+
+    expect(result).toBe(false);
+  });
+
   it('fails closed when TURNSTILE_SECRET_KEY is not set', async () => {
     delete process.env.TURNSTILE_SECRET_KEY;
 
