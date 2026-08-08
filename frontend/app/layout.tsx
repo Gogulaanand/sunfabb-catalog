@@ -3,7 +3,7 @@ import { Playfair_Display, Inter } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { OrganizationSchema } from '@/components/seo/OrganizationSchema';
-import { SITE_URL } from '@/lib/site-config';
+import { HIDE_TEST_IMAGES, SITE_URL } from '@/lib/site-config';
 import './globals.css';
 
 const playfairDisplay = Playfair_Display({
@@ -47,7 +47,9 @@ export default function RootLayout({
     >
       <head>
         <link rel="preconnect" href="https://res.cloudinary.com" />
-        <link rel="preconnect" href="https://images.unsplash.com" />
+        {!HIDE_TEST_IMAGES && (
+          <link rel="preconnect" href="https://images.unsplash.com" />
+        )}
       </head>
       <body className="min-h-full bg-surface text-on-surface font-body">
         <OrganizationSchema />

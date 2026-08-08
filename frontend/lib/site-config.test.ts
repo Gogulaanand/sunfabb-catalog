@@ -5,6 +5,8 @@ import {
   SITE_URL,
   telLink,
   TRUST_PAGE_LINKS,
+  isTestImageUrl,
+  shouldRenderStorefrontImage,
   whatsappLink,
 } from './site-config';
 
@@ -82,5 +84,25 @@ describe('contact links', () => {
 
   it('returns a mailto link only when an email is configured', () => {
     expect(mailtoLink).toBe(SITE.email ? 'mailto:' + SITE.email : undefined);
+  });
+});
+
+describe('storefront image visibility', () => {
+  it('recognises the seeded Unsplash host as test imagery', () => {
+    expect(
+      isTestImageUrl(
+        'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80',
+      ),
+    ).toBe(true);
+    expect(isTestImageUrl('https://res.cloudinary.com/demo/image/upload/sample.jpg')).toBe(false);
+  });
+
+  it('hides test imagery only when the storefront switch is enabled', () => {
+    const testImage = 'https://images.unsplash.com/photo-test';
+    const ownedImage = 'https://res.cloudinary.com/demo/image/upload/owned.jpg';
+
+    expect(shouldRenderStorefrontImage(testImage, true)).toBe(false);
+    expect(shouldRenderStorefrontImage(testImage, false)).toBe(true);
+    expect(shouldRenderStorefrontImage(ownedImage, true)).toBe(true);
   });
 });

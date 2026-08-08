@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { shouldRenderStorefrontImage } from './site-config';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
 
@@ -275,6 +276,14 @@ export function getCategories(): Promise<Category[]> {
     z.array(categorySchema),
     { next: { revalidate: 60 } },
     'Failed to fetch categories',
+  ).then((categories) =>
+    categories.map((category) => ({
+      ...category,
+      image_url:
+        category.image_url && shouldRenderStorefrontImage(category.image_url)
+          ? category.image_url
+          : null,
+    })),
   );
 }
 
@@ -314,7 +323,15 @@ export function getProducts(
     productsResponseSchema,
     { next: { revalidate: 30 } },
     'Failed to fetch products',
-  );
+  ).then((response) => ({
+    ...response,
+    items: response.items.map((product) => ({
+      ...product,
+      images: product.images.filter((image) =>
+        shouldRenderStorefrontImage(image.url),
+      ),
+    })),
+  }));
 }
 
 export function getProduct(slug: string): Promise<Product> {
@@ -323,5 +340,10 @@ export function getProduct(slug: string): Promise<Product> {
     productSchema,
     { next: { revalidate: 30 } },
     `Failed to fetch product: ${slug}`,
-  );
+  ).then((product) => ({
+    ...product,
+    images: product.images.filter((image) =>
+      shouldRenderStorefrontImage(image.url),
+    ),
+  }));
 }
