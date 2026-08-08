@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { SITE } from "@/lib/site-config";
+import Link from 'next/link';
+import { SITE } from '@/lib/site-config';
 
 export interface ProductTrustContent {
   dispatchExpectation?: string;
@@ -13,40 +13,49 @@ interface TrustBlock {
   key: keyof ProductTrustContent;
   label: string;
   value: string;
-  href?: "/contact";
+  href?: '/contact';
 }
 
 const PLACEHOLDER_VALUES = new Set([
-  "...",
-  "n/a",
-  "placeholder",
-  "tbd",
-  "to be confirmed",
+  '...',
+  'n/a',
+  'placeholder',
+  'tbd',
+  'to be confirmed',
 ]);
 
 function verifiedText(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
-  if (!trimmed || PLACEHOLDER_VALUES.has(trimmed.toLowerCase())) return undefined;
+  if (!trimmed || PLACEHOLDER_VALUES.has(trimmed.toLowerCase()))
+    return undefined;
   return trimmed;
 }
 
 /**
  * Builds only claims supported by the current storefront configuration.
  *
- * Dispatch, delivery and returns are intentionally absent until the owner
- * supplies those policy facts. Checkout is opt-in, so its payment posture is
- * shown only when the same explicit flag opens the commerce routes.
+ * Dispatch, delivery and returns use the conservative working copy from the
+ * approved storefront configuration. Checkout is opt-in, so the payment
+ * posture clearly describes the current lead-generation mode until commerce
+ * is explicitly enabled.
  */
 export function getProductTrustContent(): ProductTrustContent {
   const content: ProductTrustContent = {};
   const siteName = verifiedText(SITE.name);
 
   if (siteName) {
-    content.businessContact = `Contact ${siteName} about this product.`;
+    content.businessContact = `Contact ${siteName} at ${SITE.phone.display} or ${SITE.email}.`;
   }
 
-  if (process.env.ECOMMERCE_ENABLED === "true") {
-    content.paymentPosture = "Online payment is available at checkout.";
+  content.dispatchExpectation = verifiedText(SITE.trust.shippingTimeline);
+  content.deliveryRegion = verifiedText(SITE.trust.shippingCoverage);
+  content.returnsSummary = verifiedText(SITE.trust.returnWindow);
+
+  if (process.env.ECOMMERCE_ENABLED === 'true') {
+    content.paymentPosture = 'Online payment is available at checkout.';
+  } else {
+    content.paymentPosture =
+      'Payment is not taken through this catalogue; confirm payment details with Sunfabb before ordering.';
   }
 
   return content;
@@ -59,30 +68,30 @@ export function ProductTrustBlocks({
 }) {
   const allBlocks: TrustBlock[] = [
     {
-      key: "dispatchExpectation",
-      label: "Dispatch expectation",
-      value: verifiedText(content.dispatchExpectation) ?? "",
+      key: 'dispatchExpectation',
+      label: 'Dispatch expectation',
+      value: verifiedText(content.dispatchExpectation) ?? '',
     },
     {
-      key: "deliveryRegion",
-      label: "Delivery region",
-      value: verifiedText(content.deliveryRegion) ?? "",
+      key: 'deliveryRegion',
+      label: 'Delivery region',
+      value: verifiedText(content.deliveryRegion) ?? '',
     },
     {
-      key: "returnsSummary",
-      label: "Returns summary",
-      value: verifiedText(content.returnsSummary) ?? "",
+      key: 'returnsSummary',
+      label: 'Returns summary',
+      value: verifiedText(content.returnsSummary) ?? '',
     },
     {
-      key: "paymentPosture",
-      label: "Payment posture",
-      value: verifiedText(content.paymentPosture) ?? "",
+      key: 'paymentPosture',
+      label: 'Payment posture',
+      value: verifiedText(content.paymentPosture) ?? '',
     },
     {
-      key: "businessContact",
-      label: "Business contact",
-      value: verifiedText(content.businessContact) ?? "",
-      href: "/contact",
+      key: 'businessContact',
+      label: 'Business contact',
+      value: verifiedText(content.businessContact) ?? '',
+      href: '/contact',
     },
   ];
   const blocks = allBlocks.filter((block) => block.value.length > 0);

@@ -1,9 +1,9 @@
-import { SITE, SITE_URL, type SocialProfile } from "@/lib/site-config";
-import { safeJsonLd } from "@/lib/json-ld";
+import { SITE, SITE_URL, type SocialProfile } from '@/lib/site-config';
+import { safeJsonLd } from '@/lib/json-ld';
 
 export interface OrganizationGraphData {
-  "@context": "https://schema.org";
-  "@graph": Array<Record<string, unknown>>;
+  '@context': 'https://schema.org';
+  '@graph': Array<Record<string, unknown>>;
 }
 
 export function buildOrganizationSchemas(
@@ -11,12 +11,12 @@ export function buildOrganizationSchemas(
   socialProfiles: readonly SocialProfile[] = SITE.socialProfiles,
 ): OrganizationGraphData {
   const organization: Record<string, unknown> = {
-    "@type": "Organization",
-    "@id": `${siteUrl}/#organization`,
+    '@type': 'Organization',
+    '@id': `${siteUrl}/#organization`,
     name: SITE.name,
     url: siteUrl,
     description:
-      "Premium handcrafted home textiles from India - bedspreads, towels, napkins and table linen.",
+      'Home textiles from India - bedspreads, towels, napkins and table linen.',
   };
 
   // sameAs is an identity assertion, so omit it entirely until the owner has
@@ -26,15 +26,15 @@ export function buildOrganizationSchemas(
   }
 
   return {
-    "@context": "https://schema.org",
-    "@graph": [
+    '@context': 'https://schema.org',
+    '@graph': [
       organization,
       {
-        "@type": "WebSite",
-        "@id": `${siteUrl}/#website`,
+        '@type': 'WebSite',
+        '@id': `${siteUrl}/#website`,
         url: siteUrl,
         name: SITE.name,
-        publisher: { "@id": `${siteUrl}/#organization` },
+        publisher: { '@id': `${siteUrl}/#organization` },
       },
     ],
   };

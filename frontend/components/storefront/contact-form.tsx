@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { useRef, useState } from "react";
-import TurnstileWidget from "./turnstile-widget";
-import { whatsappLink } from "@/lib/site-config";
+import { useRef, useState } from 'react';
+import TurnstileWidget from './turnstile-widget';
+import { whatsappLink } from '@/lib/site-config';
 import {
   contactErrorMessage,
   contactSubmissionResponseSchema,
-} from "@/lib/contact-contract";
+} from '@/lib/contact-contract';
 
 type SubmitResult = ReturnType<typeof contactSubmissionResponseSchema.parse>;
 
 export default function ContactForm() {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
   const [token, setToken] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<SubmitResult | null>(null);
@@ -39,10 +39,16 @@ export default function ContactForm() {
     setError(null);
 
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, email: email || undefined, message, turnstile_token: token }),
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          phone,
+          email: email || undefined,
+          message,
+          turnstile_token: token,
+        }),
       });
 
       if (res.status === 201) {
@@ -52,14 +58,14 @@ export default function ContactForm() {
         if (parsed.success) {
           setSuccess(parsed.data);
         } else {
-          setError("Unexpected response. Please try again.");
+          setError('Unexpected response. Please try again.');
           resetTurnstile();
         }
       } else if (res.status === 429) {
-        setError("Too many requests. Please wait a minute and try again.");
+        setError('Too many requests. Please wait a minute and try again.');
         resetTurnstile();
       } else if (res.status === 403) {
-        setError("CAPTCHA verification failed. Please try again.");
+        setError('CAPTCHA verification failed. Please try again.');
         resetTurnstile();
       } else {
         const body: unknown = await res.json().catch(() => null);
@@ -67,7 +73,7 @@ export default function ContactForm() {
         resetTurnstile();
       }
     } catch {
-      setError("Network error. Please check your connection and try again.");
+      setError('Network error. Please check your connection and try again.');
       resetTurnstile();
     } finally {
       setSubmitting(false);
@@ -82,10 +88,11 @@ export default function ContactForm() {
           We&apos;ve received your enquiry and will get back to you soon.
           {whatsappHref && (
             <>
-              {" "}You can also reach us directly on{" "}
+              {' '}
+              You can also reach us directly on{' '}
               <a href={whatsappHref} className="text-primary underline">
                 WhatsApp
-              </a>{" "}
+              </a>{' '}
               for a faster response.
             </>
           )}
@@ -95,8 +102,8 @@ export default function ContactForm() {
   }
 
   const inputClass =
-    "w-full rounded-md border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary";
-  const labelClass = "block text-label-caps text-on-surface-variant mb-1";
+    'w-full rounded-md border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary';
+  const labelClass = 'block text-label-caps text-on-surface-variant mb-1';
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
@@ -182,10 +189,10 @@ export default function ContactForm() {
       <div
         aria-hidden="true"
         style={{
-          position: "absolute",
-          left: "-9999px",
+          position: 'absolute',
+          left: '-9999px',
           height: 0,
-          overflow: "hidden",
+          overflow: 'hidden',
         }}
       >
         <label htmlFor="cf-company">Company</label>
@@ -200,12 +207,20 @@ export default function ContactForm() {
 
       <TurnstileWidget key={widgetKey} onToken={setToken} />
 
+      <p className="text-body-sm text-on-surface-variant">
+        By sending this enquiry, you allow Sunfabb to use the details you
+        provide to respond to your message and provide related customer support.
+        We do not add enquiry details to marketing lists without a separate
+        request or permission. Cloudflare Turnstile may process browser and
+        device signals to help prevent automated abuse.
+      </p>
+
       <button
         type="submit"
         disabled={!token || submitting}
         className="w-full rounded-md bg-primary px-4 py-3 text-label-caps text-on-primary transition-opacity disabled:opacity-50 hover:opacity-90"
       >
-        {submitting ? "Sending…" : "Send Enquiry"}
+        {submitting ? 'Sending…' : 'Send Enquiry'}
       </button>
     </form>
   );
