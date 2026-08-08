@@ -85,7 +85,8 @@ The isolated Phase 3 branch implements the code portion of the trust and convers
   Next workspace-root and middleware deprecation warnings.
 - The `sunfabb.com` Resend domain is verified. The Vercel Preview environment now contains the
   unquoted Turnstile site key and the refreshed Phase 3 preview produces a Turnstile token. No
-  live form submission was created during this probe.
+  live form submission was created during this probe. The live backend health endpoint returned
+  200, and a negative contact probe with an invalid Turnstile token returned 403 without delivery.
 
 The external completion gates are still open. The legal seller identity and required grievance
 contact have not been supplied, so the site does not infer them from the brand or public contact
