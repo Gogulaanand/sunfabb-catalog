@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { getCategories, type ProductsQuery } from '@/lib/api';
+import { getCategories } from '@/lib/api';
+import { parseCatalogSearchParams } from '@/lib/catalog-query';
 import { BreadcrumbSchema } from '@/components/seo/BreadcrumbSchema';
 import CatalogContent from './CatalogContent';
 import CatalogGridSkeleton from './CatalogGridSkeleton';
@@ -17,16 +18,17 @@ export async function generateMetadata({
   searchParams,
 }: PageProps): Promise<Metadata> {
   const params = await searchParams;
-  const categorySlug =
-    typeof params.category === 'string' ? params.category : undefined;
+  const { categorySlug } = parseCatalogSearchParams(params);
 
-  const canonical = categorySlug
-    ? `${siteUrl}/catalog?category=${categorySlug}`
+  const categories = categorySlug
+    ? await getCategories().catch(() => [])
+    : [];
+  const category = categories.find((c) => c.slug === categorySlug);
+  const canonical = category
+    ? `${siteUrl}/catalog?category=${encodeURIComponent(category.slug)}`
     : `${siteUrl}/catalog`;
 
   if (categorySlug) {
-    const categories = await getCategories().catch(() => []);
-    const category = categories.find((c) => c.slug === categorySlug);
     const title = category ? `${category.name} Collection` : 'Catalog';
     const description =
       category?.description ??
@@ -56,15 +58,8 @@ function slugToTitle(slug: string): string {
 export default async function CatalogPage({ searchParams }: PageProps) {
   const params = await searchParams;
 
-  const categorySlug =
-    typeof params.category === 'string' ? params.category : undefined;
-  const materialId =
-    typeof params.material === 'string' ? params.material : undefined;
-  const colorId = typeof params.color === 'string' ? params.color : undefined;
-  const sortBy = (typeof params.sort === 'string' ? params.sort : undefined) as
-    | ProductsQuery['sortBy']
-    | undefined;
-  const page = typeof params.page === 'string' ? Number(params.page) : 1;
+  const { categorySlug, materialId, colorId, sortBy, page } =
+    parseCatalogSearchParams(params);
 
   // Derive display name from the slug immediately - no fetch needed for the shell.
   const provisionalName = categorySlug ? slugToTitle(categorySlug) : undefined;

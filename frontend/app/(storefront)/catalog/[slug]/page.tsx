@@ -38,10 +38,11 @@ export async function generateMetadata({ params }: PageProps) {
       (img) => img.is_primary && img.image_role === "GALLERY",
     ) ?? product.images.find((img) => img.image_role === "GALLERY");
 
-  const ogImageUrl = primaryImage?.url.replace(
-    "/upload/",
-    "/upload/w_1200,h_630,c_fill,q_auto,f_auto/",
-  );
+  const ogImageUrl =
+    primaryImage?.url.replace(
+      "/upload/",
+      "/upload/w_1200,h_630,c_fill,q_auto,f_auto/",
+    ) ?? "/images/home/sunfabb-hero-option-a.png";
 
   const description =
     product.description ??

@@ -12,11 +12,20 @@ export const metadata: Metadata = {
   },
   description:
     'Browse Sunfabb bedspreads, towels, napkins and table linen from India.',
+  alternates: { canonical: '/' },
   openGraph: {
     title: 'Sunfabb - Bedspreads, Towels & Table Linen from India',
     description:
       'Browse Sunfabb bedspreads, towels, napkins and table linen from India.',
     url: '/',
+    images: [
+      {
+        url: '/images/home/sunfabb-hero-option-a.png',
+        width: 1672,
+        height: 941,
+        alt: 'Sunfabb home textiles',
+      },
+    ],
   },
 };
 

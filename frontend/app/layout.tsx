@@ -28,9 +28,18 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     siteName: 'Sunfabb',
+    images: [
+      {
+        url: '/images/home/sunfabb-hero-option-a.png',
+        width: 1672,
+        height: 941,
+        alt: 'Sunfabb home textiles',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
+    images: ['/images/home/sunfabb-hero-option-a.png'],
   },
 };
 

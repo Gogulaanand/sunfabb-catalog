@@ -42,6 +42,14 @@ export async function generateMetadata({
       description: guide.description,
       url: `${siteUrl}/guides/${slug}`,
       publishedTime: guide.date,
+      images: [
+        {
+          url: "/images/home/sunfabb-hero-option-a.png",
+          width: 1672,
+          height: 941,
+          alt: "Sunfabb home textiles",
+        },
+      ],
     },
   };
 }

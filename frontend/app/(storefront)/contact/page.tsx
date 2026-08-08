@@ -1,12 +1,19 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { SITE, whatsappLink, telLink, mailtoLink } from '@/lib/site-config';
+import {
+  SITE,
+  SITE_URL,
+  whatsappLink,
+  telLink,
+  mailtoLink,
+} from '@/lib/site-config';
 import ContactForm from '@/components/storefront/contact-form';
 
 export const metadata: Metadata = {
   title: 'Contact Us | Sunfabb',
   description:
     'Contact Sunfabb about bedspreads, towels, napkins and table linen.',
+  alternates: { canonical: `${SITE_URL}/contact` },
 };
 
 const whatsappHref = whatsappLink();
