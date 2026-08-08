@@ -76,14 +76,15 @@ The isolated Phase 3 branch implements the code portion of the trust and convers
   backend stores submissions independently of best-effort email delivery.
 - Resend transport, transactional templates, contact acknowledgement, owner notification, and
   safe operational failure logs are implemented. Production requires `RESEND_API_KEY` and
-  `EMAIL_FROM`; `CONTACT_NOTIFY_EMAIL` is configured locally for owner notification.
+  `EMAIL_FROM`; `CONTACT_NOTIFY_EMAIL` is configured locally for owner notification, but the
+  current Render backend environment does not yet contain the three mail-delivery variables.
 - Local verification passed on 2026-08-08: backend 49 suites / 319 tests, frontend 48 suites /
   341 tests, both package type-checks, both linters, backend build, and frontend production build
   with the documented production API URL and lead-generation mode. The build emitted only existing
   Next workspace-root and middleware deprecation warnings.
-- The `sunfabb.com` Resend domain is verified, and a controlled live SDK send using the configured
-  sender and internal notification address succeeded. No live form submission was created during
-  this probe.
+- The `sunfabb.com` Resend domain is verified. The Vercel Preview environment now contains the
+  Turnstile site key and the Phase 3 preview redeployment loads the widget without the missing-key
+  alert. No live form submission was created during this probe.
 
 The external completion gates are still open. The legal seller identity and required grievance
 contact have not been supplied, so the site does not infer them from the brand or public contact
