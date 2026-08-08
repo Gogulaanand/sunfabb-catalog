@@ -158,7 +158,7 @@ export default async function HomePage() {
           <p className="text-on-surface-variant">No products found.</p>
         ) : (
           <StaggerGroup className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
-            {featured.items.map((product) => {
+            {featured.items.map((product, index) => {
               const galleryImages = product.images.filter(
                 (image) => image.image_role === 'GALLERY',
               );
@@ -181,6 +181,7 @@ export default async function HomePage() {
                     }
                     aspectRatio="3/4"
                     sizes="(max-width: 768px) 50vw, 25vw"
+                    priority={index === 0}
                   />
                 </StaggerItem>
               );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState, useEffect, useId } from "react";
+import { useCallback, useState, useEffect, useId, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { Category, Material, Color } from "@/lib/api";
 import { useCatalogTransition } from "./CatalogTransitionContext";
@@ -99,6 +99,8 @@ export default function CatalogFilters({
   const { startCatalogTransition } = useCatalogTransition();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerId = useId();
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const currentCategory = searchParams.get("category") ?? "";
   const currentMaterial = searchParams.get("material") ?? "";
@@ -108,6 +110,11 @@ export default function CatalogFilters({
   const activeCount = [currentCategory, currentMaterial, currentColor].filter(
     Boolean,
   ).length;
+
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false);
+    setTimeout(() => triggerRef.current?.focus(), 0);
+  }, []);
 
   const updateParam = useCallback(
     (key: string, value: string | null) => {
@@ -135,13 +142,38 @@ export default function CatalogFilters({
   }, [drawerOpen]);
 
   useEffect(() => {
-    if (!drawerOpen) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDrawerOpen(false);
+    if (!drawerOpen || !drawerRef.current) return;
+
+    const panel = drawerRef.current;
+    const focusable = panel.querySelectorAll<HTMLElement>(
+      'button, select, input, a[href], [tabindex]:not([tabindex="-1"])',
+    );
+    focusable[0]?.focus();
+
+    const trap = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeDrawer();
+        return;
+      }
+      if (event.key !== "Tab" || focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey) {
+        if (document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [drawerOpen]);
+
+    document.addEventListener("keydown", trap);
+    return () => document.removeEventListener("keydown", trap);
+  }, [closeDrawer, drawerOpen]);
 
   const filterSections = (
     <>
@@ -254,6 +286,7 @@ export default function CatalogFilters({
     <aside className="w-full lg:w-56 shrink-0">
       {/* Mobile trigger */}
       <button
+        ref={triggerRef}
         className="lg:hidden mb-6 w-full flex items-center justify-between py-3 px-4 border border-outline-variant rounded-md text-on-surface hover:border-primary transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         onClick={() => setDrawerOpen(true)}
         aria-expanded={drawerOpen}
@@ -289,11 +322,12 @@ export default function CatalogFilters({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
               className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-              onClick={() => setDrawerOpen(false)}
+              onClick={closeDrawer}
               aria-hidden="true"
             />
             <motion.div
               id={drawerId}
+              ref={drawerRef}
               role="dialog"
               aria-modal="true"
               aria-label="Filter & Sort"
@@ -312,7 +346,7 @@ export default function CatalogFilters({
                   <ActiveBadge count={activeCount} />
                 </span>
                 <button
-                  onClick={() => setDrawerOpen(false)}
+                  onClick={closeDrawer}
                   className="p-1 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   aria-label="Close filters"
                 >

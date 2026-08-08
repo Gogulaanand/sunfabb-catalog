@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import CatalogFilters from "./CatalogFilters";
 import { CatalogTransitionProvider } from "./CatalogTransitionContext";
 
@@ -42,5 +42,27 @@ describe("CatalogFilters", () => {
 
     expect(pushMock).toHaveBeenCalledWith(expect.stringContaining("category=bedspreads"));
     expect(pushMock).toHaveBeenCalledWith(expect.not.stringContaining("page="));
+  });
+
+  it("moves focus into the mobile drawer and wraps keyboard focus", () => {
+    renderFilters();
+
+    fireEvent.click(screen.getByRole("button", { name: "Filter & Sort" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Filter & Sort" });
+    const dialogQueries = within(dialog);
+    const first = dialogQueries.getByRole("button", { name: "Close filters" });
+    const last = dialogQueries.getByRole("button", { name: "Indigo" });
+
+    expect(document.activeElement).toBe(first);
+    expect(first).toHaveFocus();
+
+    last.focus();
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(first).toHaveFocus();
+
+    first.focus();
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(last).toHaveFocus();
   });
 });

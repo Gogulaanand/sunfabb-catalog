@@ -88,6 +88,7 @@ export function ProductGallery({
                 src={activeImage.url}
                 alt={activeImage.alt_text ?? productName}
                 fill
+                loading="eager"
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
