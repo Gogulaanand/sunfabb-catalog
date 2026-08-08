@@ -76,8 +76,9 @@ The isolated Phase 3 branch implements the code portion of the trust and convers
   backend stores submissions independently of best-effort email delivery.
 - Resend transport, transactional templates, contact acknowledgement, owner notification, and
   safe operational failure logs are implemented. Production requires `RESEND_API_KEY` and
-  `EMAIL_FROM`; `CONTACT_NOTIFY_EMAIL` is configured locally for owner notification, but the
-  current Render backend environment does not yet contain the three mail-delivery variables.
+  `EMAIL_FROM`; `CONTACT_NOTIFY_EMAIL` is configured for owner notification. The Render backend
+  now contains all three mail-delivery variables, using a dedicated sending-only key, and the
+  resulting Phase 3 deployment is live.
 - Local verification passed on 2026-08-08: backend 49 suites / 319 tests, frontend 48 suites /
   341 tests, both package type-checks, both linters, backend build, and frontend production build
   with the documented production API URL and lead-generation mode. The build emitted only existing
@@ -90,9 +91,9 @@ The external completion gates are still open. The legal seller identity and requ
 contact have not been supplied, so the site does not infer them from the brand or public contact
 details. The generic seeded category imagery and staged hero asset also remain outside this branch
 because owned-image replacement belongs to the concurrent Phase 2 catalogue/image work. Production
-Turnstile/Resend environment configuration and a real deployed contact-form submission proving
-database persistence, owner notification, customer acknowledgement, and failure visibility are
-also still unverified. Phase 3 must not be marked complete until those gates are resolved.
+Turnstile/Resend environment configuration is now present, but a real deployed contact-form
+submission proving database persistence, owner notification, customer acknowledgement, and failure
+visibility is still unverified. Phase 3 must not be marked complete until those gates are resolved.
 
 ### Phase 2C evidence
 
