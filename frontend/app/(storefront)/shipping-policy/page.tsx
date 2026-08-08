@@ -19,7 +19,7 @@ export default function ShippingPolicyPage() {
       path="/shipping-policy"
       eyebrow="Shipping"
       title="Shipping information"
-      intro="This policy applies to purchases placed through Sunfabb for delivery within India. Delivery dates are estimates and depend on the destination, stock and carrier serviceability."
+      intro="This working policy applies to purchases placed through Sunfabb for delivery within India. Final wording will be updated before full live e-commerce. Delivery dates are estimates and depend on the destination, stock and carrier serviceability."
     >
       <TrustPageSection title="Coverage and charges">
         <p>

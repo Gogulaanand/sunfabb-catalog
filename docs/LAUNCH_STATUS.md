@@ -48,7 +48,7 @@ internal development copy, unsupported taxonomy, and incomplete trust/policy con
 | 0 - Establish one launch truth | Complete | Canonical launch truth and issues #46-#64 established |
 | 1 - Customer safety and reliability | Complete with owner-accepted infrastructure deviations | PRs #66-#69; Render Free retained with backend-only HeyOnCall mitigation, email-only alerts, and JWT rotation deferred pending a concrete security concern |
 | 2 - Public hygiene and catalogue truth | In progress | 2A/2B merged in PR #71; Phase 2C report covers all 41 numbered designs, but five live non-numbered products still need reconciliation |
-| 3 - Trust and conversion foundation | In progress - owner-approved public contact facts applied; policy, legal-identity, imagery, and deployed-flow gates pending | Isolated Phase 3 branch; requires final policy/legal review, owned imagery, and live contact-flow proof |
+| 3 - Trust and conversion foundation | Closed for the current lead-generation release by owner decision on 2026-08-08; transactional gates deferred | Keep the public support channels and working policies; before full e-commerce, confirm legal seller/grievance identity, final policy review, owned imagery, and live contact-flow proof |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
 | 5 - Catalogue MVP release validation | Not started | Follows phases 1-4 and human release checks |
 | 6 - Transactional commerce completion | Vendor-gated | Resend, GST, Shiprocket, Razorpay, and go-live inputs/verification |
@@ -64,7 +64,10 @@ The isolated Phase 3 branch implements the code portion of the trust and convers
 - The policy pages contain a conservative working draft for India delivery, returns/refunds,
   privacy, and terms. The draft assumptions (including a seven-calendar-day change-of-mind return
   request window, preferred 48-hour damage report, and five-to-seven-business-day refund initiation)
-  require final owner, accountant, and Indian legal review before they are treated as final terms.
+  are explicitly presented as working terms and require final owner, accountant, and Indian legal
+  review before they are treated as final terms. The supplied email and phone channels are the
+  current catalogue-release support and grievance intake; no legal entity or appointed officer is
+  inferred from them.
 - Product pages now show the same working dispatch, serviceable-PIN, returns, payment-posture, and
   business-contact summary, with the full policy pages linked from the site footer.
 - The site does not publish the billing-only tax identifier as general storefront copy. Backend
@@ -72,6 +75,9 @@ The isolated Phase 3 branch implements the code portion of the trust and convers
   behavior is claimed by this Phase 3 change.
 - Contact channels, social profiles, LocalBusiness data, and PDP trust claims fail closed when the
   corresponding owner-verified value is unavailable.
+- The public storefront has a reversible `NEXT_PUBLIC_HIDE_TEST_IMAGES` switch. When enabled, the
+  frontend filters seeded Unsplash URLs from category imagery, product cards, PDP galleries, and
+  product structured data without changing database rows or admin visibility.
 - The contact route validates backend success/error payloads at the frontend boundary, and the
   backend stores submissions independently of best-effort email delivery.
 - Resend transport, transactional templates, contact acknowledgement, owner notification, and
@@ -88,13 +94,14 @@ The isolated Phase 3 branch implements the code portion of the trust and convers
   live form submission was created during this probe. The live backend health endpoint returned
   200, and a negative contact probe with an invalid Turnstile token returned 403 without delivery.
 
-The external completion gates are still open. The legal seller identity and required grievance
-contact have not been supplied, so the site does not infer them from the brand or public contact
-details. The generic seeded category imagery and staged hero asset also remain outside this branch
-because owned-image replacement belongs to the concurrent Phase 2 catalogue/image work. Production
-Turnstile/Resend environment configuration is now present, but a real deployed contact-form
-submission proving database persistence, owner notification, customer acknowledgement, and failure
-visibility is still unverified. Phase 3 must not be marked complete until those gates are resolved.
+Phase 3 is closed for the current lead-generation release by owner decision on 2026-08-08. This is
+not a claim that the original transactional completion gate is satisfied. The following are
+explicitly deferred before full live e-commerce: legal seller identity and any formally required
+appointed grievance officer, owner/accountant/Indian legal review of the working policies, a real
+deployed contact-form submission proving database persistence plus both email paths and failure
+visibility, and replacement of generic imagery with owned or licensed assets. The storefront image
+switch keeps the seeded Unsplash URLs out of public rendering until the concurrent catalogue/image
+work supplies approved replacements.
 
 ### Phase 2C evidence
 
