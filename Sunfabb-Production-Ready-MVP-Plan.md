@@ -1,5 +1,27 @@
 # Sunfabb Production-Ready MVP Plan
 
+## 0. Execution status as of August 8, 2026
+
+Phase 5 engineering work is complete on the isolated branch
+`codex/phase5-mvp-validation` in `/private/tmp/sunfabb-phase5-mvp-validation`.
+The implementation is not deployed or merged from this worktree yet.
+
+Integrated commits:
+
+* `7b16d6a` — automated public-route release contract, canonical/metadata fixes, and typed catalogue query/facet validation.
+* `9d566d8` — mobile filter-dialog focus trapping and eager loading for the first visible catalogue, hero, and PDP images.
+* `8d14c19` — `whatsapp_click` analytics instrumentation and centralized social-preview fallback metadata.
+
+Verified in the integration worktree:
+
+* Frontend Vitest: **50 files, 350 tests passed**.
+* Frontend ESLint and TypeScript: **passed**.
+* Production build with `CATALOG_LEAD_GEN`: **passed**; 84 static pages generated, including sitemap, robots, guides, and the published product routes.
+* Phase 5 release-contract Playwright spec: **2/2 passed** against the built local app.
+* Browser audit: mobile `390×844` and desktop `1280×800` catalogue/PDP/navigation/filter/error journeys passed; mobile filter focus and forward/reverse Tab trapping are covered by regression tests.
+
+The Phase 5 launch gate remains **blocked, not failed**, because Phase 4 has not started. A real WhatsApp Business number, owner-approved WhatsApp profile/catalogue/quick replies, real-device human journeys, Google Search Console ownership and ingestion, real social-share rendering, and Lighthouse/uncached-cached network evidence are still external or manual gates. No production data, deployment, indexing submission, or WhatsApp setup was changed by this work.
+
 ## 1. Current state as of August 1, 2026
 
 ### 1.1 Foundation and storefront
@@ -18,7 +40,7 @@
 | WhatsApp conversion       | Planned, not productised   | Generic placeholder WhatsApp links exist, but there is no complete product-specific WhatsApp funnel.                        |
 | Social presence           | Not launch-critical        | Instagram/Facebook can proceed gradually after the conversion foundation.                                                   |
 
-The master plan records Phases 0–5 as complete, with Phase 6.0–6.4, 6.8 and 6.9 completed. The remaining transactional phases are 6.5 GST, 6.6 Shiprocket, 6.7 Resend and 6.10 final go-live.
+Earlier repository history labels several storefront milestones as Phases 0–5, but the production-readiness execution status is the verified status recorded above. Phase 4 remains owner/business-gated and Phase 5 is engineering-complete but not a launch closure until its listed external gates pass. The remaining transactional phases are 6.5 GST, 6.6 Shiprocket, 6.7 Resend and 6.10 final go-live.
 
 ### 1.2 Catalogue state
 
@@ -593,6 +615,22 @@ Use unique prefilled text or campaign parameters for:
 **Priority:** Final lead-generation launch gate
 **Scope:** Audit and limited fixes rather than new feature work
 **Model:** Sol Medium/Thinking High for the audit; Luna Medium for corrections.
+
+### Verified implementation status — August 8, 2026
+
+The deterministic Phase 5 implementation scope is complete in
+`codex/phase5-mvp-validation`. The release-contract audit now covers sitemap-listed public routes,
+HTTP status, canonical URLs, sitemap/robots directives, Open Graph/Twitter images, recursive JSON-LD
+types, and safe catalogue query/facet handling. The storefront fixes cover mobile filter-dialog focus
+management and Tab trapping, first-visible-image loading, and `whatsapp_click` analytics context for
+PDP, contact, footer, and contact-success links. See section 0 for commit SHAs and verification
+counts.
+
+The following distinction is final for the next WhatsApp session:
+
+* **Verified locally:** code-level route/metadata/link contracts, 2/2 release-contract tests, 50/350 frontend tests, lint, typecheck, production build, local 390×844 and 1280×800 browser journeys, filter keyboard behavior, and disposable 503 poor-network recovery behavior.
+* **Not yet verified:** deployed crawl and uncached/cached Lighthouse scores, real Android Chrome/iPhone Safari/desktop-human QA, Google Search Console ownership/ingestion, real social-share previews, GA4 DebugView/deployed conversion telemetry, and human Google/shared-link/home-to-variant-to-WhatsApp/contact journeys.
+* **Blocked on Phase 4:** all real WhatsApp-number/profile/catalogue/quick-reply checks and the WhatsApp portions of the human journeys. Do not reopen or re-audit the completed code scope when resuming Phase 4; use the blocker list above and validate only the owner/external gates.
 
 ### Release checks
 
