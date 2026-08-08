@@ -2,7 +2,7 @@
 
 Canonical operational status for the production-ready MVP plan.
 
-**Last verified:** 2026-08-02 (Asia/Kolkata)
+**Last verified:** 2026-08-08 (Asia/Kolkata)
 
 Read this file first for launch status. `tools/image-pipeline/CATALOG_PROGRESS.md` is the
 authoritative tracker for catalogue production and local image-pipeline work. The relevant phase
@@ -48,7 +48,7 @@ internal development copy, unsupported taxonomy, and incomplete trust/policy con
 | 0 - Establish one launch truth | Complete | Canonical launch truth and issues #46-#64 established |
 | 1 - Customer safety and reliability | Complete with owner-accepted infrastructure deviations | PRs #66-#69; Render Free retained with backend-only HeyOnCall mitigation, email-only alerts, and JWT rotation deferred pending a concrete security concern |
 | 2 - Public hygiene and catalogue truth | In progress | 2A/2B merged in PR #71; Phase 2C report covers all 41 numbered designs, but five live non-numbered products still need reconciliation |
-| 3 - Trust and conversion foundation | In progress - code implemented, owner/content gates pending | Commit `77941a5`; requires verified business/contact/legal facts, owned imagery, and live contact-flow proof |
+| 3 - Trust and conversion foundation | In progress - owner-approved public contact facts applied; policy, legal-identity, imagery, and deployed-flow gates pending | Isolated Phase 3 branch; requires final policy/legal review, owned imagery, and live contact-flow proof |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
 | 5 - Catalogue MVP release validation | Not started | Follows phases 1-4 and human release checks |
 | 6 - Transactional commerce completion | Vendor-gated | Resend, GST, Shiprocket, Razorpay, and go-live inputs/verification |
@@ -56,12 +56,20 @@ internal development copy, unsupported taxonomy, and incomplete trust/policy con
 
 ### Phase 3 implementation evidence
 
-The isolated Phase 3 branch implements the code portion of the trust and conversion foundation
-through commit `77941a5`:
+The isolated Phase 3 branch implements the code portion of the trust and conversion foundation:
 
 - `/about`, `/shipping-policy`, `/returns-policy`, `/privacy-policy`, and `/terms` are linked from
-  the footer and sitemap. Their copy stays explicit about facts awaiting owner/legal confirmation;
-  it does not invent a seller identity, shipping promise, return window, or legal notice.
+  the footer and sitemap. The owner supplied public contact channels on 2026-08-08: phone,
+  WhatsApp, email, business hours, public contact address, and Google Maps location.
+- The policy pages contain a conservative working draft for India delivery, returns/refunds,
+  privacy, and terms. The draft assumptions (including a seven-calendar-day change-of-mind return
+  request window, preferred 48-hour damage report, and five-to-seven-business-day refund initiation)
+  require final owner, accountant, and Indian legal review before they are treated as final terms.
+- Product pages now show the same working dispatch, serviceable-PIN, returns, payment-posture, and
+  business-contact summary, with the full policy pages linked from the site footer.
+- The site does not publish the billing-only tax identifier as general storefront copy. Backend
+  billing configuration remains reserved for the Phase 6.5 invoice implementation; no GST invoice
+  behavior is claimed by this Phase 3 change.
 - Contact channels, social profiles, LocalBusiness data, and PDP trust claims fail closed when the
   corresponding owner-verified value is unavailable.
 - The contact route validates backend success/error payloads at the frontend boundary, and the
@@ -69,20 +77,21 @@ through commit `77941a5`:
 - Resend transport, transactional templates, contact acknowledgement, owner notification, and
   safe operational failure logs are implemented. Production requires `RESEND_API_KEY` and
   `EMAIL_FROM`; `CONTACT_NOTIFY_EMAIL` is configured locally for owner notification.
-- Local verification passed: backend 49 suites / 319 tests, frontend 48 suites / 341 tests,
-  type-checks, linters, formatting, and backend build. The frontend production build remains
-  environment-blocked by the missing Darwin/arm64 Next SWC binary.
+- Local verification passed on 2026-08-08: backend 49 suites / 319 tests, frontend 48 suites /
+  341 tests, both package type-checks, both linters, backend build, and frontend production build
+  with the documented production API URL and lead-generation mode. The build emitted only existing
+  Next workspace-root and middleware deprecation warnings.
 - The `sunfabb.com` Resend domain is verified, and a controlled live SDK send using the configured
   sender and internal notification address succeeded. No live form submission was created during
   this probe.
 
-The external completion gates are still open. Owner or legal review is still required for the final
-business identity, contact channels, shipping,
-returns/refunds, privacy, and terms copy. The generic seeded category imagery and staged hero asset
-also remain outside this branch because owned-image replacement belongs to the concurrent Phase 2
-catalogue/image work. Phase 3 must not be marked complete until those image and content gates are
-resolved, the facts are supplied, and the live contact form path is verified against the deployed
-frontend and backend.
+The external completion gates are still open. The legal seller identity and required grievance
+contact have not been supplied, so the site does not infer them from the brand or public contact
+details. The generic seeded category imagery and staged hero asset also remain outside this branch
+because owned-image replacement belongs to the concurrent Phase 2 catalogue/image work. Production
+Turnstile/Resend environment configuration and a real deployed contact-form submission proving
+database persistence, owner notification, customer acknowledgement, and failure visibility are
+also still unverified. Phase 3 must not be marked complete until those gates are resolved.
 
 ### Phase 2C evidence
 

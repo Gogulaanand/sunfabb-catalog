@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 import {
   TrustContactPrompt,
   TrustPage,
   TrustPageSection,
-} from "@/components/trust/TrustPage";
-import { SITE_URL } from "@/lib/site-config";
+} from '@/components/trust/TrustPage';
+import { SITE, SITE_URL } from '@/lib/site-config';
 
 export const metadata: Metadata = {
-  title: "About",
+  title: 'About',
   description:
-    "Learn what Sunfabb is: an India-focused catalog for bedspreads, towels, napkins and table linen, with prices shown in INR.",
-  alternates: { canonical: SITE_URL + "/about" },
+    'Learn what Sunfabb is: an India-focused catalog for bedspreads, towels, napkins and table linen, with prices shown in INR.',
+  alternates: { canonical: SITE_URL + '/about' },
 };
 
 export default function AboutPage() {
@@ -34,15 +34,25 @@ export default function AboutPage() {
         </p>
       </TrustPageSection>
 
-      <TrustPageSection title="Business information still being confirmed">
+      <TrustPageSection title="Business information">
         <p>
-          Sunfabb&apos;s legal entity name, registered address, GSTIN and
-          customer-service contact details are not published here until the
-          owner confirms them.
+          Sunfabb is the home-textiles brand presented through this catalog. The
+          legal seller name and tax details, where applicable, appear on the
+          invoice or order confirmation rather than being published as general
+          marketing copy.
         </p>
         <p>
-          This keeps the catalog useful without presenting an unverified legal
-          identity as fact.
+          For enquiries, you can reach us at {SITE.email} or{' '}
+          {SITE.phone.display}. Our customer-service hours are {SITE.hours}.
+        </p>
+      </TrustPageSection>
+
+      <TrustPageSection title="Our contact location">
+        <p>{SITE.address.lines.join(', ')}</p>
+        <p>
+          This is the contact location for Sunfabb. Please use the Google Maps
+          link on the contact page before visiting; this catalog is not a
+          walk-in retail appointment system.
         </p>
       </TrustPageSection>
 
