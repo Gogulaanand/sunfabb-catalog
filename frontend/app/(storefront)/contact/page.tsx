@@ -8,6 +8,7 @@ import {
   mailtoLink,
 } from '@/lib/site-config';
 import ContactForm from '@/components/storefront/contact-form';
+import { TrackedWhatsAppLink } from '@/components/analytics/tracked-whatsapp-link';
 
 export const metadata: Metadata = {
   title: 'Contact Us | Sunfabb',
@@ -119,10 +120,11 @@ export default function ContactPage() {
 
                   {whatsappHref && (
                     <li>
-                      <a
+                      <TrackedWhatsAppLink
                         href={whatsappHref}
                         target="_blank"
                         rel="noopener noreferrer"
+                        tracking={{ linkLocation: 'contact' }}
                         className="flex items-start gap-3 group"
                         aria-label="Chat with us on WhatsApp"
                       >
@@ -148,7 +150,7 @@ export default function ContactPage() {
                             Opens a pre-filled chat
                           </span>
                         </span>
-                      </a>
+                      </TrackedWhatsAppLink>
                     </li>
                   )}
 

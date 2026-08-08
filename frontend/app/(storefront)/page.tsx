@@ -5,6 +5,7 @@ import { getCategories, getProducts, formatPrice } from '@/lib/api';
 import { Reveal, StaggerGroup, StaggerItem } from '@/components/motion';
 import { ProductCard } from '@/components/product/product-card';
 import { HeroSection } from '@/components/home/hero-section';
+import { SOCIAL_PREVIEW_IMAGE } from '@/lib/site-config';
 
 export const metadata: Metadata = {
   title: {
@@ -18,14 +19,11 @@ export const metadata: Metadata = {
     description:
       'Browse Sunfabb bedspreads, towels, napkins and table linen from India.',
     url: '/',
-    images: [
-      {
-        url: '/images/home/sunfabb-hero-option-a.png',
-        width: 1672,
-        height: 941,
-        alt: 'Sunfabb home textiles',
-      },
-    ],
+    images: [SOCIAL_PREVIEW_IMAGE],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [SOCIAL_PREVIEW_IMAGE.url],
   },
 };
 

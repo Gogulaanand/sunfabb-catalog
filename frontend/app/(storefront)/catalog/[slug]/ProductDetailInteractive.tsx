@@ -10,6 +10,7 @@ import { VariantSelector } from "./VariantSelector";
 interface ProductDetailInteractiveProps {
   images: ProductImage[];
   variants: ProductVariant[];
+  productId: string;
   productName: string;
   productSlug: string;
   categoryName?: string;
@@ -21,6 +22,7 @@ interface ProductDetailInteractiveProps {
 export function ProductDetailInteractive({
   images,
   variants,
+  productId,
   productName,
   productSlug,
   categoryName,
@@ -76,6 +78,7 @@ export function ProductDetailInteractive({
           <div key="variant-selector">
             <VariantSelector
               variants={variants}
+              productId={productId}
               productName={productName}
               productSlug={productSlug}
               categoryName={categoryName}

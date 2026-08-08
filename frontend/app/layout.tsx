@@ -3,7 +3,7 @@ import { Playfair_Display, Inter } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { OrganizationSchema } from '@/components/seo/OrganizationSchema';
-import { SITE_URL } from '@/lib/site-config';
+import { SITE_URL, SOCIAL_PREVIEW_IMAGE } from '@/lib/site-config';
 import './globals.css';
 
 const playfairDisplay = Playfair_Display({
@@ -28,18 +28,11 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     siteName: 'Sunfabb',
-    images: [
-      {
-        url: '/images/home/sunfabb-hero-option-a.png',
-        width: 1672,
-        height: 941,
-        alt: 'Sunfabb home textiles',
-      },
-    ],
+    images: [SOCIAL_PREVIEW_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['/images/home/sunfabb-hero-option-a.png'],
+    images: [SOCIAL_PREVIEW_IMAGE.url],
   },
 };
 

@@ -20,6 +20,14 @@ function optionalList(
 export const SITE_URL =
   optionalValue(process.env.NEXT_PUBLIC_SITE_URL) ?? 'https://sunfabb.com';
 
+/** Existing in-use hero asset used as the safe default for social previews. */
+export const SOCIAL_PREVIEW_IMAGE = {
+  url: '/images/home/sunfabb-hero-option-e.png',
+  width: 1672,
+  height: 941,
+  alt: 'Sunfabb home textiles in a sunlit home',
+} as const;
+
 export const TRUST_PAGE_LINKS = [
   { href: '/about', label: 'About Sunfabb' },
   { href: '/shipping-policy', label: 'Shipping' },

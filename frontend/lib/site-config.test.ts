@@ -3,6 +3,7 @@ import {
   mailtoLink,
   SITE,
   SITE_URL,
+  SOCIAL_PREVIEW_IMAGE,
   telLink,
   TRUST_PAGE_LINKS,
   whatsappLink,
@@ -19,6 +20,12 @@ describe('site configuration', () => {
       'https://maps.app.goo.gl/4Tj5dc8vD6t2WzBw6',
     );
     expect(SITE_URL).toMatch(/^https?:\/\//);
+    expect(SOCIAL_PREVIEW_IMAGE).toEqual({
+      url: '/images/home/sunfabb-hero-option-e.png',
+      width: 1672,
+      height: 941,
+      alt: 'Sunfabb home textiles in a sunlit home',
+    });
     expect(JSON.stringify(SITE)).not.toMatch(
       /XXXXX|maps\.app\.goo\.gl\/\.\.\.|instagram\.com\/sunfabb|gstin/i,
     );

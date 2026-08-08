@@ -9,6 +9,7 @@ import { ProductSchema } from "@/components/seo/ProductSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { ProductCard } from "@/components/product/product-card";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion";
+import { SOCIAL_PREVIEW_IMAGE } from "@/lib/site-config";
 
 export const revalidate = 30;
 
@@ -64,6 +65,11 @@ export async function generateMetadata({ params }: PageProps) {
           { url: ogImageUrl, width: 1200, height: 630, alt: product.name },
         ],
       }),
+      ...(!ogImageUrl && { images: [SOCIAL_PREVIEW_IMAGE] }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: [ogImageUrl ?? SOCIAL_PREVIEW_IMAGE.url],
     },
   };
 }
@@ -135,6 +141,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <ProductDetailInteractive
         images={product.images}
         variants={product.variants}
+        productId={product.id}
         productName={product.name}
         productSlug={product.slug}
         categoryName={product.category.name}

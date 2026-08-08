@@ -91,6 +91,7 @@ describe('ProductDetailInteractive', () => {
       <ProductDetailInteractive
         images={makeGalleryImages()}
         variants={variants}
+        productId="product-lead-generation"
         productName="Lead-generation bedspread"
         productSlug="lead-generation-bedspread"
         initialVariantId="variant-red"
@@ -117,6 +118,7 @@ describe('ProductDetailInteractive', () => {
       <ProductDetailInteractive
         images={makeGalleryImages()}
         variants={variants}
+        productId="product-transactional"
         productName="Transactional bedspread"
         productSlug="transactional-bedspread"
         initialVariantId="variant-red"
@@ -141,6 +143,7 @@ describe('ProductDetailInteractive', () => {
       <ProductDetailInteractive
         images={images}
         variants={variants}
+        productId="product-variant-aware"
         productName="Variant-aware bedspread"
         productSlug="variant-aware-bedspread"
         initialVariantId={initialVariantId}
@@ -162,6 +165,7 @@ describe('ProductDetailInteractive', () => {
       <ProductDetailInteractive
         images={images}
         variants={variants}
+        productId="product-variant-aware"
         productName="Variant-aware bedspread"
         productSlug="variant-aware-bedspread"
         initialVariantId="variant-red"
@@ -243,6 +247,7 @@ describe('ProductDetailInteractive', () => {
       <ProductDetailInteractive
         images={images}
         variants={hierarchicalVariants}
+        productId="product-hierarchical"
         productName="Hierarchical bedspread"
         productSlug="hierarchical-bedspread"
         initialVariantId="king-cotton-red"

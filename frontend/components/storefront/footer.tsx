@@ -6,6 +6,7 @@ import {
   telLink,
   whatsappLink,
 } from '@/lib/site-config';
+import { TrackedWhatsAppLink } from '@/components/analytics/tracked-whatsapp-link';
 
 export default function Footer() {
   const whatsappHref = whatsappLink();
@@ -49,15 +50,16 @@ export default function Footer() {
               )}
               {whatsappHref && (
                 <li>
-                  <a
+                  <TrackedWhatsAppLink
                     href={whatsappHref}
                     target="_blank"
                     rel="noopener noreferrer"
+                    tracking={{ linkLocation: 'footer' }}
                     className="hover:text-primary transition-colors"
                     aria-label="Chat with us on WhatsApp"
                   >
                     WhatsApp
-                  </a>
+                  </TrackedWhatsAppLink>
                 </li>
               )}
               {SITE.email && mailtoLink && (

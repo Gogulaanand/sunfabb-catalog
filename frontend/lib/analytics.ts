@@ -113,6 +113,38 @@ export function trackBeginCheckout(items: AnalyticsItem[]) {
   });
 }
 
+export interface WhatsAppClickParams {
+  /** Where the CTA was rendered, such as `pdp` or `footer`. */
+  linkLocation: "pdp" | "contact" | "contact_form_success" | "footer";
+  productId?: string;
+  variantId?: string;
+  /** Optional overrides keep this helper deterministic in unit tests. */
+  pageLocation?: string;
+  pageReferrer?: string;
+}
+
+/**
+ * Records the lead-generation conversion before the browser opens WhatsApp.
+ * Browser context is read at click time so SPA navigation, referrers and
+ * campaign query parameters are attributed to the page the visitor used.
+ */
+export function trackWhatsAppClick(params: WhatsAppClickParams) {
+  const pageLocation =
+    params.pageLocation ??
+    (typeof window === "undefined" ? undefined : window.location.href);
+  const pageReferrer =
+    params.pageReferrer ??
+    (typeof document === "undefined" ? undefined : document.referrer);
+
+  track("whatsapp_click", {
+    link_location: params.linkLocation,
+    ...(params.productId ? { product_id: params.productId } : {}),
+    ...(params.variantId ? { variant_id: params.variantId } : {}),
+    ...(pageLocation ? { page_location: pageLocation } : {}),
+    ...(pageReferrer ? { page_referrer: pageReferrer } : {}),
+  });
+}
+
 /**
  * Fires `purchase` at most once per order number per browser session.
  *
