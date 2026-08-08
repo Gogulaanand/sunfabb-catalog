@@ -28,6 +28,28 @@ export const SOCIAL_PREVIEW_IMAGE = {
   alt: 'Sunfabb home textiles in a sunlit home',
 } as const;
 
+// Seeded Unsplash assets are useful during local development but must not be
+// rendered in the public catalogue once owned imagery is ready. This is a
+// storefront-only switch: it does not mutate the database or hide images from
+// the admin tools.
+export const HIDE_TEST_IMAGES =
+  optionalValue(process.env.NEXT_PUBLIC_HIDE_TEST_IMAGES) === 'true';
+
+export function isTestImageUrl(url: string): boolean {
+  try {
+    return new URL(url).hostname === 'images.unsplash.com';
+  } catch {
+    return false;
+  }
+}
+
+export function shouldRenderStorefrontImage(
+  url: string,
+  hideTestImages = HIDE_TEST_IMAGES,
+): boolean {
+  return !(hideTestImages && isTestImageUrl(url));
+}
+
 export const TRUST_PAGE_LINKS = [
   { href: '/about', label: 'About Sunfabb' },
   { href: '/shipping-policy', label: 'Shipping' },

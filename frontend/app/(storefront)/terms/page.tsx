@@ -19,7 +19,7 @@ export default function TermsPage() {
       path="/terms"
       eyebrow="Terms"
       title="Terms information"
-      intro="These terms apply to your use of the Sunfabb website and to orders placed through it. They should be read with the product, shipping, returns and privacy pages."
+      intro="These working terms apply to your use of the Sunfabb website and to orders placed through it. They should be read with the product, shipping, returns and privacy pages; final wording will be updated before full live e-commerce."
     >
       <TrustPageSection title="About Sunfabb and contact">
         <p>
@@ -61,7 +61,9 @@ export default function TermsPage() {
 
       <TrustPageSection title="Questions and complaints">
         <p>
-          Please send order, delivery, return or service complaints to{' '}
+          During this catalogue release, Sunfabb accepts customer-support and
+          grievance requests through the same verified public channels: send
+          order, delivery, return or service complaints to{' '}
           {SITE.email} or call {SITE.phone.display}. We will review the issue
           and respond through the contact details you provide.
         </p>

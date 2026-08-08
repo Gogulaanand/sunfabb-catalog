@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
       path="/privacy-policy"
       eyebrow="Privacy"
       title="Privacy information"
-      intro="This notice explains the information Sunfabb may handle when you browse the catalog, contact us, create an account or place an order in India. We will update it as the service evolves."
+      intro="This working privacy notice explains the information Sunfabb may handle when you browse the catalog, contact us, create an account or place an order in India. Final wording will be updated before full live e-commerce."
     >
       <TrustPageSection title="Information we may collect">
         <p>

@@ -19,7 +19,7 @@ export default function ReturnsPolicyPage() {
       path="/returns-policy"
       eyebrow="Returns"
       title="Returns information"
-      intro="We want you to receive the product you ordered in good condition. This working policy explains the usual return, replacement and refund process, subject to the product page, order confirmation and applicable law."
+      intro="We want you to receive the product you ordered in good condition. This working policy explains the usual return, replacement and refund process for the current catalogue release; final wording will be updated before full live e-commerce and remains subject to the product page, order confirmation and applicable law."
     >
       <TrustPageSection title="When you can request a return">
         <p>
