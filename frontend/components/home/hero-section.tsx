@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
-import { motion } from "motion/react";
+import Image from 'next/image';
+import Link from 'next/link';
+import { motion } from 'motion/react';
 
-const HERO_IMAGE = "/images/home/sunfabb-hero-option-e.png";
+const HERO_IMAGE = '/images/home/sunfabb-hero-option-e.png';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -12,7 +12,7 @@ export function HeroSection() {
   return (
     <section
       className="relative flex items-end overflow-hidden"
-      style={{ height: "calc(100svh - 5rem)", minHeight: "600px" }}
+      style={{ height: 'calc(100svh - 5rem)', minHeight: '600px' }}
     >
       {/* Ken Burns image - MotionProvider's reducedMotion="user" disables on prefers-reduced-motion */}
       <motion.div
@@ -21,9 +21,9 @@ export function HeroSection() {
         animate={{ scale: 1.06 }}
         transition={{
           duration: 20,
-          ease: "easeInOut",
+          ease: 'easeInOut',
           repeat: Infinity,
-          repeatType: "reverse",
+          repeatType: 'reverse',
         }}
       >
         <Image
@@ -44,9 +44,9 @@ export function HeroSection() {
         <motion.h1
           className="font-display text-white mb-4"
           style={{
-            fontSize: "clamp(2.5rem, 5vw + 1rem, 5.5rem)",
+            fontSize: 'clamp(2.5rem, 5vw + 1rem, 5.5rem)',
             lineHeight: 1.05,
-            letterSpacing: "-0.02em",
+            letterSpacing: '-0.02em',
           }}
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
@@ -61,8 +61,7 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: EASE, delay: 0.12 }}
         >
-          Premium bedspreads, towels, napkins and table linen - made in India,
-          built to last.
+          Bedspreads, towels, napkins and table linen from India.
         </motion.p>
 
         <motion.div

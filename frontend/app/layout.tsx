@@ -1,39 +1,36 @@
-import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import { OrganizationSchema } from "@/components/seo/OrganizationSchema";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Playfair_Display, Inter } from 'next/font/google';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { GoogleAnalytics } from '@next/third-parties/google';
+import { OrganizationSchema } from '@/components/seo/OrganizationSchema';
+import { SITE_URL } from '@/lib/site-config';
+import './globals.css';
 
 const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair-display",
-  subsets: ["latin"],
+  variable: '--font-playfair-display',
+  subsets: ['latin'],
 });
 
 const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+  variable: '--font-inter',
+  subsets: ['latin'],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunfabb.com";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
-    template: "%s | Sunfabb",
-    default:
-      "Sunfabb - Premium Cotton Bedspreads, Towels & Table Linen Online India",
+    template: '%s | Sunfabb',
+    default: 'Sunfabb - Bedspreads, Towels & Table Linen from India',
   },
   description:
-    "Premium handcrafted home textiles from India. Shop bedspreads, towels, napkins and table linen at Sunfabb.",
+    'Browse Sunfabb bedspreads, towels, napkins and table linen from India.',
   openGraph: {
-    type: "website",
-    locale: "en_IN",
-    siteName: "Sunfabb",
+    type: 'website',
+    locale: 'en_IN',
+    siteName: 'Sunfabb',
   },
   twitter: {
-    card: "summary_large_image",
-    site: "@sunfabb",
+    card: 'summary_large_image',
   },
 };
 

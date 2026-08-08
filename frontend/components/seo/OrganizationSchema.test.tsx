@@ -19,6 +19,25 @@ describe("buildOrganizationSchemas", () => {
     expect(data["@graph"][0].name).toBe("Sunfabb");
   });
 
+  it("omits sameAs when no verified profile is configured", () => {
+    const organization = buildOrganizationSchemas("https://example.com")[
+      "@graph"
+    ][0];
+    expect(organization).not.toHaveProperty("sameAs");
+  });
+
+  it("includes only the supplied verified profile URLs", () => {
+    const organization = buildOrganizationSchemas("https://example.com", [
+      { provider: "Instagram", url: "https://www.instagram.com/sunfabb/" },
+      { provider: "YouTube", url: "https://www.youtube.com/@sunfabb" },
+    ])["@graph"][0];
+
+    expect(organization.sameAs).toEqual([
+      "https://www.instagram.com/sunfabb/",
+      "https://www.youtube.com/@sunfabb",
+    ]);
+  });
+
   it("uses the provided siteUrl for @id and url fields", () => {
     const data = buildOrganizationSchemas("https://sunfabb.com");
     expect(data["@graph"][0]["@id"]).toBe("https://sunfabb.com/#organization");

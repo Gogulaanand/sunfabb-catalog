@@ -31,6 +31,7 @@ const mockTurnstile = {
 
 const mockEmail = {
   sendContactNotification: jest.fn(),
+  sendContactAcknowledgement: jest.fn(),
 };
 
 describe('ContactService', () => {
@@ -56,6 +57,7 @@ describe('ContactService', () => {
       mockTurnstile.verify.mockResolvedValue(true);
       mockPrisma.contactMessage.create.mockResolvedValue(mockRecord);
       mockEmail.sendContactNotification.mockResolvedValue(undefined);
+      mockEmail.sendContactAcknowledgement.mockResolvedValue(undefined);
 
       const result = await service.create(dto, '1.2.3.4');
 
@@ -72,6 +74,10 @@ describe('ContactService', () => {
       expect(mockEmail.sendContactNotification).toHaveBeenCalledWith(
         expect.objectContaining({ id: mockRecord.id, name: dto.name }),
       );
+      expect(mockEmail.sendContactAcknowledgement).toHaveBeenCalledWith(
+        dto.email,
+        dto.name,
+      );
     });
 
     it('throws ForbiddenException when captcha fails', async () => {
@@ -87,10 +93,36 @@ describe('ContactService', () => {
       mockEmail.sendContactNotification.mockRejectedValue(
         new Error('SMTP down'),
       );
+      mockEmail.sendContactAcknowledgement.mockResolvedValue(undefined);
 
       const result = await service.create(dto);
 
       expect(result).toEqual(mockRecord);
+      expect(mockEmail.sendContactAcknowledgement).toHaveBeenCalledWith(
+        dto.email,
+        dto.name,
+      );
+    });
+
+    it('stores a submission without sending an acknowledgement when no email was submitted', async () => {
+      mockTurnstile.verify.mockResolvedValue(true);
+      mockPrisma.contactMessage.create.mockResolvedValue(mockRecord);
+      mockEmail.sendContactNotification.mockResolvedValue(undefined);
+
+      await service.create({ ...dto, email: undefined });
+
+      expect(mockEmail.sendContactAcknowledgement).not.toHaveBeenCalled();
+    });
+
+    it('returns the stored record when customer acknowledgement fails', async () => {
+      mockTurnstile.verify.mockResolvedValue(true);
+      mockPrisma.contactMessage.create.mockResolvedValue(mockRecord);
+      mockEmail.sendContactNotification.mockResolvedValue(undefined);
+      mockEmail.sendContactAcknowledgement.mockRejectedValue(
+        new Error('Resend down'),
+      );
+
+      await expect(service.create(dto)).resolves.toEqual(mockRecord);
     });
 
     it('return shape excludes message content', async () => {

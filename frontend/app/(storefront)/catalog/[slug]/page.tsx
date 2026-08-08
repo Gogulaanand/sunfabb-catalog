@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getProduct, getProducts, formatPrice, NotFoundError } from "@/lib/api";
 import { ProductDetailInteractive } from "./ProductDetailInteractive";
 import { CareDisclosure } from "./CareDisclosure";
+import { ProductTrustBlocks } from "./ProductTrustBlocks";
 import { getInitialVariantId } from "./product-gallery-utils";
 import { ProductSchema } from "@/components/seo/ProductSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
@@ -188,6 +189,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
             {product.care_instructions && (
               <CareDisclosure instructions={product.care_instructions} />
             )}
+
+            <ProductTrustBlocks />
           </div>
         }
       />

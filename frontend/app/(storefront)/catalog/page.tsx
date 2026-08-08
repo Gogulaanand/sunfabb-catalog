@@ -1,13 +1,13 @@
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import Link from "next/link";
-import { getCategories, type ProductsQuery } from "@/lib/api";
-import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
-import CatalogContent from "./CatalogContent";
-import CatalogGridSkeleton from "./CatalogGridSkeleton";
-import { CategoryIntro } from "./CategoryIntro";
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import Link from 'next/link';
+import { getCategories, type ProductsQuery } from '@/lib/api';
+import { BreadcrumbSchema } from '@/components/seo/BreadcrumbSchema';
+import CatalogContent from './CatalogContent';
+import CatalogGridSkeleton from './CatalogGridSkeleton';
+import { CategoryIntro } from './CategoryIntro';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunfabb.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sunfabb.com';
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -18,7 +18,7 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const params = await searchParams;
   const categorySlug =
-    typeof params.category === "string" ? params.category : undefined;
+    typeof params.category === 'string' ? params.category : undefined;
 
   const canonical = categorySlug
     ? `${siteUrl}/catalog?category=${categorySlug}`
@@ -27,10 +27,10 @@ export async function generateMetadata({
   if (categorySlug) {
     const categories = await getCategories().catch(() => []);
     const category = categories.find((c) => c.slug === categorySlug);
-    const title = category ? `${category.name} Collection` : "Catalog";
+    const title = category ? `${category.name} Collection` : 'Catalog';
     const description =
       category?.description ??
-      `Browse Sunfabb's ${category?.name ?? ""} collection - premium handcrafted home textiles from India.`;
+      `Browse Sunfabb's ${category?.name ?? ''} collection from India.`;
     return {
       title,
       description,
@@ -39,33 +39,32 @@ export async function generateMetadata({
   }
 
   return {
-    title: "All Products",
+    title: 'All Products',
     description:
-      "Browse the full Sunfabb range - premium handcrafted bedspreads, towels, napkins and table linen from India.",
+      'Browse the full Sunfabb range of bedspreads, towels, napkins and table linen from India.',
     alternates: { canonical },
   };
 }
 
 function slugToTitle(slug: string): string {
   return slug
-    .split("-")
+    .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+    .join(' ');
 }
 
 export default async function CatalogPage({ searchParams }: PageProps) {
   const params = await searchParams;
 
   const categorySlug =
-    typeof params.category === "string" ? params.category : undefined;
+    typeof params.category === 'string' ? params.category : undefined;
   const materialId =
-    typeof params.material === "string" ? params.material : undefined;
-  const colorId =
-    typeof params.color === "string" ? params.color : undefined;
-  const sortBy = (
-    typeof params.sort === "string" ? params.sort : undefined
-  ) as ProductsQuery["sortBy"] | undefined;
-  const page = typeof params.page === "string" ? Number(params.page) : 1;
+    typeof params.material === 'string' ? params.material : undefined;
+  const colorId = typeof params.color === 'string' ? params.color : undefined;
+  const sortBy = (typeof params.sort === 'string' ? params.sort : undefined) as
+    | ProductsQuery['sortBy']
+    | undefined;
+  const page = typeof params.page === 'string' ? Number(params.page) : 1;
 
   // Derive display name from the slug immediately - no fetch needed for the shell.
   const provisionalName = categorySlug ? slugToTitle(categorySlug) : undefined;
@@ -79,20 +78,23 @@ export default async function CatalogPage({ searchParams }: PageProps) {
   const categoryDescription = categorySlug
     ? await getCategories()
         .catch(() => [])
-        .then((categories) => categories.find((c) => c.slug === categorySlug)?.description)
+        .then(
+          (categories) =>
+            categories.find((c) => c.slug === categorySlug)?.description,
+        )
     : undefined;
 
   return (
     <div className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-(--spacing-margin-mobile) md:py-16">
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: `${siteUrl}/` },
+          { name: 'Home', url: `${siteUrl}/` },
           categorySlug
             ? {
                 name: provisionalName ?? categorySlug,
                 url: `${siteUrl}/catalog?category=${categorySlug}`,
               }
-            : { name: "All Products", url: `${siteUrl}/catalog` },
+            : { name: 'All Products', url: `${siteUrl}/catalog` },
         ]}
       />
 
@@ -103,12 +105,12 @@ export default async function CatalogPage({ searchParams }: PageProps) {
         </Link>
         <span className="mx-2">/</span>
         <span className="text-on-surface">
-          {provisionalName ?? "All Products"}
+          {provisionalName ?? 'All Products'}
         </span>
       </nav>
 
       <h1 className="font-display text-headline-md-mobile md:text-headline-md text-on-surface mb-2">
-        {provisionalName ? `The ${provisionalName} Collection` : "All Products"}
+        {provisionalName ? `The ${provisionalName} Collection` : 'All Products'}
       </h1>
       {/* The category's own copy wins where it exists; the generic tagline is
           the fallback, so the two never stack and the slot is never empty.
@@ -118,7 +120,7 @@ export default async function CatalogPage({ searchParams }: PageProps) {
         <CategoryIntro description={categoryDescription} />
       ) : (
         <p className="text-body-md text-on-surface-variant mb-10 max-w-2xl">
-          Elevate your everyday with sustainably sourced, premium woven textiles.
+          Browse the current Sunfabb catalog of home textiles.
         </p>
       )}
 

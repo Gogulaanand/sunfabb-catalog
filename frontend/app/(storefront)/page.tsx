@@ -1,24 +1,22 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
-import { getCategories, getProducts, formatPrice } from "@/lib/api";
-import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion";
-import { ProductCard } from "@/components/product/product-card";
-import { HeroSection } from "@/components/home/hero-section";
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import Image from 'next/image';
+import { getCategories, getProducts, formatPrice } from '@/lib/api';
+import { Reveal, StaggerGroup, StaggerItem } from '@/components/motion';
+import { ProductCard } from '@/components/product/product-card';
+import { HeroSection } from '@/components/home/hero-section';
 
 export const metadata: Metadata = {
   title: {
-    absolute:
-      "Sunfabb - Premium Cotton Bedspreads, Towels & Table Linen Online India",
+    absolute: 'Sunfabb - Bedspreads, Towels & Table Linen from India',
   },
   description:
-    "Shop premium handcrafted home textiles from India. Sunfabb brings you bedspreads, towels, napkins and table linen crafted for comfort and lasting quality.",
+    'Browse Sunfabb bedspreads, towels, napkins and table linen from India.',
   openGraph: {
-    title:
-      "Sunfabb - Premium Cotton Bedspreads, Towels & Table Linen Online India",
+    title: 'Sunfabb - Bedspreads, Towels & Table Linen from India',
     description:
-      "Shop premium handcrafted home textiles from India. Crafted for comfort, built to last.",
-    url: "/",
+      'Browse Sunfabb bedspreads, towels, napkins and table linen from India.',
+    url: '/',
   },
 };
 
@@ -45,7 +43,7 @@ export default async function HomePage() {
               Curated Collections
             </h2>
             <p className="text-body-sm text-on-surface-variant">
-              Each piece chosen for craft and character
+              Browse by collection
             </p>
           </div>
         </Reveal>
@@ -135,7 +133,7 @@ export default async function HomePage() {
                 Featured Pieces
               </h2>
               <p className="text-body-sm text-on-surface-variant">
-                Thoughtfully sourced, quietly luxurious
+                Explore the current catalog
               </p>
             </div>
             <Link
@@ -153,7 +151,7 @@ export default async function HomePage() {
           <StaggerGroup className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
             {featured.items.map((product) => {
               const galleryImages = product.images.filter(
-                (image) => image.image_role === "GALLERY",
+                (image) => image.image_role === 'GALLERY',
               );
               const primaryImage =
                 galleryImages.find((image) => image.is_primary) ??
