@@ -5,6 +5,7 @@ import { getCategories, getProducts, formatPrice } from '@/lib/api';
 import { Reveal, StaggerGroup, StaggerItem } from '@/components/motion';
 import { ProductCard } from '@/components/product/product-card';
 import { HeroSection } from '@/components/home/hero-section';
+import { SOCIAL_PREVIEW_IMAGE } from '@/lib/site-config';
 
 export const metadata: Metadata = {
   title: {
@@ -12,11 +13,17 @@ export const metadata: Metadata = {
   },
   description:
     'Browse Sunfabb bedspreads, towels, napkins and table linen from India.',
+  alternates: { canonical: '/' },
   openGraph: {
     title: 'Sunfabb - Bedspreads, Towels & Table Linen from India',
     description:
       'Browse Sunfabb bedspreads, towels, napkins and table linen from India.',
     url: '/',
+    images: [SOCIAL_PREVIEW_IMAGE],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [SOCIAL_PREVIEW_IMAGE.url],
   },
 };
 
@@ -149,7 +156,7 @@ export default async function HomePage() {
           <p className="text-on-surface-variant">No products found.</p>
         ) : (
           <StaggerGroup className="grid grid-cols-2 md:grid-cols-4 gap-(--spacing-gutter-mobile) md:gap-(--spacing-gutter-desktop)">
-            {featured.items.map((product) => {
+            {featured.items.map((product, index) => {
               const galleryImages = product.images.filter(
                 (image) => image.image_role === 'GALLERY',
               );
@@ -172,6 +179,7 @@ export default async function HomePage() {
                     }
                     aspectRatio="3/4"
                     sizes="(max-width: 768px) 50vw, 25vw"
+                    priority={index === 0}
                   />
                 </StaggerItem>
               );

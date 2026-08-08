@@ -7,6 +7,7 @@ import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { ArticleSchema } from "@/components/seo/ArticleSchema";
 import { ProductCard } from "@/components/product/product-card";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion";
+import { SOCIAL_PREVIEW_IMAGE } from "@/lib/site-config";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://sunfabb.com";
 
@@ -42,6 +43,11 @@ export async function generateMetadata({
       description: guide.description,
       url: `${siteUrl}/guides/${slug}`,
       publishedTime: guide.date,
+      images: [SOCIAL_PREVIEW_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: [SOCIAL_PREVIEW_IMAGE.url],
     },
   };
 }

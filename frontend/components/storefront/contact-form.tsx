@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import TurnstileWidget from './turnstile-widget';
 import { whatsappLink } from '@/lib/site-config';
+import { TrackedWhatsAppLink } from '@/components/analytics/tracked-whatsapp-link';
 import {
   contactErrorMessage,
   contactSubmissionResponseSchema,
@@ -90,9 +91,13 @@ export default function ContactForm() {
             <>
               {' '}
               You can also reach us directly on{' '}
-              <a href={whatsappHref} className="text-primary underline">
+              <TrackedWhatsAppLink
+                href={whatsappHref}
+                tracking={{ linkLocation: 'contact_form_success' }}
+                className="text-primary underline"
+              >
                 WhatsApp
-              </a>{' '}
+              </TrackedWhatsAppLink>{' '}
               for a faster response.
             </>
           )}

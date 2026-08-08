@@ -1,12 +1,20 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { SITE, whatsappLink, telLink, mailtoLink } from '@/lib/site-config';
+import {
+  SITE,
+  SITE_URL,
+  whatsappLink,
+  telLink,
+  mailtoLink,
+} from '@/lib/site-config';
 import ContactForm from '@/components/storefront/contact-form';
+import { TrackedWhatsAppLink } from '@/components/analytics/tracked-whatsapp-link';
 
 export const metadata: Metadata = {
   title: 'Contact Us | Sunfabb',
   description:
     'Contact Sunfabb about bedspreads, towels, napkins and table linen.',
+  alternates: { canonical: `${SITE_URL}/contact` },
 };
 
 const whatsappHref = whatsappLink();
@@ -112,10 +120,11 @@ export default function ContactPage() {
 
                   {whatsappHref && (
                     <li>
-                      <a
+                      <TrackedWhatsAppLink
                         href={whatsappHref}
                         target="_blank"
                         rel="noopener noreferrer"
+                        tracking={{ linkLocation: 'contact' }}
                         className="flex items-start gap-3 group"
                         aria-label="Chat with us on WhatsApp"
                       >
@@ -141,7 +150,7 @@ export default function ContactPage() {
                             Opens a pre-filled chat
                           </span>
                         </span>
-                      </a>
+                      </TrackedWhatsAppLink>
                     </li>
                   )}
 

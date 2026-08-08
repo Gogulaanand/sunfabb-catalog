@@ -14,6 +14,7 @@ const {
   trackViewItem,
   trackAddToCart,
   trackBeginCheckout,
+  trackWhatsAppClick,
   trackPurchase,
 } = await import("./analytics");
 
@@ -116,6 +117,42 @@ describe("trackBeginCheckout", () => {
   it("sends nothing for an empty cart", () => {
     trackBeginCheckout([]);
     expect(sendGAEvent).not.toHaveBeenCalled();
+  });
+});
+
+describe("trackWhatsAppClick", () => {
+  it("sends product, variant, page and referrer context", () => {
+    trackWhatsAppClick({
+      linkLocation: "pdp",
+      productId: "product-1",
+      variantId: "variant-1",
+      pageLocation: "https://sunfabb.com/catalog/design-1?utm_source=google",
+      pageReferrer: "https://www.google.com/",
+    });
+
+    const { name, params } = lastEvent();
+    expect(name).toBe("whatsapp_click");
+    expect(params).toEqual({
+      link_location: "pdp",
+      product_id: "product-1",
+      variant_id: "variant-1",
+      page_location:
+        "https://sunfabb.com/catalog/design-1?utm_source=google",
+      page_referrer: "https://www.google.com/",
+    });
+  });
+
+  it("keeps generic contact links valid without product context", () => {
+    trackWhatsAppClick({
+      linkLocation: "footer",
+      pageLocation: "https://sunfabb.com/",
+      pageReferrer: "",
+    });
+
+    expect(lastEvent().params).toEqual({
+      link_location: "footer",
+      page_location: "https://sunfabb.com/",
+    });
   });
 });
 

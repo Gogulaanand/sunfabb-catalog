@@ -20,6 +20,14 @@ function optionalList(
 export const SITE_URL =
   optionalValue(process.env.NEXT_PUBLIC_SITE_URL) ?? 'https://sunfabb.com';
 
+/** Existing in-use hero asset used as the safe default for social previews. */
+export const SOCIAL_PREVIEW_IMAGE = {
+  url: '/images/home/sunfabb-hero-option-e.png',
+  width: 1672,
+  height: 941,
+  alt: 'Sunfabb home textiles in a sunlit home',
+} as const;
+
 // Seeded Unsplash assets are useful during local development but must not be
 // rendered in the public catalogue once owned imagery is ready. This is a
 // storefront-only switch: it does not mutate the database or hide images from

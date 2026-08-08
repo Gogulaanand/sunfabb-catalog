@@ -12,6 +12,7 @@ interface ProductCardProps {
   formattedPrice?: string | null;
   aspectRatio?: "3/4" | "square";
   sizes?: string;
+  priority?: boolean;
 }
 
 export function ProductCard({
@@ -22,6 +23,7 @@ export function ProductCard({
   formattedPrice,
   aspectRatio = "3/4",
   sizes = "(max-width: 768px) 50vw, 25vw",
+  priority = false,
 }: ProductCardProps) {
   return (
     <Link
@@ -43,6 +45,7 @@ export function ProductCard({
             fill
             className="object-cover"
             sizes={sizes}
+            loading={priority ? "eager" : "lazy"}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-outline text-4xl">

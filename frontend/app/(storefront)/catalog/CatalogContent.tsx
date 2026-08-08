@@ -8,6 +8,7 @@ import {
   formatPrice,
   type ProductsQuery,
 } from "@/lib/api";
+import { constrainCatalogQuery } from "@/lib/catalog-query";
 import CatalogFilters from "./CatalogFilters";
 import CatalogPendingGrid from "./CatalogPendingGrid";
 import { CatalogTransitionProvider } from "./CatalogTransitionContext";
@@ -38,17 +39,34 @@ export default async function CatalogContent({
 }: CatalogContentProps) {
   const limit = 20;
 
-  const [categories, materials, colors, productsData] = await Promise.all([
+  const [categories, materials, colors] = await Promise.all([
     getCategories().catch(() => []),
     getMaterials().catch(() => []),
     getColors().catch(() => []),
-    getProducts({ categorySlug, materialId, colorId, sortBy, page, limit }),
   ]);
+
+  const query = constrainCatalogQuery(
+    { categorySlug, materialId, colorId, sortBy, page },
+    {
+      categorySlugs: categories.map((category) => category.slug),
+      materialIds: materials.map((material) => material.id),
+      colorIds: colors.map((color) => color.id),
+    },
+  );
+  const productsData = await getProducts({ ...query, limit });
 
   const { items: products, total } = productsData;
   const totalPages = Math.ceil(total / limit);
-  const hasFilters = Boolean(categorySlug || materialId || colorId);
-  const gridKey = [categorySlug, materialId, colorId, sortBy, page].join("-");
+  const hasFilters = Boolean(
+    query.categorySlug || query.materialId || query.colorId,
+  );
+  const gridKey = [
+    query.categorySlug,
+    query.materialId,
+    query.colorId,
+    query.sortBy,
+    query.page,
+  ].join("-");
 
   // A card has no selected variant, so the item is the product and the price
   // is the cheapest variant's — the same number the card shows. `index` is
@@ -61,7 +79,7 @@ export default async function CatalogContent({
       ? Math.min(...product.variants.map((v) => v.price))
       : 0,
     item_category: product.category.name,
-    index: (page - 1) * limit + i + 1,
+    index: (query.page - 1) * limit + i + 1,
   }));
 
   return (
@@ -71,7 +89,9 @@ export default async function CatalogContent({
       )}
       <TrackItemList
         items={analyticsItems}
-        listName={categorySlug ? `Catalog: ${categorySlug}` : "Catalog"}
+        listName={
+          query.categorySlug ? `Catalog: ${query.categorySlug}` : "Catalog"
+        }
         listId={gridKey}
         listKey={gridKey}
       />
@@ -98,7 +118,7 @@ export default async function CatalogContent({
                   key={gridKey}
                   className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-(--spacing-gutter-desktop)"
                 >
-                  {products.map((product) => {
+                  {products.map((product, index) => {
                     const galleryImages = product.images.filter(
                       (image) => image.image_role === "GALLERY",
                     );
@@ -123,6 +143,7 @@ export default async function CatalogContent({
                           }
                           aspectRatio="square"
                           sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                          priority={page === 1 && index === 0}
                         />
                       </StaggerItem>
                     );
@@ -136,13 +157,13 @@ export default async function CatalogContent({
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                     (p) => {
                       const pageParams = new URLSearchParams();
-                      if (categorySlug)
-                        pageParams.set("category", categorySlug);
-                      if (materialId !== undefined)
-                        pageParams.set("material", String(materialId));
-                      if (colorId !== undefined)
-                        pageParams.set("color", String(colorId));
-                      if (sortBy) pageParams.set("sort", sortBy);
+                      if (query.categorySlug)
+                        pageParams.set("category", query.categorySlug);
+                      if (query.materialId !== undefined)
+                        pageParams.set("material", query.materialId);
+                      if (query.colorId !== undefined)
+                        pageParams.set("color", query.colorId);
+                      if (query.sortBy) pageParams.set("sort", query.sortBy);
                       pageParams.set("page", String(p));
 
                       return (
@@ -150,7 +171,7 @@ export default async function CatalogContent({
                           key={p}
                           href={`/catalog?${pageParams.toString()}`}
                           className={`w-9 h-9 flex items-center justify-center rounded text-body-sm transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-                            p === page
+                            p === query.page
                               ? "bg-primary text-on-primary shadow-sm scale-105"
                               : "border border-outline-variant text-on-surface-variant hover:border-primary hover:text-on-surface hover:bg-surface-container active:scale-95"
                           }`}

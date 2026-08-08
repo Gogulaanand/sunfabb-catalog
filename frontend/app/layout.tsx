@@ -3,7 +3,11 @@ import { Playfair_Display, Inter } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { OrganizationSchema } from '@/components/seo/OrganizationSchema';
-import { HIDE_TEST_IMAGES, SITE_URL } from '@/lib/site-config';
+import {
+  HIDE_TEST_IMAGES,
+  SITE_URL,
+  SOCIAL_PREVIEW_IMAGE,
+} from '@/lib/site-config';
 import './globals.css';
 
 const playfairDisplay = Playfair_Display({
@@ -28,9 +32,11 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     siteName: 'Sunfabb',
+    images: [SOCIAL_PREVIEW_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
+    images: [SOCIAL_PREVIEW_IMAGE.url],
   },
 };
 

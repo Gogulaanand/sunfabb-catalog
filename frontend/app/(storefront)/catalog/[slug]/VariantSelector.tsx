@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { formatPrice, type ProductVariant } from "@/lib/api";
 import { useCartStore } from "@/lib/cart-store";
 import { trackAddToCart } from "@/lib/analytics";
+import { TrackedWhatsAppLink } from "@/components/analytics/tracked-whatsapp-link";
 import { isTransactionalCommerceEnabled } from "@/lib/storefront-mode";
 import {
   buildProductEnquiryMessage,
@@ -14,6 +15,7 @@ import {
 
 interface VariantSelectorProps {
   variants: ProductVariant[];
+  productId: string;
   productName: string;
   productSlug: string;
   categoryName?: string;
@@ -73,6 +75,7 @@ const BUTTON_LABELS: Record<AddState, string> = {
 
 export function VariantSelector({
   variants,
+  productId,
   productName,
   productSlug,
   categoryName,
@@ -351,7 +354,7 @@ export function VariantSelector({
       )}
       {selectedVariant && !transactionalCommerceEnabled && (
         isWhatsAppConfigured() ? (
-          <a
+          <TrackedWhatsAppLink
             href={whatsappLink(
               buildProductEnquiryMessage(
                 productName,
@@ -362,10 +365,15 @@ export function VariantSelector({
             )}
             target="_blank"
             rel="noreferrer"
+            tracking={{
+              linkLocation: "pdp",
+              productId,
+              variantId: selectedVariant.id,
+            }}
             className="block w-full py-3 rounded bg-primary text-on-primary text-label-caps text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 hover:opacity-90 transition-opacity"
           >
             Enquire on WhatsApp
-          </a>
+          </TrackedWhatsAppLink>
         ) : (
           <a
             href="/contact"

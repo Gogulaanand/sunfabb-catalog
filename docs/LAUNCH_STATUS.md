@@ -15,9 +15,9 @@ The recommended first release is a lead-generation catalogue with WhatsApp as th
 conversion path. Transactional commerce remains disabled for launch purposes until the production
 operations and go-live gates are complete.
 
-The repository is not launch-ready yet. Phase 1 reliability and security work is complete, and the
-Phase 2A/2B lead-generation and public-demo gates are shipped. The remaining urgent risks are
-internal development copy, unsupported taxonomy, and incomplete trust/policy content.
+The repository is not launch-ready yet. Phase 5’s deterministic engineering validation is complete
+on the isolated `codex/phase5-mvp-validation` branch, but the launch gate remains blocked on Phase 4
+WhatsApp business setup plus external/manual release evidence.
 
 ## Current catalogue truth
 
@@ -50,9 +50,23 @@ internal development copy, unsupported taxonomy, and incomplete trust/policy con
 | 2 - Public hygiene and catalogue truth | In progress | 2A/2B merged in PR #71; Phase 2C report covers all 41 numbered designs, but five live non-numbered products still need reconciliation |
 | 3 - Trust and conversion foundation | Closed for the current lead-generation release by owner decision on 2026-08-08; transactional gates deferred | Keep the public support channels and working policies; before full e-commerce, confirm legal seller/grievance identity, final policy review, owned imagery, and live contact-flow proof |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
-| 5 - Catalogue MVP release validation | Not started | Follows phases 1-4 and human release checks |
+| 5 - Catalogue MVP release validation | Engineering complete; launch-gated | Phase 4 WhatsApp setup plus deployed, human, SEO, analytics, social-preview, Lighthouse, and device checks |
 | 6 - Transactional commerce completion | Vendor-gated | Resend, GST, Shiprocket, Razorpay, and go-live inputs/verification |
 | Image catalogue expansion | Parallel, non-blocking | Owner QA and commercial metadata; preserve fail-closed pipeline gates |
+
+## Phase 5 verified implementation state
+
+The isolated Phase 5 branch contains commits `7b16d6a`, `9d566d8`, and `8d14c19`. The merged
+frontend suite passes **50 files / 350 tests**, lint and TypeScript pass, the lead-generation
+production build generates 84 static pages, and the Phase 5 release-contract spec passes **2/2**
+against the built local app. Local mobile `390×844` and desktop `1280×800` browser journeys pass,
+including filter keyboard focus/Tab trapping and disposable 503 recovery behavior.
+
+Do not repeat the completed code audit when resuming the WhatsApp action. Remaining gates are real
+WhatsApp number/profile/catalogue/quick replies and human journeys, deployed crawl and Lighthouse,
+real Android/iPhone/desktop QA, Search Console ownership/ingestion, real social-share rendering,
+and deployed GA4 DebugView conversion evidence. None of these gates was claimed from local code,
+build, or fixture evidence.
 
 ### Phase 3 implementation evidence
 

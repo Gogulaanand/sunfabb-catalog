@@ -31,6 +31,7 @@ export function HeroSection() {
           alt="Sunfabb bedspread, towels and table linen in a sunlit home"
           fill
           priority
+          loading="eager"
           sizes="100vw"
           className="object-cover"
         />

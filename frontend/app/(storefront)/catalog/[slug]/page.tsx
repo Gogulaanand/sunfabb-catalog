@@ -9,6 +9,7 @@ import { ProductSchema } from "@/components/seo/ProductSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
 import { ProductCard } from "@/components/product/product-card";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion";
+import { SOCIAL_PREVIEW_IMAGE } from "@/lib/site-config";
 
 export const revalidate = 30;
 
@@ -38,10 +39,11 @@ export async function generateMetadata({ params }: PageProps) {
       (img) => img.is_primary && img.image_role === "GALLERY",
     ) ?? product.images.find((img) => img.image_role === "GALLERY");
 
-  const ogImageUrl = primaryImage?.url.replace(
-    "/upload/",
-    "/upload/w_1200,h_630,c_fill,q_auto,f_auto/",
-  );
+  const ogImageUrl =
+    primaryImage?.url.replace(
+      "/upload/",
+      "/upload/w_1200,h_630,c_fill,q_auto,f_auto/",
+    ) ?? "/images/home/sunfabb-hero-option-a.png";
 
   const description =
     product.description ??
@@ -63,6 +65,11 @@ export async function generateMetadata({ params }: PageProps) {
           { url: ogImageUrl, width: 1200, height: 630, alt: product.name },
         ],
       }),
+      ...(!ogImageUrl && { images: [SOCIAL_PREVIEW_IMAGE] }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: [ogImageUrl ?? SOCIAL_PREVIEW_IMAGE.url],
     },
   };
 }
@@ -134,6 +141,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       <ProductDetailInteractive
         images={product.images}
         variants={product.variants}
+        productId={product.id}
         productName={product.name}
         productSlug={product.slug}
         categoryName={product.category.name}
