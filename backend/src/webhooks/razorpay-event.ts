@@ -20,11 +20,23 @@ function asNumber(value: unknown): number | undefined {
   return typeof value === 'number' ? value : undefined;
 }
 
+function asPositivePaise(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0
+    ? value
+    : undefined;
+}
+
 export interface RazorpayPaymentEvent {
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   method?: string;
   amountPaise?: number;
+}
+
+export interface RazorpayRefundEvent {
+  refundId: string;
+  razorpayPaymentId: string;
+  amountPaise: number;
 }
 
 export function extractRazorpayPaymentEvent(
@@ -43,4 +55,28 @@ export function extractRazorpayPaymentEvent(
     method: asString(paymentEntity?.method),
     amountPaise: asNumber(paymentEntity?.amount),
   };
+}
+
+// refund.created and refund.processed are lifecycle notifications for the same
+// refund entity. The entity id is therefore both audit data and the stable key
+// used by WebhooksService to ensure the amount is accumulated exactly once.
+export function extractRazorpayRefundEvent(
+  payload: unknown,
+): RazorpayRefundEvent | undefined {
+  const inner = asRecord(asRecord(payload)?.payload);
+  const refundEntity = asRecord(asRecord(inner?.refund)?.entity);
+
+  if (asString(refundEntity?.entity) !== 'refund') {
+    return undefined;
+  }
+
+  const refundId = asString(refundEntity?.id);
+  const razorpayPaymentId = asString(refundEntity?.payment_id);
+  const amountPaise = asPositivePaise(refundEntity?.amount);
+
+  if (!refundId || !razorpayPaymentId || amountPaise === undefined) {
+    return undefined;
+  }
+
+  return { refundId, razorpayPaymentId, amountPaise };
 }

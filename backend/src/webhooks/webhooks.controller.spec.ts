@@ -96,4 +96,29 @@ describe('WebhooksController — raw-body HMAC gate (§7.1, §12 #4)', () => {
       expect.objectContaining({ eventId: 'payment.captured:pay_99' }),
     );
   });
+
+  it('uses the refund entity id for the fallback so separate refunds on one payment do not collide', async () => {
+    mockRazorpay.verifyWebhookSignature.mockReturnValue(true);
+    const body = Buffer.from(
+      JSON.stringify({
+        event: 'refund.processed',
+        payload: {
+          refund: {
+            entity: {
+              id: 'rfnd_99',
+              entity: 'refund',
+              payment_id: 'pay_99',
+              amount: 50000,
+            },
+          },
+        },
+      }),
+    );
+
+    await controller.handle(fakeRequest(body), 'valid-signature', undefined);
+
+    expect(mockWebhooksService.handleRazorpay).toHaveBeenCalledWith(
+      expect.objectContaining({ eventId: 'refund.processed:rfnd_99' }),
+    );
+  });
 });
