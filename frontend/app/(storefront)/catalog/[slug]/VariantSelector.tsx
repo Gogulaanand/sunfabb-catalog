@@ -260,7 +260,7 @@ export function VariantSelector({
           <p className="text-label-caps text-on-surface-variant mb-2">
             Color
             {selectedVariant?.color ? (
-              <span className="ml-2 text-on-surface-variant/70">
+              <span className="ml-2 text-on-surface-variant">
                 — {selectedVariant.color.name}
               </span>
             ) : null}
