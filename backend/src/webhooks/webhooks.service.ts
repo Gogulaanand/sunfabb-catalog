@@ -2,7 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { PaymentsService } from '../payments/payments.service.js';
 import type { Prisma } from '../../generated/prisma/client.js';
-import { extractRazorpayPaymentEvent } from './razorpay-event.js';
+import { assertTransition } from '../orders/order-status.js';
+import {
+  extractRazorpayPaymentEvent,
+  extractRazorpayRefundEvent,
+} from './razorpay-event.js';
 
 export interface RazorpayWebhook {
   eventId: string;
@@ -75,7 +79,14 @@ export class WebhooksService {
       }
     }
 
-    await this.process(event.eventType, event.payload);
+    if (
+      event.eventType === 'refund.created' ||
+      event.eventType === 'refund.processed'
+    ) {
+      await this.processRefund(event.eventType, event.payload);
+    } else {
+      await this.process(event.eventType, event.payload);
+    }
 
     await this.prisma.webhookEvent.updateMany({
       where: { provider: 'RAZORPAY', event_id: event.eventId },
@@ -147,5 +158,156 @@ export class WebhooksService {
       default:
         this.logger.log(`Ignoring unhandled Razorpay event: ${eventType}`);
     }
+  }
+
+  private async processRefund(
+    eventType: 'refund.created' | 'refund.processed',
+    payload: unknown,
+  ): Promise<void> {
+    const refund = extractRazorpayRefundEvent(payload);
+    if (!refund) {
+      this.logger.error(
+        `Razorpay ${eventType} carried an invalid refund entity — not synchronizing`,
+      );
+      return;
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      // Razorpay sends refund.created and refund.processed for the same refund
+      // entity, with separate X-Razorpay-Event-Id values and no ordering
+      // guarantee. Keep both raw deliveries in the ledger, then atomically claim
+      // the refund entity itself through a synthetic ledger row. createMany with
+      // skipDuplicates is race-safe on the existing provider/event_id unique key:
+      // exactly one concurrent delivery receives count=1 and may mutate money.
+      const { count } = await tx.webhookEvent.createMany({
+        data: [
+          {
+            provider: 'RAZORPAY',
+            event_id: `refund:${refund.refundId}`,
+            event_type: 'refund.sync',
+            payload: payload as Prisma.InputJsonValue,
+            processed_at: new Date(),
+          },
+        ],
+        skipDuplicates: true,
+      });
+      if (count === 0) {
+        return;
+      }
+
+      const payment = await tx.payment.findUnique({
+        where: { razorpay_payment_id: refund.razorpayPaymentId },
+        select: {
+          id: true,
+          amount_paise: true,
+          refunded_paise: true,
+          order: {
+            select: { id: true, order_number: true, status: true },
+          },
+        },
+      });
+      if (!payment) {
+        this.logger.warn(
+          `${eventType}: no Payment for razorpay_payment_id=${refund.razorpayPaymentId}; ` +
+            `refund_id=${refund.refundId} acknowledged without mutation`,
+        );
+        return;
+      }
+
+      const expectedRefundedPaise = payment.refunded_paise + refund.amountPaise;
+      if (expectedRefundedPaise > payment.amount_paise) {
+        this.logger.error(
+          `${eventType}: refund ${refund.refundId} would exceed captured amount for ` +
+            `${payment.order.order_number} — ${expectedRefundedPaise} vs ${payment.amount_paise}; ` +
+            'acknowledged without mutation',
+        );
+        return;
+      }
+
+      const expectedOrderStatus =
+        expectedRefundedPaise >= payment.amount_paise
+          ? ('REFUNDED' as const)
+          : ('PARTIALLY_REFUNDED' as const);
+
+      // A further partial refund may leave an already-PARTIALLY_REFUNDED order
+      // in the same state. Every actual transition still passes through the
+      // shared state-machine authority before either row is changed.
+      if (payment.order.status !== expectedOrderStatus) {
+        try {
+          assertTransition(payment.order.status, expectedOrderStatus);
+        } catch (err) {
+          this.logger.error(
+            `${eventType}: refund ${refund.refundId} cannot transition order ` +
+              `${payment.order.order_number} from ${payment.order.status} to ${expectedOrderStatus}: ` +
+              `${String(err)}; acknowledged without mutation`,
+          );
+          return;
+        }
+      }
+
+      // Distinct refunds for one payment can arrive concurrently. Increment in
+      // the database instead of writing the stale value read above; the upper
+      // bound is re-evaluated after any competing transaction commits, so no
+      // refund is lost and the total can never exceed the captured amount.
+      const increment = await tx.payment.updateMany({
+        where: {
+          id: payment.id,
+          refunded_paise: {
+            lte: payment.amount_paise - refund.amountPaise,
+          },
+        },
+        data: { refunded_paise: { increment: refund.amountPaise } },
+      });
+      if (increment.count !== 1) {
+        this.logger.error(
+          `${eventType}: concurrent refund ${refund.refundId} would exceed captured amount for ` +
+            `${payment.order.order_number}; acknowledged without mutation`,
+        );
+        return;
+      }
+
+      const updatedPayment = await tx.payment.findUnique({
+        where: { id: payment.id },
+        select: {
+          amount_paise: true,
+          refunded_paise: true,
+          order: {
+            select: { id: true, order_number: true, status: true },
+          },
+        },
+      });
+      if (!updatedPayment) {
+        // This is an internal consistency failure, not a vendor payload problem.
+        // Throwing rolls back both the increment and refund claim so Razorpay can
+        // retry instead of losing a valid refund during a database fault.
+        throw new Error(
+          `Payment ${payment.id} disappeared during refund synchronization`,
+        );
+      }
+
+      const paymentStatus =
+        updatedPayment.refunded_paise >= updatedPayment.amount_paise
+          ? ('REFUNDED' as const)
+          : ('PARTIALLY_REFUNDED' as const);
+      const orderStatus = paymentStatus;
+
+      if (updatedPayment.order.status !== orderStatus) {
+        assertTransition(updatedPayment.order.status, orderStatus);
+      }
+
+      await tx.payment.update({
+        where: { id: payment.id },
+        data: { status: paymentStatus },
+      });
+
+      if (updatedPayment.order.status !== orderStatus) {
+        await tx.order.update({
+          where: { id: updatedPayment.order.id },
+          data: { status: orderStatus },
+        });
+      }
+      // Refund synchronization deliberately does not touch ProductVariant or
+      // inventory. Physical returns are inspected and restocked by the owner.
+    });
   }
 }

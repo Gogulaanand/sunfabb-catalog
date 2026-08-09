@@ -85,7 +85,9 @@ export default function Footer() {
                   </a>
                 </li>
               )}
-              {SITE.hours && <li className="text-outline">{SITE.hours}</li>}
+              {SITE.hours && (
+                <li className="text-on-surface-variant">{SITE.hours}</li>
+              )}
               <li>
                 <Link
                   href="/contact"
@@ -169,7 +171,7 @@ export default function Footer() {
           )}
         </div>
 
-        <p className="text-body-sm text-outline border-t border-outline-variant pt-6">
+        <p className="text-body-sm text-on-surface-variant border-t border-outline-variant pt-6">
           © {new Date().getFullYear()} {SITE.name}. All rights reserved.
         </p>
       </div>

@@ -161,7 +161,20 @@ export class PaymentsService {
   ): Promise<void> {
     const order = await this.prisma.order.findUnique({
       where: { razorpay_order_id: razorpayOrderId },
-      select: { id: true, total_paise: true, email: true, order_number: true },
+      select: {
+        id: true,
+        total_paise: true,
+        email: true,
+        order_number: true,
+        items: {
+          select: {
+            product_name: true,
+            variant_label: true,
+            quantity: true,
+            line_total_paise: true,
+          },
+        },
+      },
     });
     if (!order) {
       this.logger.warn(
@@ -208,7 +221,15 @@ export class PaymentsService {
     if (count === 1) {
       // Email must never fail the money path (§12 #7) — swallow + log.
       await this.email
-        .sendOrderConfirmation(order.email, order.order_number)
+        .sendOrderConfirmation(order.email, order.order_number, {
+          lines: order.items.map((item) => ({
+            name: item.product_name,
+            variantLabel: item.variant_label,
+            quantity: item.quantity,
+            lineTotalPaise: item.line_total_paise,
+          })),
+          totalPaise: order.total_paise,
+        })
         .catch((err) =>
           this.logger.error(
             `Order-confirmation email failed for ${order.order_number}: ${String(err)}`,
