@@ -11,6 +11,15 @@ const ORDER = {
   total_paise: 250000,
 };
 
+const ORDER_ITEMS = [
+  {
+    product_name: 'Cotton Bedspread',
+    variant_label: 'King · Indigo · Cotton',
+    quantity: 2,
+    line_total_paise: 250000,
+  },
+];
+
 // Typed so `.mock.calls` isn't `any` — the placed_at timestamp is real (new
 // Date()), so the confirmPaid test below inspects the call args directly
 // instead of nesting expect.any(Date) inside a plain-object property.
@@ -169,6 +178,7 @@ describe('PaymentsService', () => {
         total_paise: ORDER.total_paise,
         email: 'jane@example.com',
         order_number: ORDER.order_number,
+        items: ORDER_ITEMS,
       });
     }
 
@@ -181,6 +191,23 @@ describe('PaymentsService', () => {
         method: 'upi',
       });
 
+      expect(mockPrisma.order.findUnique).toHaveBeenCalledWith({
+        where: { razorpay_order_id: 'order_rzp_1' },
+        select: {
+          id: true,
+          total_paise: true,
+          email: true,
+          order_number: true,
+          items: {
+            select: {
+              product_name: true,
+              variant_label: true,
+              quantity: true,
+              line_total_paise: true,
+            },
+          },
+        },
+      });
       expect(mockPrisma.payment.updateMany).toHaveBeenCalledWith({
         where: { razorpay_order_id: 'order_rzp_1' },
         data: {
@@ -197,7 +224,38 @@ describe('PaymentsService', () => {
       expect(flipArgs.data.status).toBe('PAID');
       expect(flipArgs.data.razorpay_payment_id).toBe('pay_1');
       expect(flipArgs.data.placed_at).toBeInstanceOf(Date);
-      expect(mockEmail.sendOrderConfirmation).toHaveBeenCalledTimes(1);
+      expect(mockEmail.sendOrderConfirmation).toHaveBeenCalledWith(
+        'jane@example.com',
+        ORDER.order_number,
+        {
+          lines: [
+            {
+              name: 'Cotton Bedspread',
+              variantLabel: 'King · Indigo · Cotton',
+              quantity: 2,
+              lineTotalPaise: 250000,
+            },
+          ],
+          totalPaise: ORDER.total_paise,
+        },
+      );
+    });
+
+    it('keeps a successful payment confirmation resolved when the email boundary rejects', async () => {
+      arrangeOrder();
+      mockPrisma.order.updateMany.mockResolvedValue({ count: 1 });
+      mockEmail.sendOrderConfirmation.mockRejectedValue(
+        new Error('email boundary failed'),
+      );
+
+      await expect(
+        service.confirmPaid('order_rzp_1', {
+          razorpayPaymentId: 'pay_1',
+        }),
+      ).resolves.toBeUndefined();
+
+      const [flipArgs] = mockPrisma.order.updateMany.mock.calls[0];
+      expect(flipArgs.data.status).toBe('PAID');
     });
 
     it('is a no-op on replay: second call after already PAID sends no second email', async () => {
@@ -296,6 +354,7 @@ describe('PaymentsService', () => {
         total_paise: ORDER.total_paise,
         email: 'jane@example.com',
         order_number: ORDER.order_number,
+        items: ORDER_ITEMS,
       });
       mockPrisma.payment.updateMany.mockResolvedValueOnce({ count: 1 }); // confirmPaid's detail update
       mockPrisma.order.updateMany.mockResolvedValue({ count: 1 }); // order was still PENDING_PAYMENT
@@ -350,6 +409,7 @@ describe('PaymentsService', () => {
         total_paise: ORDER.total_paise,
         email: CUSTOMER.email,
         order_number: ORDER.order_number,
+        items: ORDER_ITEMS,
       });
       mockPrisma.order.updateMany.mockResolvedValue({ count: 1 });
 
