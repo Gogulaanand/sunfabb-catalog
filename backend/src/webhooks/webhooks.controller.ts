@@ -11,7 +11,10 @@ import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { RazorpayService } from '../payments/razorpay.service.js';
 import { WebhooksService } from './webhooks.service.js';
-import { extractRazorpayPaymentEvent } from './razorpay-event.js';
+import {
+  extractRazorpayPaymentEvent,
+  extractRazorpayRefundEvent,
+} from './razorpay-event.js';
 
 @Controller('webhooks')
 export class WebhooksController {
@@ -67,6 +70,11 @@ function readString(payload: unknown, key: string): string | undefined {
 
 // Best-effort stable id from the payment/order entity when no header is present.
 function fallbackId(payload: unknown): string {
+  const refund = extractRazorpayRefundEvent(payload);
+  if (refund) {
+    return refund.refundId;
+  }
+
   const { razorpayPaymentId, razorpayOrderId } =
     extractRazorpayPaymentEvent(payload);
   return razorpayPaymentId ?? razorpayOrderId ?? 'unknown';
