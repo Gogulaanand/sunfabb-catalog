@@ -178,10 +178,11 @@ export default function CatalogFilters({
   const filterSections = (
     <>
       <section>
-        <h3 className="text-label-caps text-on-surface-variant mb-3">
+        <h2 className="text-label-caps text-on-surface-variant mb-3">
           Sort by
-        </h3>
+        </h2>
         <select
+          aria-label="Sort by"
           value={currentSort}
           onChange={(e) => updateParam("sort", e.target.value || null)}
           className="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
@@ -194,9 +195,9 @@ export default function CatalogFilters({
       </section>
 
       <section>
-        <h3 className="text-label-caps text-on-surface-variant mb-3">
+        <h2 className="text-label-caps text-on-surface-variant mb-3">
           Category
-        </h3>
+        </h2>
         <div className="space-y-3">
           <CheckItem
             checked={!currentCategory}
@@ -221,9 +222,9 @@ export default function CatalogFilters({
 
       {materials.length > 0 && (
         <section>
-          <h3 className="text-label-caps text-on-surface-variant mb-3">
+          <h2 className="text-label-caps text-on-surface-variant mb-3">
             Material
-          </h3>
+          </h2>
           <div className="space-y-3">
             <CheckItem
               checked={!currentMaterial}
@@ -249,9 +250,9 @@ export default function CatalogFilters({
 
       {colors.length > 0 && (
         <section>
-          <h3 className="text-label-caps text-on-surface-variant mb-3">
+          <h2 className="text-label-caps text-on-surface-variant mb-3">
             Color Palette
-          </h3>
+          </h2>
           <div className="flex flex-wrap gap-2.5">
             {colors.map((col) => (
               <motion.button

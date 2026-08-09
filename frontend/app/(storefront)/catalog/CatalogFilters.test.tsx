@@ -35,6 +35,15 @@ describe("CatalogFilters", () => {
     expect(screen.getAllByText("Bedspreads")).toHaveLength(1);
   });
 
+  it("gives the sort control an accessible name and keeps filter headings sequential", () => {
+    renderFilters();
+
+    expect(screen.getByRole("combobox", { name: "Sort by" })).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent),
+    ).toEqual(["Sort by", "Category", "Material", "Color Palette"]);
+  });
+
   it("navigates to the catalog with the category slug and resets page on selection", () => {
     renderFilters();
     const checkbox = screen.getByLabelText("Bedspreads");

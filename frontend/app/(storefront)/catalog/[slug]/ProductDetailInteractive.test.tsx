@@ -109,6 +109,7 @@ describe('ProductDetailInteractive', () => {
     expect(
       screen.getByRole('button', { name: 'Select color Red' }),
     ).toBeInTheDocument();
+    expect(screen.getByText('— Red')).toHaveClass('text-on-surface-variant');
   });
 
   it('keeps Add to Cart available in transactional mode in the client bundle', () => {
