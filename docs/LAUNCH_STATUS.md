@@ -16,9 +16,9 @@ conversion path. Transactional commerce remains disabled for launch purposes unt
 operations and go-live gates are complete.
 
 The repository is not launch-ready yet. Phase 5’s deterministic engineering validation merged in
-PR #78. The August 9 production crawl and Lighthouse evidence is recorded in PR #81, which also
-fixes three live accessibility findings. The launch gate remains blocked on merge/deploy follow-up,
-Phase 4 WhatsApp business setup, and the owner/manual evidence listed below.
+PR #78. PR #81 subsequently merged the August 9 production crawl/Lighthouse evidence and three live
+accessibility fixes. The launch gate remains blocked on production deployment confirmation and the
+targeted accessibility rerun, Phase 4 WhatsApp business setup, and the owner/manual evidence below.
 
 ## Current catalogue truth
 
@@ -51,8 +51,8 @@ Phase 4 WhatsApp business setup, and the owner/manual evidence listed below.
 | 2 - Public hygiene and catalogue truth | Complete for the current public release | Public release contains the 41 numbered designs and excludes the five known demo identifiers; broader copy/taxonomy/image work remains owner-deferred |
 | 3 - Trust and conversion foundation | Closed for the current lead-generation release by owner decision on 2026-08-08; transactional gates deferred | Keep the public support channels and working policies; before full e-commerce, confirm legal seller/grievance identity, final policy review, owned imagery, and live contact-flow proof |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
-| 5 - Catalogue MVP release validation | Public contract verified; owner/manual gates remain | PR #81 merge/deploy + production accessibility rerun; Phase 4 WhatsApp, device, Search Console, GA4 event, and platform-preview evidence |
-| 6 - Transactional commerce completion | Partially unblocked; vendor/owner acceptance remains | PR #79 email code (draft), PR #80 refund sync, PR #82 security patch; 6.5 GST and 6.6 Shiprocket inputs still blocked |
+| 5 - Catalogue MVP release validation | Public contract verified; owner/manual gates remain | PR #81 merged; confirm production deployment and rerun targeted accessibility checks, then complete Phase 4 WhatsApp, device, Search Console, GA4 event, and platform-preview evidence |
+| 6 - Transactional commerce completion | Deterministic 6.7/6.10 slices merged; vendor/owner acceptance remains | PRs #79, #80, and #82 merged; production email acceptance, live cutover, 6.5 GST, and 6.6 Shiprocket inputs remain blocked |
 | Image catalogue expansion | Parallel, non-blocking | Owner QA and commercial metadata; preserve fail-closed pipeline gates |
 
 ## Phase 5 verified implementation state
@@ -66,9 +66,9 @@ including filter keyboard focus/Tab trapping and disposable 503 recovery behavio
 The August 9 production audit additionally passed 59/59 sitemap routes, 44/44 internal targets,
 42/42 social-preview assets, robots/sitemap/canonical/metadata/recursive JSON-LD checks, and 12
 distinct cold/warm Lighthouse runs. GA4 configuration and script presence were observed, but event
-delivery was not. PR #81 fixes the muted-text contrast, catalogue heading-order, and unnamed-sort
-control findings; its five CI checks pass. Production accessibility closure awaits merge/deploy and
-a targeted rerun.
+delivery was not. PR #81 merged the muted-text contrast, catalogue heading-order, and unnamed-sort
+control fixes as `78b44a5` after all six refreshed checks passed. Production accessibility closure
+awaits deployment confirmation and a targeted rerun.
 
 Do not repeat the completed code audit when resuming the WhatsApp action. Remaining gates are real
 WhatsApp profile/catalogue/quick replies and two-way journeys, real Android/iPhone/desktop QA,
@@ -77,14 +77,15 @@ Realtime/DebugView conversion evidence.
 
 ## Phase 6 active delivery snapshot
 
-- Draft PR #79 (`feature/6.7-resend-email`, `379d46d`) closes the remaining deterministic paid-order
-  email content and failure-isolation gap. All five CI checks pass. Existing launch evidence records
-  a verified Resend domain and configured mail variables; reconfirm current values and complete
-  owner-inbox delivery evidence before marking 6.7 complete.
-- Ready PR #80 (`feature/6.10-refund-webhooks`, `afb5c3d`) implements idempotent partial/full refund
-  synchronization with no inventory mutation. All five CI checks pass. This is not live cutover proof.
-- Ready PR #82 (`fix/next-16.3-security`, `0b3a608`) is an intentionally separate Next/Sharp
-  security patch and audit note. All five CI checks pass.
+- PR #79 merged as `a234f5b` after all six checks passed, closing the remaining deterministic
+  paid-order email content and failure-isolation gap. Existing launch evidence records a verified
+  Resend domain and configured mail variables; reconfirm current values and complete owner-inbox
+  delivery evidence before marking 6.7 complete.
+- PR #80 merged as `b512fa5` after a current-main refresh and all six checks passed. It implements
+  idempotent partial/full refund synchronization with no inventory mutation; this is not live
+  cutover proof.
+- PR #82 merged separately as `6c03c85` after a current-main refresh and all six checks passed,
+  delivering the Next/Sharp security patch and audit note.
 - Phase 6.5 remains blocked on accountant-approved seller/GST/HSN/rate/invoice facts. Phase 6.6
   remains blocked on Shiprocket account/API, pickup, package weight/dimensions, and shipping-rule
   decisions. The lowest-effort owner sequence is `docs/OWNER_UNBLOCK_SEQUENCE.md`.
@@ -167,8 +168,8 @@ Phase 0 created these GitHub milestones:
 The ordered implementation queue is represented by these issues:
 
 Phase 2A/2B implementation is delivered in [PR #71](https://github.com/Gogulaanand/sunfabb-catalog/pull/71).
-Current review work is PRs #79–#82; use `docs/OWNER_UNBLOCK_SEQUENCE.md` rather than the historical
-issue order to resume the active launch boundary.
+PRs #79–#82 are merged; use `docs/OWNER_UNBLOCK_SEQUENCE.md` rather than the historical issue order
+to resume the remaining owner/external launch boundary.
 
 | Order | Issue | Milestone |
 |---:|---|---|

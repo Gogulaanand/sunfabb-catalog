@@ -6,20 +6,23 @@ Phase 5's deterministic implementation merged to `main` in PR #78 (`79ab778`). A
 audit of `https://sunfabb.com` proved 59/59 sitemap routes, 44/44 internal targets, 42/42 social
 preview assets, robots/sitemap behavior, canonical/metadata/recursive JSON-LD contracts, and 12
 cold/warm Lighthouse runs across home, catalogue, and a representative PDP. The live audit found
-three narrow accessibility defects; PR #81 (`0f087c9`) fixes them and contains the dated evidence.
-All five PR #81 checks, including Playwright E2E, are green. Merge/deploy and a production
-accessibility rerun remain open.
+three narrow accessibility defects; PR #81 merged the fixes and dated evidence as `78b44a5` after
+the branch was refreshed and all six checks passed. Production deployment confirmation and the
+targeted accessibility rerun remain open.
 
 The later-phase work was split into independent worktrees and PRs:
 
-* **Phase 6.7 code boundary:** draft PR #79 (`379d46d`) closes the remaining paid-order email content
-  and failure-isolation gap. All five checks are green. Resend transport/config/templates already
-  existed on `main`; Phase 6.7 is not complete until the current production sender configuration is
-  reconfirmed and owner-controlled verification/reset/order/contact deliveries are observed.
-* **Phase 6.10 refund slice:** ready PR #80 (`afb5c3d`) implements idempotent partial/full Razorpay
-  refund synchronization without inventory mutation. All five checks are green.
-* **Phase 6.10 security slice:** ready PR #82 (`0b3a608`) isolates the Next/Sharp dependency patch
-  and audit rationale from the refund change. All five checks are green.
+* **Phase 6.7 code boundary:** PR #79 merged as `a234f5b`, closing the remaining paid-order email
+  content and failure-isolation gap after all six checks passed. Resend transport/config/templates
+  already existed on `main`; Phase 6.7 is not complete until the current production sender
+  configuration is reconfirmed and owner-controlled verification/reset/order/contact deliveries are
+  observed.
+* **Phase 6.10 refund slice:** PR #80 merged as `b512fa5` after a current-main refresh and all six
+  checks passed. It implements idempotent partial/full Razorpay refund synchronization without
+  inventory mutation; this is code delivery, not live cutover proof.
+* **Phase 6.10 security slice:** PR #82 merged as `6c03c85` after a current-main refresh and all six
+  checks passed, keeping the Next/Sharp dependency patch and audit rationale separate from the
+  refund change.
 
 Phase 4 remains owner-operated: code-level WhatsApp instrumentation and context are present, but a
 real WhatsApp Business profile, catalogue, quick replies, two-way behavior, and GA4 conversion
@@ -635,7 +638,7 @@ counts.
 The following distinction is final for the next WhatsApp session:
 
 * **Verified locally:** code-level route/metadata/link contracts, 2/2 release-contract tests, 50/350 frontend tests, lint, typecheck, production build, local 390×844 and 1280×800 browser journeys, filter keyboard behavior, and disposable 503 poor-network recovery behavior.
-* **Verified against production on August 9:** 59/59 sitemap routes, 44/44 internal targets, 42/42 social-preview assets, public robots/sitemap/canonical/metadata/recursive JSON-LD contracts, consistent GA4 configuration presence, and 12 cold/warm Lighthouse runs. PR #81 records the evidence and fixes the three accessibility findings; production rerun awaits merge/deploy.
+* **Verified against production on August 9:** 59/59 sitemap routes, 44/44 internal targets, 42/42 social-preview assets, public robots/sitemap/canonical/metadata/recursive JSON-LD contracts, consistent GA4 configuration presence, and 12 cold/warm Lighthouse runs. PR #81 merged the evidence and three accessibility fixes as `78b44a5`; production deployment confirmation and the targeted rerun remain open.
 * **Not yet verified:** real Android Chrome/iPhone Safari/desktop-human QA, Google Search Console ownership/ingestion, platform-rendered social-share previews, GA4 DebugView conversion telemetry, and human Google/shared-link/home-to-variant-to-WhatsApp/contact journeys.
 * **Blocked on Phase 4:** all real WhatsApp-number/profile/catalogue/quick-reply checks and the WhatsApp portions of the human journeys. Do not reopen or re-audit the completed code scope when resuming Phase 4; use the blocker list above and validate only the owner/external gates.
 
@@ -692,13 +695,12 @@ The following distinction is final for the next WhatsApp session:
 
 ### Current implementation status — August 9, 2026
 
-* Phase 6.7 deterministic code is reviewable in draft PR #79; all CI checks pass. Existing launch
-  records say the Resend domain and backend variables were configured during Phase 3, but current
-  owner-controlled inbox delivery must be reconfirmed after merge before marking 6.7 complete.
-* Phase 6.10 refund synchronization is independently reviewable in ready PR #80; all CI checks pass.
-  This closes only the code slice, not live cutover.
-* The Phase 6.10 audit produced the separately reviewable Next/Sharp patch in PR #82. Do not couple
-  it to PR #80 during review or merge.
+* Phase 6.7 deterministic code merged in PR #79 as `a234f5b`. Existing launch records say the Resend
+  domain and backend variables were configured during Phase 3, but current owner-controlled inbox
+  delivery must be reconfirmed before marking 6.7 complete.
+* Phase 6.10 refund synchronization merged independently in PR #80 as `b512fa5`. This closes only
+  the code slice, not live cutover.
+* The separately reviewed Next/Sharp patch from the Phase 6.10 audit merged in PR #82 as `6c03c85`.
 * Phase 6.5 and 6.6 remain correctly blocked on the exact owner/accountant/vendor inputs listed in
   their plans. No implementation session should start by guessing these facts.
 
