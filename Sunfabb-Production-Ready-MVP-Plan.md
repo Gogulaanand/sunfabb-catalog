@@ -1,26 +1,35 @@
 # Sunfabb Production-Ready MVP Plan
 
-## 0. Execution status as of August 8, 2026
+## 0. Execution status as of August 9, 2026
 
-Phase 5 engineering work is complete on the isolated branch
-`codex/phase5-mvp-validation` in `/private/tmp/sunfabb-phase5-mvp-validation`.
-The implementation is not deployed or merged from this worktree yet.
+Phase 5's deterministic implementation merged to `main` in PR #78 (`79ab778`). A subsequent live
+audit of `https://sunfabb.com` proved 59/59 sitemap routes, 44/44 internal targets, 42/42 social
+preview assets, robots/sitemap behavior, canonical/metadata/recursive JSON-LD contracts, and 12
+cold/warm Lighthouse runs across home, catalogue, and a representative PDP. The live audit found
+three narrow accessibility defects; PR #81 merged the fixes and dated evidence as `78b44a5` after
+the branch was refreshed and all six checks passed. Production deployment confirmation and the
+targeted accessibility rerun remain open.
 
-Integrated commits:
+The later-phase work was split into independent worktrees and PRs:
 
-* `7b16d6a` — automated public-route release contract, canonical/metadata fixes, and typed catalogue query/facet validation.
-* `9d566d8` — mobile filter-dialog focus trapping and eager loading for the first visible catalogue, hero, and PDP images.
-* `8d14c19` — `whatsapp_click` analytics instrumentation and centralized social-preview fallback metadata.
+* **Phase 6.7 code boundary:** PR #79 merged as `a234f5b`, closing the remaining paid-order email
+  content and failure-isolation gap after all six checks passed. Resend transport/config/templates
+  already existed on `main`; Phase 6.7 is not complete until the current production sender
+  configuration is reconfirmed and owner-controlled verification/reset/order/contact deliveries are
+  observed.
+* **Phase 6.10 refund slice:** PR #80 merged as `b512fa5` after a current-main refresh and all six
+  checks passed. It implements idempotent partial/full Razorpay refund synchronization without
+  inventory mutation; this is code delivery, not live cutover proof.
+* **Phase 6.10 security slice:** PR #82 merged as `6c03c85` after a current-main refresh and all six
+  checks passed, keeping the Next/Sharp dependency patch and audit rationale separate from the
+  refund change.
 
-Verified in the integration worktree:
-
-* Frontend Vitest: **50 files, 350 tests passed**.
-* Frontend ESLint and TypeScript: **passed**.
-* Production build with `CATALOG_LEAD_GEN`: **passed**; 84 static pages generated, including sitemap, robots, guides, and the published product routes.
-* Phase 5 release-contract Playwright spec: **2/2 passed** against the built local app.
-* Browser audit: mobile `390×844` and desktop `1280×800` catalogue/PDP/navigation/filter/error journeys passed; mobile filter focus and forward/reverse Tab trapping are covered by regression tests.
-
-The Phase 5 launch gate remains **blocked, not failed**, because Phase 4 has not started. A real WhatsApp Business number, owner-approved WhatsApp profile/catalogue/quick replies, real-device human journeys, Google Search Console ownership and ingestion, real social-share rendering, and Lighthouse/uncached-cached network evidence are still external or manual gates. No production data, deployment, indexing submission, or WhatsApp setup was changed by this work.
+Phase 4 remains owner-operated: code-level WhatsApp instrumentation and context are present, but a
+real WhatsApp Business profile, catalogue, quick replies, two-way behavior, and GA4 conversion
+observation are not proven. Phases 6.5 and 6.6 have not started because their locked plans require
+accountant-approved GST facts and owner-selected Shiprocket/package/commercial inputs. Do not invent
+those values or reopen completed Phase 5 code work. The ordered owner queue is
+`docs/OWNER_UNBLOCK_SEQUENCE.md`.
 
 ## 1. Current state as of August 1, 2026
 
@@ -47,8 +56,9 @@ Earlier repository history labels several storefront milestones as Phases 0–5,
 The attached current tracker is materially newer than portions of the repository handoff documentation:
 
 * **41 numbered production designs are published and active.**
-* **Five non-production demo products remain active.**
-* Therefore, the live total of 46 catalogue items matches 41 production products plus five demos.
+* **The five known non-production demo identifiers are absent from the public release.**
+* The canonical live/public counts and publication gates are maintained in
+  `docs/LAUNCH_STATUS.md` and `tools/image-pipeline/CATALOG_PROGRESS.md`.
 
 For the classified 166-grid pilot:
 
@@ -66,7 +76,7 @@ The repository contains good plans but lacks a reliable single operational truth
 * `HANDOFF.md` contains catalogue counts that have been overtaken by later work.
 * The committed catalogue tracker and the attached local tracker do not describe the state equally clearly.
 * Plans are spread across the master plan, handoff, Phase 6 plans, growth-wave plans and pipeline trackers.
-* There are currently no open repository issues or pull requests representing the remaining launch backlog.
+* The current implementation queue is represented by PRs #79–#82 plus issues #56 and #61–#64.
 
 This means planning exists, but the work is not currently organised into an executable project queue.
 
@@ -616,10 +626,9 @@ Use unique prefilled text or campaign parameters for:
 **Scope:** Audit and limited fixes rather than new feature work
 **Model:** Sol Medium/Thinking High for the audit; Luna Medium for corrections.
 
-### Verified implementation status — August 8, 2026
+### Verified implementation status — August 9, 2026
 
-The deterministic Phase 5 implementation scope is complete in
-`codex/phase5-mvp-validation`. The release-contract audit now covers sitemap-listed public routes,
+The deterministic Phase 5 implementation scope merged in PR #78. The release-contract audit covers sitemap-listed public routes,
 HTTP status, canonical URLs, sitemap/robots directives, Open Graph/Twitter images, recursive JSON-LD
 types, and safe catalogue query/facet handling. The storefront fixes cover mobile filter-dialog focus
 management and Tab trapping, first-visible-image loading, and `whatsapp_click` analytics context for
@@ -629,7 +638,8 @@ counts.
 The following distinction is final for the next WhatsApp session:
 
 * **Verified locally:** code-level route/metadata/link contracts, 2/2 release-contract tests, 50/350 frontend tests, lint, typecheck, production build, local 390×844 and 1280×800 browser journeys, filter keyboard behavior, and disposable 503 poor-network recovery behavior.
-* **Not yet verified:** deployed crawl and uncached/cached Lighthouse scores, real Android Chrome/iPhone Safari/desktop-human QA, Google Search Console ownership/ingestion, real social-share previews, GA4 DebugView/deployed conversion telemetry, and human Google/shared-link/home-to-variant-to-WhatsApp/contact journeys.
+* **Verified against production on August 9:** 59/59 sitemap routes, 44/44 internal targets, 42/42 social-preview assets, public robots/sitemap/canonical/metadata/recursive JSON-LD contracts, consistent GA4 configuration presence, and 12 cold/warm Lighthouse runs. PR #81 merged the evidence and three accessibility fixes as `78b44a5`; production deployment confirmation and the targeted rerun remain open.
+* **Not yet verified:** real Android Chrome/iPhone Safari/desktop-human QA, Google Search Console ownership/ingestion, platform-rendered social-share previews, GA4 DebugView conversion telemetry, and human Google/shared-link/home-to-variant-to-WhatsApp/contact journeys.
 * **Blocked on Phase 4:** all real WhatsApp-number/profile/catalogue/quick-reply checks and the WhatsApp portions of the human journeys. Do not reopen or re-audit the completed code scope when resuming Phase 4; use the blocker list above and validate only the owner/external gates.
 
 ### Release checks
@@ -682,6 +692,17 @@ The following distinction is final for the next WhatsApp session:
 
 **Priority:** After the catalogue MVP is stable
 **Model:** Sol High for architecture, tax/payment/shipping review and failure modelling; Luna High coding agent for implementation. Use separate sessions and PRs for each integration.
+
+### Current implementation status — August 9, 2026
+
+* Phase 6.7 deterministic code merged in PR #79 as `a234f5b`. Existing launch records say the Resend
+  domain and backend variables were configured during Phase 3, but current owner-controlled inbox
+  delivery must be reconfirmed before marking 6.7 complete.
+* Phase 6.10 refund synchronization merged independently in PR #80 as `b512fa5`. This closes only
+  the code slice, not live cutover.
+* The separately reviewed Next/Sharp patch from the Phase 6.10 audit merged in PR #82 as `6c03c85`.
+* Phase 6.5 and 6.6 remain correctly blocked on the exact owner/accountant/vendor inputs listed in
+  their plans. No implementation session should start by guessing these facts.
 
 ### Recommended order
 
