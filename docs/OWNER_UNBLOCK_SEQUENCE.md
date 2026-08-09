@@ -11,8 +11,8 @@ DNS, KYC, accountant, and deployment lead time can run in parallel.
 2. Merge [PR #81](https://github.com/Gogulaanand/sunfabb-catalog/pull/81) — Phase 5 live evidence and
    accessibility fixes; all five checks pass. After production deploy, ask Codex to rerun only the
    affected Lighthouse accessibility checks.
-3. Merge [PR #82](https://github.com/Gogulaanand/sunfabb-catalog/pull/82) after its Playwright check
-   is green — isolated Next/Sharp security patch. Do not combine it with #80.
+3. Merge [PR #82](https://github.com/Gogulaanand/sunfabb-catalog/pull/82) — isolated Next/Sharp
+   security patch; all five checks pass. Do not combine it with #80.
 
 ## 2. Close Phase 6.7 email acceptance — 30–60 minutes
 

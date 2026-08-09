@@ -19,8 +19,7 @@ The later-phase work was split into independent worktrees and PRs:
 * **Phase 6.10 refund slice:** ready PR #80 (`afb5c3d`) implements idempotent partial/full Razorpay
   refund synchronization without inventory mutation. All five checks are green.
 * **Phase 6.10 security slice:** ready PR #82 (`0b3a608`) isolates the Next/Sharp dependency patch
-  and audit rationale from the refund change. Frontend, backend, production-monitor, and Vercel
-  checks are green; Playwright was still running at the last verified snapshot.
+  and audit rationale from the refund change. All five checks are green.
 
 Phase 4 remains owner-operated: code-level WhatsApp instrumentation and context are present, but a
 real WhatsApp Business profile, catalogue, quick replies, two-way behavior, and GA4 conversion

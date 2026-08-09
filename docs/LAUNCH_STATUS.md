@@ -84,7 +84,7 @@ Realtime/DebugView conversion evidence.
 - Ready PR #80 (`feature/6.10-refund-webhooks`, `afb5c3d`) implements idempotent partial/full refund
   synchronization with no inventory mutation. All five CI checks pass. This is not live cutover proof.
 - Ready PR #82 (`fix/next-16.3-security`, `0b3a608`) is an intentionally separate Next/Sharp
-  security patch and audit note. Its Playwright check was still running at the last verified snapshot.
+  security patch and audit note. All five CI checks pass.
 - Phase 6.5 remains blocked on accountant-approved seller/GST/HSN/rate/invoice facts. Phase 6.6
   remains blocked on Shiprocket account/API, pickup, package weight/dimensions, and shipping-rule
   decisions. The lowest-effort owner sequence is `docs/OWNER_UNBLOCK_SEQUENCE.md`.
