@@ -2,7 +2,7 @@
 
 Canonical operational status for the production-ready MVP plan.
 
-**Last verified:** 2026-08-08 (Asia/Kolkata)
+**Last verified:** 2026-08-09 (Asia/Kolkata)
 
 Read this file first for launch status. `tools/image-pipeline/CATALOG_PROGRESS.md` is the
 authoritative tracker for catalogue production and local image-pipeline work. The relevant phase
@@ -15,9 +15,10 @@ The recommended first release is a lead-generation catalogue with WhatsApp as th
 conversion path. Transactional commerce remains disabled for launch purposes until the production
 operations and go-live gates are complete.
 
-The repository is not launch-ready yet. Phase 5’s deterministic engineering validation is complete
-on the isolated `codex/phase5-mvp-validation` branch, but the launch gate remains blocked on Phase 4
-WhatsApp business setup plus external/manual release evidence.
+The repository is not launch-ready yet. Phase 5’s deterministic engineering validation merged in
+PR #78. The August 9 production crawl and Lighthouse evidence is recorded in PR #81, which also
+fixes three live accessibility findings. The launch gate remains blocked on merge/deploy follow-up,
+Phase 4 WhatsApp business setup, and the owner/manual evidence listed below.
 
 ## Current catalogue truth
 
@@ -47,26 +48,46 @@ WhatsApp business setup plus external/manual release evidence.
 |---|---|---|
 | 0 - Establish one launch truth | Complete | Canonical launch truth and issues #46-#64 established |
 | 1 - Customer safety and reliability | Complete with owner-accepted infrastructure deviations | PRs #66-#69; Render Free retained with backend-only HeyOnCall mitigation, email-only alerts, and JWT rotation deferred pending a concrete security concern |
-| 2 - Public hygiene and catalogue truth | In progress | 2A/2B merged in PR #71; Phase 2C report covers all 41 numbered designs, but five live non-numbered products still need reconciliation |
+| 2 - Public hygiene and catalogue truth | Complete for the current public release | Public release contains the 41 numbered designs and excludes the five known demo identifiers; broader copy/taxonomy/image work remains owner-deferred |
 | 3 - Trust and conversion foundation | Closed for the current lead-generation release by owner decision on 2026-08-08; transactional gates deferred | Keep the public support channels and working policies; before full e-commerce, confirm legal seller/grievance identity, final policy review, owned imagery, and live contact-flow proof |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
-| 5 - Catalogue MVP release validation | Engineering complete; launch-gated | Phase 4 WhatsApp setup plus deployed, human, SEO, analytics, social-preview, Lighthouse, and device checks |
-| 6 - Transactional commerce completion | Vendor-gated | Resend, GST, Shiprocket, Razorpay, and go-live inputs/verification |
+| 5 - Catalogue MVP release validation | Public contract verified; owner/manual gates remain | PR #81 merge/deploy + production accessibility rerun; Phase 4 WhatsApp, device, Search Console, GA4 event, and platform-preview evidence |
+| 6 - Transactional commerce completion | Partially unblocked; vendor/owner acceptance remains | PR #79 email code (draft), PR #80 refund sync, PR #82 security patch; 6.5 GST and 6.6 Shiprocket inputs still blocked |
 | Image catalogue expansion | Parallel, non-blocking | Owner QA and commercial metadata; preserve fail-closed pipeline gates |
 
 ## Phase 5 verified implementation state
 
-The isolated Phase 5 branch contains commits `7b16d6a`, `9d566d8`, and `8d14c19`. The merged
+The merged Phase 5 work contains commits `7b16d6a`, `9d566d8`, and `8d14c19`. The
 frontend suite passes **50 files / 350 tests**, lint and TypeScript pass, the lead-generation
 production build generates 84 static pages, and the Phase 5 release-contract spec passes **2/2**
 against the built local app. Local mobile `390×844` and desktop `1280×800` browser journeys pass,
 including filter keyboard focus/Tab trapping and disposable 503 recovery behavior.
 
+The August 9 production audit additionally passed 59/59 sitemap routes, 44/44 internal targets,
+42/42 social-preview assets, robots/sitemap/canonical/metadata/recursive JSON-LD checks, and 12
+distinct cold/warm Lighthouse runs. GA4 configuration and script presence were observed, but event
+delivery was not. PR #81 fixes the muted-text contrast, catalogue heading-order, and unnamed-sort
+control findings; its five CI checks pass. Production accessibility closure awaits merge/deploy and
+a targeted rerun.
+
 Do not repeat the completed code audit when resuming the WhatsApp action. Remaining gates are real
-WhatsApp number/profile/catalogue/quick replies and human journeys, deployed crawl and Lighthouse,
-real Android/iPhone/desktop QA, Search Console ownership/ingestion, real social-share rendering,
-and deployed GA4 DebugView conversion evidence. None of these gates was claimed from local code,
-build, or fixture evidence.
+WhatsApp profile/catalogue/quick replies and two-way journeys, real Android/iPhone/desktop QA,
+Search Console ownership/ingestion, platform-rendered social previews, and deployed GA4
+Realtime/DebugView conversion evidence.
+
+## Phase 6 active delivery snapshot
+
+- Draft PR #79 (`feature/6.7-resend-email`, `379d46d`) closes the remaining deterministic paid-order
+  email content and failure-isolation gap. All five CI checks pass. Existing launch evidence records
+  a verified Resend domain and configured mail variables; reconfirm current values and complete
+  owner-inbox delivery evidence before marking 6.7 complete.
+- Ready PR #80 (`feature/6.10-refund-webhooks`, `afb5c3d`) implements idempotent partial/full refund
+  synchronization with no inventory mutation. All five CI checks pass. This is not live cutover proof.
+- Ready PR #82 (`fix/next-16.3-security`, `0b3a608`) is an intentionally separate Next/Sharp
+  security patch and audit note. Its Playwright check was still running at the last verified snapshot.
+- Phase 6.5 remains blocked on accountant-approved seller/GST/HSN/rate/invoice facts. Phase 6.6
+  remains blocked on Shiprocket account/API, pickup, package weight/dimensions, and shipping-rule
+  decisions. The lowest-effort owner sequence is `docs/OWNER_UNBLOCK_SEQUENCE.md`.
 
 ### Phase 3 implementation evidence
 
@@ -146,7 +167,8 @@ Phase 0 created these GitHub milestones:
 The ordered implementation queue is represented by these issues:
 
 Phase 2A/2B implementation is delivered in [PR #71](https://github.com/Gogulaanand/sunfabb-catalog/pull/71).
-The next bounded work item is issue #52, the 41-design public-data audit.
+Current review work is PRs #79–#82; use `docs/OWNER_UNBLOCK_SEQUENCE.md` rather than the historical
+issue order to resume the active launch boundary.
 
 | Order | Issue | Milestone |
 |---:|---|---|
