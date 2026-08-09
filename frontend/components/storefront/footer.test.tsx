@@ -38,6 +38,18 @@ describe("Footer", () => {
     );
   });
 
+  it("uses readable text colors for muted footer details", () => {
+    render(<Footer />);
+
+    if (SITE.hours) {
+      expect(screen.getByText(SITE.hours)).toHaveClass("text-on-surface-variant");
+      expect(screen.getByText(SITE.hours)).not.toHaveClass("text-outline");
+    }
+    expect(screen.getByText(/All rights reserved/)).toHaveClass(
+      "text-on-surface-variant",
+    );
+  });
+
   it("does not render placeholder or unavailable social/contact controls", () => {
     render(<Footer />);
 

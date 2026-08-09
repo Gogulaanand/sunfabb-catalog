@@ -101,6 +101,9 @@ describe('ResendTransport', () => {
     if (!payload) throw new Error('Expected a Resend payload');
     expect(payload.from).toBe('Sunfabb <orders@example.com>');
     expect(payload.to).toEqual(['customer@example.com']);
+    expect(payload.subject).toBe('Order confirmed');
+    expect(payload.html).toBe('<p>Order</p>');
+    expect(payload.text).toBe('Order');
     expect(payload.attachments).toEqual([
       {
         filename: 'invoice.pdf',
@@ -226,6 +229,15 @@ describe('email templates', () => {
     expect(content.html).not.toContain('javascript:');
   });
 
+  it('includes a validated tracking URL in shipped email content', () => {
+    const trackingUrl = 'https://courier.example/track/SF-1';
+    const content = buildOrderShippedEmail('SF-1', 'Safe Courier', trackingUrl);
+
+    expect(content.subject).toBe('Order SF-1 shipped');
+    expect(content.html).toContain(trackingUrl);
+    expect(content.text).toContain(trackingUrl);
+  });
+
   it('escapes generic HTML values at the shared boundary', () => {
     expect(escapeHtml('<a href="x">&</a>')).toBe(
       '&lt;a href=&quot;x&quot;&gt;&amp;&lt;/a&gt;',
@@ -313,6 +325,23 @@ describe('EmailService', () => {
       expect.stringContaining('"kind":"order-confirmation"'),
     );
     expect(loggerError.mock.calls[0]?.[0]).not.toContain('message body');
+    loggerError.mockRestore();
+  });
+
+  it('swallows transport failures for auth email flows', async () => {
+    transport.send.mockRejectedValue(new Error('provider unavailable'));
+    const loggerError = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation();
+
+    await expect(
+      service.sendVerificationEmail('a@example.com', 'rawtoken'),
+    ).resolves.toBeUndefined();
+
+    expect(loggerError.mock.calls[0]?.[0]).toEqual(
+      expect.stringContaining('"kind":"verification"'),
+    );
+    expect(loggerError.mock.calls[0]?.[0]).not.toContain('rawtoken');
     loggerError.mockRestore();
   });
 
