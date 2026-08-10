@@ -7,8 +7,9 @@ audit of `https://sunfabb.com` proved 59/59 sitemap routes, 44/44 internal targe
 preview assets, robots/sitemap behavior, canonical/metadata/recursive JSON-LD contracts, and 12
 cold/warm Lighthouse runs across home, catalogue, and a representative PDP. The live audit found
 three narrow accessibility defects; PR #81 merged the fixes and dated evidence as `78b44a5` after
-the branch was refreshed and all six checks passed. Production deployment confirmation and the
-targeted accessibility rerun remain open.
+the branch was refreshed and all six checks passed. PRs #85 (`7d826ae`) and #86 (`06a1089`)
+subsequently verified the production deployment and targeted 100-score accessibility reruns,
+including a narrow follow-up footer accessible-name correction.
 
 The later-phase work was split into independent worktrees and PRs:
 
@@ -16,7 +17,9 @@ The later-phase work was split into independent worktrees and PRs:
   content and failure-isolation gap after all six checks passed. Resend transport/config/templates
   already existed on `main`; Phase 6.7 is not complete until the current production sender
   configuration is reconfirmed and owner-controlled verification/reset/order/contact deliveries are
-  observed.
+  observed. PR #84 (`5c047f9`) records the August 10 evidence boundary: the backend and DNS records
+  are live, while exact Render deployment/configuration, the correct Resend catalogue account/domain,
+  and inbox receipt remain unverified.
 * **Phase 6.10 refund slice:** PR #80 merged as `b512fa5` after a current-main refresh and all six
   checks passed. It implements idempotent partial/full Razorpay refund synchronization without
   inventory mutation; this is code delivery, not live cutover proof.
@@ -638,8 +641,8 @@ counts.
 The following distinction is final for the next WhatsApp session:
 
 * **Verified locally:** code-level route/metadata/link contracts, 2/2 release-contract tests, 50/350 frontend tests, lint, typecheck, production build, local 390×844 and 1280×800 browser journeys, filter keyboard behavior, and disposable 503 poor-network recovery behavior.
-* **Verified against production on August 9:** 59/59 sitemap routes, 44/44 internal targets, 42/42 social-preview assets, public robots/sitemap/canonical/metadata/recursive JSON-LD contracts, consistent GA4 configuration presence, and 12 cold/warm Lighthouse runs. PR #81 merged the evidence and three accessibility fixes as `78b44a5`; production deployment confirmation and the targeted rerun remain open.
-* **Not yet verified:** real Android Chrome/iPhone Safari/desktop-human QA, Google Search Console ownership/ingestion, platform-rendered social-share previews, GA4 DebugView conversion telemetry, and human Google/shared-link/home-to-variant-to-WhatsApp/contact journeys.
+* **Verified against production:** the August 9 route/metadata audit passed 59/59 sitemap routes, 44/44 internal targets, 42/42 social-preview assets, public robots/sitemap/canonical/metadata/recursive JSON-LD contracts, consistent GA4 configuration presence, and 12 cold/warm Lighthouse runs. The August 10 follow-up verified PR #81 on production, scored home/catalogue/PDP accessibility at 100, closed the PR #85 footer follow-up, confirmed Search Console ownership/sitemap success, rendered three LinkedIn previews, and passed the desktop Chrome journey.
+* **Not yet verified:** physical Android Chrome/iPhone Safari journeys, Meta rendered previews, GA4 `whatsapp_click`/approved contact-event delivery, and the Phase 4 WhatsApp portions of the human journeys.
 * **Blocked on Phase 4:** all real WhatsApp-number/profile/catalogue/quick-reply checks and the WhatsApp portions of the human journeys. Do not reopen or re-audit the completed code scope when resuming Phase 4; use the blocker list above and validate only the owner/external gates.
 
 ### Release checks
@@ -696,8 +699,9 @@ The following distinction is final for the next WhatsApp session:
 ### Current implementation status — August 9, 2026
 
 * Phase 6.7 deterministic code merged in PR #79 as `a234f5b`. Existing launch records say the Resend
-  domain and backend variables were configured during Phase 3, but current owner-controlled inbox
-  delivery must be reconfirmed before marking 6.7 complete.
+  domain and backend variables were configured during Phase 3. PR #84 records current live-backend
+  and DNS evidence but could not verify the Render deploy/configuration, correct Resend catalogue
+  account/domain, or owner-controlled inbox delivery; Phase 6.7 remains open at that boundary.
 * Phase 6.10 refund synchronization merged independently in PR #80 as `b512fa5`. This closes only
   the code slice, not live cutover.
 * The separately reviewed Next/Sharp patch from the Phase 6.10 audit merged in PR #82 as `6c03c85`.
