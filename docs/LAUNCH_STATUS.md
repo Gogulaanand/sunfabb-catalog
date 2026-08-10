@@ -2,7 +2,7 @@
 
 Canonical operational status for the production-ready MVP plan.
 
-**Last verified:** 2026-08-09 (Asia/Kolkata)
+**Last verified:** 2026-08-10 (Asia/Kolkata)
 
 Read this file first for launch status. `tools/image-pipeline/CATALOG_PROGRESS.md` is the
 authoritative tracker for catalogue production and local image-pipeline work. The relevant phase
@@ -17,8 +17,9 @@ operations and go-live gates are complete.
 
 The repository is not launch-ready yet. Phase 5’s deterministic engineering validation merged in
 PR #78. PR #81 subsequently merged the August 9 production crawl/Lighthouse evidence and three live
-accessibility fixes. The launch gate remains blocked on production deployment confirmation and the
-targeted accessibility rerun, Phase 4 WhatsApp business setup, and the owner/manual evidence below.
+accessibility fixes. PRs #85 and #86 verified those fixes on production, closed a follow-up footer
+accessible-name defect, and recorded Search Console/LinkedIn/desktop evidence. The launch gate
+remains blocked on Phase 4 WhatsApp business setup and the owner/manual evidence below.
 
 ## Current catalogue truth
 
@@ -51,8 +52,8 @@ targeted accessibility rerun, Phase 4 WhatsApp business setup, and the owner/man
 | 2 - Public hygiene and catalogue truth | Complete for the current public release | Public release contains the 41 numbered designs and excludes the five known demo identifiers; broader copy/taxonomy/image work remains owner-deferred |
 | 3 - Trust and conversion foundation | Closed for the current lead-generation release by owner decision on 2026-08-08; transactional gates deferred | Keep the public support channels and working policies; before full e-commerce, confirm legal seller/grievance identity, final policy review, owned imagery, and live contact-flow proof |
 | 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
-| 5 - Catalogue MVP release validation | Public contract verified; owner/manual gates remain | PR #81 merged; confirm production deployment and rerun targeted accessibility checks, then complete Phase 4 WhatsApp, device, Search Console, GA4 event, and platform-preview evidence |
-| 6 - Transactional commerce completion | Deterministic 6.7/6.10 slices merged; vendor/owner acceptance remains | PRs #79, #80, and #82 merged; production email acceptance, live cutover, 6.5 GST, and 6.6 Shiprocket inputs remain blocked |
+| 5 - Catalogue MVP release validation | Production/accessibility/Search Console/LinkedIn/desktop evidence verified; owner/manual gates remain | Observe GA4 custom events; complete Meta preview login, physical Android/iPhone journeys, and Phase 4 WhatsApp evidence |
+| 6 - Transactional commerce completion | Deterministic 6.7/6.10 slices merged; vendor/owner acceptance remains | PR #84 records email evidence gaps; confirm Render/Resend state and owner-inbox delivery, then complete live cutover, 6.5 GST, and 6.6 Shiprocket inputs |
 | Image catalogue expansion | Parallel, non-blocking | Owner QA and commercial metadata; preserve fail-closed pipeline gates |
 
 ## Phase 5 verified implementation state
@@ -67,20 +68,22 @@ The August 9 production audit additionally passed 59/59 sitemap routes, 44/44 in
 42/42 social-preview assets, robots/sitemap/canonical/metadata/recursive JSON-LD checks, and 12
 distinct cold/warm Lighthouse runs. GA4 configuration and script presence were observed, but event
 delivery was not. PR #81 merged the muted-text contrast, catalogue heading-order, and unnamed-sort
-control fixes as `78b44a5` after all six refreshed checks passed. Production accessibility closure
-awaits deployment confirmation and a targeted rerun.
+control fixes as `78b44a5`. The August 10 targeted production rerun scored 100 accessibility on
+home, catalogue, and a representative PDP. PR #85 (`7d826ae`) fixed the separately discovered
+footer map-link accessible-name mismatch; PR #86 (`06a1089`) records its deployed 100-score rerun.
 
 Do not repeat the completed code audit when resuming the WhatsApp action. Remaining gates are real
-WhatsApp profile/catalogue/quick replies and two-way journeys, real Android/iPhone/desktop QA,
-Search Console ownership/ingestion, platform-rendered social previews, and deployed GA4
-Realtime/DebugView conversion evidence.
+WhatsApp profile/catalogue/quick replies and two-way journeys, physical Android/iPhone QA, Meta
+preview inspection, and deployed GA4 Realtime/DebugView custom-conversion evidence. Search Console
+ownership/sitemap, LinkedIn previews, and the desktop Chrome journey are verified.
 
 ## Phase 6 active delivery snapshot
 
 - PR #79 merged as `a234f5b` after all six checks passed, closing the remaining deterministic
   paid-order email content and failure-isolation gap. Existing launch evidence records a verified
-  Resend domain and configured mail variables; reconfirm current values and complete owner-inbox
-  delivery evidence before marking 6.7 complete.
+  Resend domain and configured mail variables. PR #84 (`5c047f9`) records that the live backend and
+  DNS records are reachable, but exact Render deployment/configuration, the correct Resend
+  `sunfabb.com` domain/account, and owner-inbox delivery remain unverified.
 - PR #80 merged as `b512fa5` after a current-main refresh and all six checks passed. It implements
   idempotent partial/full refund synchronization with no inventory mutation; this is not live
   cutover proof.

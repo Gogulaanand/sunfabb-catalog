@@ -1,6 +1,6 @@
 # Owner unblock sequence
 
-**Prepared:** 2026-08-09 (Asia/Kolkata)  
+**Prepared:** 2026-08-09; **last reconciled:** 2026-08-10 (Asia/Kolkata)
 **Purpose:** clear the smallest/highest-leverage owner gates first. Estimates are active owner time;
 DNS, KYC, accountant, and deployment lead time can run in parallel.
 
@@ -13,28 +13,45 @@ PRs [#79](https://github.com/Gogulaanand/sunfabb-catalog/pull/79),
 2026-08-09 after each branch was refreshed against the preceding merge and its full CI gate passed.
 Do not repeat their implementation reviews; continue with the evidence tasks below.
 
-## 1. Close Phase 6.7 email acceptance — 30–60 minutes
+## 1. Close Phase 6.7 email acceptance — partially progressed; 30–60 minutes after access
 
 The repository records that the Resend domain and backend mail variables were configured during
 Phase 3. Confirm they are still current; do not paste secrets into chat.
 
+The read-only 2026-08-10 pass is recorded in
+`docs/evidence/2026-08-10-phase6-7-email-acceptance.md` and merged through PR #84. The live Render
+backend returned 200 and public SPF/DKIM records exist, but the service exposes no deploy SHA, the
+Render dashboard was signed out, and the connected Resend account did not list `sunfabb.com`.
+Therefore current deployment/configuration and inbox acceptance remain unverified.
+
 1. Confirm the verified sender/domain, `EMAIL_FROM`, `APP_BASE_URL`, and optional
-   `CONTACT_NOTIFY_EMAIL` in the owner-controlled dashboards.
-2. Confirm PR #79's merged backend is deployed, then run verification email, password reset,
-   paid-order confirmation, and contact
+   `CONTACT_NOTIFY_EMAIL` in the owner-controlled dashboards. - confirm
+2. Confirm the Render backend is deployed from PR #79 or later, identify the correct Resend account,
+   and approve a disposable owner-controlled inbox/test protocol. Then run verification email,
+   password reset, paid-order confirmation, and contact
    acknowledgement/notification against owner-controlled inboxes. Record received content and
    SPF/DKIM results. Shipped/delivered email acceptance waits for Phase 6.6 call sites.
 
-## 2. Close remaining Phase 5 owner evidence — 45–90 minutes
+## 2. Close remaining Phase 5 owner evidence — automated/account-backed pass complete
 
-1. Confirm PR #81 is deployed, then ask Codex to rerun only the affected Lighthouse accessibility
-   checks against the canonical URL.
-2. Confirm Google Search Console ownership, submit/confirm the sitemap, and record ingestion state.
-3. Observe one `whatsapp_click` and relevant contact event in GA4 Realtime/DebugView.
-4. Paste a representative home, catalogue, and PDP URL into the actual social platforms and retain
-   rendered-preview screenshots.
-5. Run the priority journey once each on Android Chrome, iPhone Safari, and desktop Chrome. Record
-   only observed results; do not substitute emulation for device evidence.
+PRs #85 and #86 contain the dated evidence and deployed footer follow-up. Do not repeat the
+production crawl or Lighthouse suite.
+
+- **Verified:** PR #81/#85 deployment, targeted Lighthouse accessibility at 100 for home/catalogue/
+  PDP, the post-#85 footer audit, Search Console verified ownership and successful sitemap,
+  LinkedIn previews for three canonical URLs, and the desktop Chrome journey.
+- **Still blocked:** `whatsapp_click`/approved contact-event delivery was not observed in GA4 even
+  though standard Realtime events arrived; Meta Sharing Debugger requires login; physical Android
+  Chrome and iPhone Safari sessions were unavailable.
+
+Remaining owner work, in order:
+
+1. Observe one `whatsapp_click` and the approved contact event in GA4 Tag Assistant/DebugView or
+   Realtime and retain the event names/timestamp.
+2. Sign in to Meta Sharing Debugger and inspect the representative home, catalogue, and PDP URLs if
+   Meta coverage is required.
+3. Run the priority journey on one physical Android Chrome device and one physical iPhone Safari
+   device. Do not substitute emulation.
 
 ## 3. Complete Phase 4 WhatsApp Business — 2–4 hours
 
