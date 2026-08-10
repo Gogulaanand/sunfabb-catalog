@@ -123,16 +123,38 @@ tool**. No Facebook account access was available, so Meta preview evidence remai
 - No physical Android Chrome or iPhone Safari device session was available. Emulation was not used.
   Those two device gates remain **BLOCKED**.
 
+## ITEM-2 closure addendum — 2026-08-10
+
+This addendum supersedes the earlier deployment-pending statement for the deterministic footer
+correction; it does not repeat the catalogue, PDP, Search Console, GA4, social, or device checks.
+
+- PR #85 was merged at `2026-08-10T03:18:44Z`; refreshed `origin/main` is `7d826ae`.
+- The worktree was refreshed from that `origin/main` commit before the deployment readback.
+- Canonical deployment readback at `2026-08-10T03:20:12Z` (`08:50:12 IST`) for
+  `https://sunfabb.com/`: HTTP `200`, final URL unchanged, `age: 0`,
+  `cache-control: public, max-age=0, must-revalidate`, `x-vercel-cache: PRERENDER`, and
+  `x-vercel-id: bom1::wdmpx-1786332011519-72c79654bece`. The response body contained the deployed
+  marker `aria-label="Find us on Maps"`.
+- Lighthouse `13.4.1` (Node `v24.17.0`, Chrome `149.0.7827.156`) fetched the canonical home at
+  `2026-08-10T03:20:31.498Z` with `--only-categories=accessibility`, `--preset=desktop`, and a
+  separate headless profile. Accessibility scored **100**; `color-contrast=1`,
+  `label-content-name-mismatch=1`, and there were no zero-score audits.
+- Raw result: `docs/evidence/artifacts/2026-08-10-phase5-owner-unblock-2/home-footer-after-pr85.json`.
+
+**Final closure:** the PR #81 production deployment gate and the follow-up shared-footer
+accessible-name defect are **VERIFIED/CLOSED**. No evidence-only PR was needed after this addendum;
+the readback and raw report are the only changes on the refreshed-main follow-up branch.
+
 ## Verified / failed / blocked matrix
 
 | Gate | State | Evidence |
 |---|---|---|
-| PR #81 merged on current main | Verified | Remote `main` `8bf36c6`; GitHub #81 merged and five checks successful |
-| #81 deployed to canonical production | Verified | Canonical 200 probes and live DOM markers |
+| PR #81 merged on current main | Verified | Current `origin/main` `7d826ae`; GitHub #81 merged and checks successful |
+| #81 deployed to canonical production | Verified | Fresh canonical 200 readback plus post-merge home Lighthouse |
 | Targeted footer contrast | Verified | Lighthouse accessibility 100; `color-contrast=1` |
 | Catalogue headings and desktop sort name | Verified | `heading-order=1`, `select-name=1` |
 | PDP colour-label association | Verified | Custom-control DOM readback; no targeted Lighthouse failure |
-| Additional shared map-link name | Failed on current production / fixed locally | Production still has the mismatched aria label; narrow source/test fix is pending deployment |
+| Additional shared map-link name | Verified / closed | Fresh deployment marker and `label-content-name-mismatch=1` Lighthouse result |
 | Search Console ownership and sitemap | Verified | Verified owner; submitted sitemap Success |
 | GA4 custom event delivery | Blocked | Standard events present; `whatsapp_click` not observed after controlled clicks |
 | LinkedIn rendered previews | Verified | Three real Post Inspector previews and screenshots |
@@ -144,15 +166,14 @@ tool**. No Facebook account access was available, so Meta preview evidence remai
 
 - Evidence: `docs/evidence/2026-08-10-phase5-owner-unblock-2.md`
 - Lighthouse JSON: `docs/evidence/artifacts/2026-08-10-phase5-owner-unblock-2/{home-footer.json,catalog-filters.json,pdp-colour.json}`
+- Post-PR #85 home Lighthouse JSON: `docs/evidence/artifacts/2026-08-10-phase5-owner-unblock-2/home-footer-after-pr85.json`
 - Pre-fix Lighthouse JSON retained for comparison:
   `docs/evidence/artifacts/2026-08-10-phase5-owner-unblock-2/home-footer-before-map-label-fix.json`
 - LinkedIn screenshots: `docs/evidence/artifacts/2026-08-10-phase5-owner-unblock-2/linkedin-{home,catalog,pdp}.png`
 
 ## Minimal owner inputs, ordered by effort
 
-1. Merge/deploy the narrow map-link accessibility follow-up, then rerun only the home footer
-   audit against `https://sunfabb.com/`.
-2. Use the owner-controlled GA4 Tag Assistant/DebugView or Realtime session to observe one
+1. Use the owner-controlled GA4 Tag Assistant/DebugView or Realtime session to observe one
    `whatsapp_click` and the approved contact event, then provide the event names and timestamp.
-3. Sign in to Meta Sharing Debugger and rerun the three URLs if Meta coverage is required.
-4. Run the priority journey on one real Android Chrome device and one real iPhone Safari device.
+2. Sign in to Meta Sharing Debugger and rerun the three URLs if Meta coverage is required.
+3. Run the priority journey on one real Android Chrome device and one real iPhone Safari device.
