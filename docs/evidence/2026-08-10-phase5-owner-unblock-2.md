@@ -142,8 +142,8 @@ correction; it does not repeat the catalogue, PDP, Search Console, GA4, social, 
 - Raw result: `docs/evidence/artifacts/2026-08-10-phase5-owner-unblock-2/home-footer-after-pr85.json`.
 
 **Final closure:** the PR #81 production deployment gate and the follow-up shared-footer
-accessible-name defect are **VERIFIED/CLOSED**. No evidence-only PR was needed after this addendum;
-the readback and raw report are the only changes on the refreshed-main follow-up branch.
+accessible-name defect are **VERIFIED/CLOSED**. PR #86 records this readback and the raw post-merge
+Lighthouse report; the refreshed-main follow-up branch contains no further implementation changes.
 
 ## Verified / failed / blocked matrix
 
