@@ -50,6 +50,17 @@ describe("Footer", () => {
     );
   });
 
+  it("keeps the map link accessible name aligned with its visible label", () => {
+    render(<Footer />);
+
+    if (SITE.address.mapsUrl) {
+      expect(screen.getByRole("link", { name: "Find us on Maps" })).toHaveAttribute(
+        "href",
+        SITE.address.mapsUrl,
+      );
+    }
+  });
+
   it("does not render placeholder or unavailable social/contact controls", () => {
     render(<Footer />);
 

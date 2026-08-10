@@ -79,7 +79,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-primary transition-colors"
-                    aria-label="View our location on Google Maps"
+                    aria-label="Find us on Maps"
                   >
                     Find us on Maps
                   </a>
