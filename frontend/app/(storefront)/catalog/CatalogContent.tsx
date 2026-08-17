@@ -144,6 +144,13 @@ export default async function CatalogContent({
                           aspectRatio="square"
                           sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                           priority={page === 1 && index === 0}
+                          analytics={{
+                            item: analyticsItems[index],
+                            listName: query.categorySlug
+                              ? `Catalog: ${query.categorySlug}`
+                              : "Catalog",
+                            listId: gridKey,
+                          }}
                         />
                       </StaggerItem>
                     );

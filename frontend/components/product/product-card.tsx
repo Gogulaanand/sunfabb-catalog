@@ -3,6 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "motion/react";
+import { trackSelectItem, type AnalyticsItem } from "@/lib/analytics";
+
+interface ProductCardAnalytics {
+  item: AnalyticsItem;
+  listName: string;
+  listId?: string;
+}
 
 interface ProductCardProps {
   slug: string;
@@ -13,6 +20,7 @@ interface ProductCardProps {
   aspectRatio?: "3/4" | "square";
   sizes?: string;
   priority?: boolean;
+  analytics?: ProductCardAnalytics;
 }
 
 export function ProductCard({
@@ -24,10 +32,16 @@ export function ProductCard({
   aspectRatio = "3/4",
   sizes = "(max-width: 768px) 50vw, 25vw",
   priority = false,
+  analytics,
 }: ProductCardProps) {
   return (
     <Link
       href={`/catalog/${slug}`}
+      onClick={() => {
+        if (analytics) {
+          trackSelectItem(analytics.item, analytics.listName, analytics.listId);
+        }
+      }}
       className="group block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
       <motion.div

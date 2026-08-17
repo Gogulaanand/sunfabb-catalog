@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { motion } from 'motion/react';
+import { TrackedContentLink } from '@/components/analytics/tracked-content-link';
 
 const HERO_IMAGE = '/images/home/sunfabb-hero-option-e.png';
 
@@ -62,7 +62,7 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: EASE, delay: 0.12 }}
         >
-          Bedspreads, towels, napkins and table linen from India.
+          A considered collection of home textiles from India.
         </motion.p>
 
         <motion.div
@@ -70,12 +70,15 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: EASE, delay: 0.24 }}
         >
-          <Link
+          <TrackedContentLink
             href="/catalog"
+            contentType="homepage_cta"
+            contentId="hero_explore_designs"
+            linkLocation="hero"
             className="inline-flex items-center justify-center h-12 px-10 rounded bg-primary text-on-primary text-label-caps hover:bg-primary-container transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
-            Shop Now
-          </Link>
+            Explore designs
+          </TrackedContentLink>
         </motion.div>
       </div>
     </section>

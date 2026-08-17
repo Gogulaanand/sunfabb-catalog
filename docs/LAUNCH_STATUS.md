@@ -2,7 +2,7 @@
 
 Canonical operational status for the production-ready MVP plan.
 
-**Last verified:** 2026-08-10 (Asia/Kolkata)
+**Last verified:** 2026-08-17 (Asia/Kolkata)
 
 Read this file first for launch status. `tools/image-pipeline/CATALOG_PROGRESS.md` is the
 authoritative tracker for catalogue production and local image-pipeline work. The relevant phase
@@ -19,11 +19,19 @@ The repository is not launch-ready yet. Phase 5’s deterministic engineering va
 PR #78. PR #81 subsequently merged the August 9 production crawl/Lighthouse evidence and three live
 accessibility fixes. PRs #85 and #86 verified those fixes on production, closed a follow-up footer
 accessible-name defect, and recorded Search Console/LinkedIn/desktop evidence. The launch gate
-remains blocked on Phase 4 WhatsApp business setup and the owner/manual evidence below.
+remains blocked on product-fact reconciliation, Phase 4 WhatsApp business setup, and the
+owner/manual evidence below. The site is technically stable enough for catalogue use, but it must
+not be treated as commercially ready until public prices, stock, variants, and product copy are
+owner-validated.
 
 ## Current catalogue truth
 
-- **41 numbered production designs** are published and active.
+- The public API returned **63 active products on 2026-08-17**, all categorized as Bedspreads.
+  Napkins, Table Linen, and Towels returned zero active products. The public navigation and older
+  catalogue tracker still describe a broader assortment and require reconciliation.
+- The owner is actively validating product names/details, prices, stock counts, variants, and
+  publication state. The 63-product response is an inventory count, not owner approval of every
+  public fact.
 - The five non-production demo identifiers (`UNKNOWN-PLAID1`, `UNKNOWN-PLAID2`,
   `UNKNOWN-PLAID3`, `UNKNOWN-STRIPE1`, and `UNKNOWN-STRIPE2`) are absent from the public release.
 - The deployed exact-five Prisma operation found no matching product, name, or SKU rows and failed
@@ -31,7 +39,8 @@ remains blocked on Phase 4 WhatsApp business setup and the owner/manual evidence
   each backend detail route returns 404, and the catalogue/sitemap contain none of them.
 - Local swatches are reference assets and intentionally unpublished.
 - The complete numbered-design list, release stages, and safety gates live in
-  `tools/image-pipeline/CATALOG_PROGRESS.md`.
+  `tools/image-pipeline/CATALOG_PROGRESS.md`, but its checked-in 2026-08-01 count is stale relative
+  to the 2026-08-17 public API and must be reconciled after the owner's inventory pass.
 
 ## 166-grid pilot
 
@@ -49,12 +58,33 @@ remains blocked on Phase 4 WhatsApp business setup and the owner/manual evidence
 |---|---|---|
 | 0 - Establish one launch truth | Complete | Canonical launch truth and issues #46-#64 established |
 | 1 - Customer safety and reliability | Complete with owner-accepted infrastructure deviations | PRs #66-#69; Render Free retained with backend-only HeyOnCall mitigation, email-only alerts, and JWT rotation deferred pending a concrete security concern |
-| 2 - Public hygiene and catalogue truth | Complete for the current public release | Public release contains the 41 numbered designs and excludes the five known demo identifiers; broader copy/taxonomy/image work remains owner-deferred |
+| 2 - Public hygiene and catalogue truth | Reconciliation reopened for expanded inventory | The public API now exposes 63 Bedspread products; owner validation of product facts is active, while the earlier exact-five demo exclusion remains recorded |
 | 3 - Trust and conversion foundation | Closed for the current lead-generation release by owner decision on 2026-08-08; transactional gates deferred | Keep the public support channels and working policies; before full e-commerce, confirm legal seller/grievance identity, final policy review, owned imagery, and live contact-flow proof |
-| 4 - WhatsApp Business MVP | Not started | Requires a real WhatsApp Business number and verified product facts |
+| 4 - WhatsApp Business MVP | Owner preparing product truth before account/catalogue setup | Validate the first product batch, then create the business profile, quick replies, first 10–20 catalogue items, and two-way evidence |
 | 5 - Catalogue MVP release validation | Production/accessibility/Search Console/LinkedIn/desktop evidence verified; owner/manual gates remain | Observe GA4 custom events; complete Meta preview login, physical Android/iPhone journeys, and Phase 4 WhatsApp evidence |
 | 6 - Transactional commerce completion | Deterministic 6.7/6.10 slices merged; vendor/owner acceptance remains | PR #84 records email evidence gaps; confirm Render/Resend state and owner-inbox delivery, then complete live cutover, 6.5 GST, and 6.6 Shiprocket inputs |
 | Image catalogue expansion | Parallel, non-blocking | Owner QA and commercial metadata; preserve fail-closed pipeline gates |
+
+## Homepage conversion and enquiry measurement — isolated delivery
+
+The 2026-08-17 homepage slice is intentionally independent of the owner's inventory edits. It:
+
+- removes the homepage's empty placeholder-category presentation and uses current owned product
+  imagery instead;
+- adds a truthful browse → compare → confirm narrative, an eight-design discovery grid, a guided
+  WhatsApp enquiry CTA, and direct links to product guides, shipping, and returns information;
+- records aggregate homepage depth and CTA/product progression with `homepage_section_view`,
+  `select_content`, `view_item_list`, `select_item`, `view_item`, and `whatsapp_click`;
+- sends no customer contact details or precise location. Region, device, source, and page drop-off
+  analysis should use GA4's aggregate reporting dimensions.
+
+The event contract, two separate funnel definitions, GA4 setup sequence, privacy boundary, and
+review cadence are recorded in `docs/analytics/HOMEPAGE_ENQUIRY_FUNNEL.md`.
+
+Local evidence: frontend lint passed; 53 test files / 361 tests passed; the production build passed
+with the public API and lead-generation mode; desktop and 390x844 mobile browser review found no
+console errors. This is source/local evidence only. Deployment and live GA4 event observation must
+still be recorded after merge.
 
 ## Phase 5 verified implementation state
 

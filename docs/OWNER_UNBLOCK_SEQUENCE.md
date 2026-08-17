@@ -1,8 +1,27 @@
 # Owner unblock sequence
 
-**Prepared:** 2026-08-09; **last reconciled:** 2026-08-10 (Asia/Kolkata)
+**Prepared:** 2026-08-09; **last reconciled:** 2026-08-17 (Asia/Kolkata)
 **Purpose:** clear the smallest/highest-leverage owner gates first. Estimates are active owner time;
 DNS, KYC, accountant, and deployment lead time can run in parallel.
+
+## Immediate practical order — 2026-08-17
+
+This is the current low-friction sequence. It supersedes the older section order below for active
+owner work, while preserving those sections as the detailed acceptance checklists.
+
+| Order | Owner action | Active effort | Why it comes next |
+|---:|---|---:|---|
+| 1 | Validate the public product facts in manageable batches: active state, design/name, description, colour/material, size, price, stock, and imagery | 4–8 hours for the current 63-product set, depending on source readiness | The 2026-08-17 public API exposes 63 active products, all under Bedspreads. Product truth must precede a WhatsApp catalogue or promotional claims. |
+| 2 | Create the WhatsApp Business account/profile, then add the first 10–20 fully verified items and quick replies | 1–3 hours after the first verified batch | Produces the primary lead-generation channel without waiting for all transactional work. |
+| 3 | After the homepage conversion change deploys, observe `select_content`, `view_item_list`, `select_item`, `view_item`, `homepage_section_view`, and `whatsapp_click` in GA4 | 20–40 minutes | Closes the measurement gap and establishes the baseline enquiry funnel before traffic grows. |
+| 4 | Complete Phase 6.7 owner-inbox email acceptance | 30–60 minutes after account/dashboard access | The deterministic implementation is already merged; only provider/deployment evidence remains. |
+| 5 | Complete Meta preview login and one Android Chrome plus one iPhone Safari priority journey | 30–60 minutes, subject to devices/login | Closes the remaining Phase 5 manual evidence without repeating the completed audits. |
+| 6 | Start accountant GST inputs and Shiprocket commercial/package inputs | 1–2 hours each plus external lead time | These can run in parallel but do not block the lead-generation catalogue. |
+
+The isolated homepage conversion slice replaces empty placeholder category promotion with current
+catalogue content, introduces a guided WhatsApp buying path, and adds the funnel events in order 3.
+Its local verification is lint, 53 test files / 361 tests, production build, and desktop/mobile
+browser review. Deployment and GA4 observation remain separate evidence gates.
 
 ## Completed engineering delivery — no owner action
 
