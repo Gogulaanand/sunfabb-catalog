@@ -88,6 +88,37 @@ export function trackViewItemList(
   });
 }
 
+export function trackSelectItem(
+  item: AnalyticsItem,
+  listName: string,
+  listId?: string,
+) {
+  track("select_item", {
+    item_list_name: listName,
+    ...(listId ? { item_list_id: listId } : {}),
+    items: [toGaItem(item)],
+  });
+}
+
+export function trackSelectContent(params: {
+  contentType: "homepage_cta" | "homepage_support";
+  contentId: string;
+  linkLocation: string;
+}) {
+  track("select_content", {
+    content_type: params.contentType,
+    item_id: params.contentId,
+    link_location: params.linkLocation,
+  });
+}
+
+export function trackHomeSectionView(sectionId: string, position: number) {
+  track("homepage_section_view", {
+    section_id: sectionId,
+    section_position: position,
+  });
+}
+
 export function trackViewItem(item: AnalyticsItem) {
   track("view_item", {
     currency: CURRENCY,
@@ -115,7 +146,12 @@ export function trackBeginCheckout(items: AnalyticsItem[]) {
 
 export interface WhatsAppClickParams {
   /** Where the CTA was rendered, such as `pdp` or `footer`. */
-  linkLocation: "pdp" | "contact" | "contact_form_success" | "footer";
+  linkLocation:
+    | "pdp"
+    | "contact"
+    | "contact_form_success"
+    | "footer"
+    | "home_guided_enquiry";
   productId?: string;
   variantId?: string;
   /** Optional overrides keep this helper deterministic in unit tests. */

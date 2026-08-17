@@ -11,6 +11,9 @@ const {
   paiseToRupees,
   toGaItem,
   trackViewItemList,
+  trackSelectItem,
+  trackSelectContent,
+  trackHomeSectionView,
   trackViewItem,
   trackAddToCart,
   trackBeginCheckout,
@@ -80,6 +83,46 @@ describe("trackViewItemList", () => {
   it("sends nothing for an empty list", () => {
     trackViewItemList([], "Catalog");
     expect(sendGAEvent).not.toHaveBeenCalled();
+  });
+});
+
+describe("trackSelectItem", () => {
+  it("reports the selected product with its source list", () => {
+    trackSelectItem(item, "Homepage designs", "homepage-designs");
+    const { name, params } = lastEvent();
+
+    expect(name).toBe("select_item");
+    expect(params.item_list_name).toBe("Homepage designs");
+    expect(params.item_list_id).toBe("homepage-designs");
+    expect(params.items).toEqual([toGaItem(item)]);
+  });
+});
+
+describe("homepage discovery events", () => {
+  it("reports internal CTA selections without personal data", () => {
+    trackSelectContent({
+      contentType: "homepage_cta",
+      contentId: "hero_shop_collection",
+      linkLocation: "hero",
+    });
+
+    expect(lastEvent()).toEqual({
+      name: "select_content",
+      params: {
+        content_type: "homepage_cta",
+        item_id: "hero_shop_collection",
+        link_location: "hero",
+      },
+    });
+  });
+
+  it("reports section depth with an ordered identifier", () => {
+    trackHomeSectionView("guided-shopping", 4);
+
+    expect(lastEvent()).toEqual({
+      name: "homepage_section_view",
+      params: { section_id: "guided-shopping", section_position: 4 },
+    });
   });
 });
 
