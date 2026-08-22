@@ -42,7 +42,7 @@ readonly -a ROUTES=(
   "pdp-4195|${FRONTEND_URL%/}/catalog/bedspread-design-4195|$FRONTEND_SLOW_MS"
   "pdp-4219|${FRONTEND_URL%/}/catalog/bedspread-design-4219|$FRONTEND_SLOW_MS"
   "contact|${FRONTEND_URL%/}/contact|$FRONTEND_SLOW_MS"
-  "backend-health|${BACKEND_URL%/}/health|$BACKEND_SLOW_MS"
+  "backend-readiness|${BACKEND_URL%/}/health|$BACKEND_SLOW_MS"
 )
 
 failed=0

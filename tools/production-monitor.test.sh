@@ -4,6 +4,7 @@ set -uo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly MONITOR_SCRIPT="${SCRIPT_DIR}/production-monitor.sh"
+readonly SYNTHETIC_WORKFLOW="${SCRIPT_DIR}/../.github/workflows/production-synthetic-checks.yml"
 readonly TEST_TMP="$(mktemp -d)"
 readonly FAKE_BIN="${TEST_TMP}/bin"
 
@@ -17,6 +18,7 @@ write_fake_curl() {
 
   printf '%s\n' \
     '#!/usr/bin/env bash' \
+    "printf '%s\\n' \"\$@\" >> '${TEST_TMP}/curl-args.log'" \
     "printf '%s\\n' '${http_code} ${duration_seconds}'" \
     "exit ${exit_code}" \
     > "${FAKE_BIN}/curl"
@@ -24,6 +26,7 @@ write_fake_curl() {
 }
 
 run_monitor() {
+  : > "${TEST_TMP}/curl-args.log"
   PATH="${FAKE_BIN}:${PATH}" \
     CHECK_ATTEMPTS=2 \
     FRONTEND_SLOW_MS=25000 \
@@ -41,6 +44,13 @@ assert_output_contains() {
   fi
 }
 
+if ! grep -Fq "github.event_name == 'workflow_dispatch'" "$SYNTHETIC_WORKFLOW" \
+  || ! grep -Fq "vars.PRODUCTION_SYNTHETICS_ENABLED == 'true'" "$SYNTHETIC_WORKFLOW"; then
+  echo "Expected scheduled synthetic checks to be explicitly opt-in"
+  sed -n '1,120p' "$SYNTHETIC_WORKFLOW"
+  exit 1
+fi
+
 write_fake_curl 200 0.100000
 if ! run_monitor; then
   echo "Expected successful probes to pass"
@@ -48,6 +58,18 @@ if ! run_monitor; then
   exit 1
 fi
 assert_output_contains "All production checks passed."
+
+if ! grep -Fq "/health" "${TEST_TMP}/curl-args.log"; then
+  echo "Expected synthetic checks to probe the database-readiness endpoint"
+  cat "${TEST_TMP}/curl-args.log"
+  exit 1
+fi
+
+if grep -Fq "/live" "${TEST_TMP}/curl-args.log"; then
+  echo "Expected synthetic checks not to probe the process-liveness endpoint"
+  cat "${TEST_TMP}/curl-args.log"
+  exit 1
+fi
 
 write_fake_curl 503 0.100000
 if run_monitor; then

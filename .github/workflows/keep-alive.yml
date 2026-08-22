@@ -1,5 +1,7 @@
-name: Production Synthetic Checks
+name: Render Keep-Alive
 
+# This workflow remains manually disabled in GitHub until the owner chooses to
+# resume Render wake-up traffic.
 on:
   schedule:
     - cron: "*/10 * * * *"
@@ -9,20 +11,35 @@ permissions:
   contents: read
 
 concurrency:
-  group: production-synthetic-checks
+  group: render-keep-alive
   cancel-in-progress: false
 
 jobs:
-  probe:
-    name: Probe critical routes
+  keep-alive:
+    name: Probe backend liveness
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 3
     env:
-      FRONTEND_URL: ${{ vars.PRODUCTION_FRONTEND_URL || 'https://sunfabb.com' }}
       BACKEND_URL: ${{ vars.PRODUCTION_BACKEND_URL || 'https://sunfabb-backend.onrender.com' }}
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - name: Probe process liveness
+        run: |
+          set -euo pipefail
 
-      - name: Probe production
-        run: bash tools/production-monitor.sh
+          backend_url="${BACKEND_URL%/}"
+          if [[ ! "$backend_url" =~ ^https?://[^[:space:]]+$ ]]; then
+            echo "::error title=Invalid keep-alive configuration::BACKEND_URL must be an absolute HTTP(S) URL"
+            exit 2
+          fi
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --location \
+            --connect-timeout 10 \
+            --max-time 35 \
+            --output /dev/null \
+            --user-agent "sunfabb-render-keep-alive/1.0" \
+            --write-out 'GET /live -> HTTP %{http_code} in %{time_total}s\n' \
+            "${backend_url}/live"
