@@ -1,0 +1,31 @@
+name: Production Synthetic Checks
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-synthetic-checks
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: Probe storefront and backend readiness
+    # Keep scheduled monitoring disabled until the owner explicitly opts in.
+    # Manual dispatch remains available for an intentional one-off probe.
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.PRODUCTION_SYNTHETICS_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      FRONTEND_URL: ${{ vars.PRODUCTION_FRONTEND_URL || 'https://sunfabb.com' }}
+      BACKEND_URL: ${{ vars.PRODUCTION_BACKEND_URL || 'https://sunfabb-backend.onrender.com' }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Probe production
+        run: bash tools/production-monitor.sh
