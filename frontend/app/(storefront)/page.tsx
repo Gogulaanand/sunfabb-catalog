@@ -1,15 +1,18 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { getProducts, formatPrice, type ProductListItem } from '@/lib/api';
-import { Reveal, StaggerGroup, StaggerItem } from '@/components/motion';
-import { ProductCard } from '@/components/product/product-card';
+import { getProducts, type ProductListItem } from '@/lib/api';
 import { HeroSection } from '@/components/home/hero-section';
 import { TrackItemList } from '@/components/analytics/track-item-list';
 import { TrackedContentLink } from '@/components/analytics/tracked-content-link';
 import { TrackedSection } from '@/components/analytics/tracked-section';
-import { TrackedWhatsAppLink } from '@/components/analytics/tracked-whatsapp-link';
 import { SOCIAL_PREVIEW_IMAGE, whatsappLink } from '@/lib/site-config';
 import type { AnalyticsItem } from '@/lib/analytics';
+import { CollectionBrowser } from '@/components/home/collection-browser';
+import { ProductRail } from '@/components/home/product-rail';
+import { TableLinenSplit } from '@/components/home/table-linen-split';
+import { ChoosingGuide } from '@/components/home/choosing-guide';
+import { MaterialsCare } from '@/components/home/materials-care';
+import { ImageCta } from '@/components/home/image-cta';
 
 export const metadata: Metadata = {
   title: {
@@ -31,13 +34,6 @@ export const metadata: Metadata = {
   },
 };
 
-function primaryGalleryImage(product: ProductListItem) {
-  const gallery = product.images.filter(
-    (image) => image.image_role === 'GALLERY',
-  );
-  return gallery.find((image) => image.is_primary) ?? gallery[0];
-}
-
 function lowestPrice(product: ProductListItem): number | null {
   return product.variants.length
     ? Math.min(...product.variants.map((variant) => variant.price))
@@ -45,19 +41,18 @@ function lowestPrice(product: ProductListItem): number | null {
 }
 
 export default async function HomePage() {
-  const featured = await getProducts({ limit: 8 }).catch(() => ({
-    items: [],
-    total: 0,
-    page: 1,
-    limit: 8,
-  }));
-  const collectionLead = featured.items[0];
-  const collectionImage = collectionLead
-    ? primaryGalleryImage(collectionLead)
-    : undefined;
-  const whatsappHref = whatsappLink(
-    "Hi Sunfabb, I'd like help choosing a design from your collection.",
-  );
+  const featuredResult = await getProducts({ limit: 8 })
+    .then((data) => ({ data, isUnavailable: false }))
+    .catch(() => ({
+      data: {
+        items: [],
+        total: 0,
+        page: 1,
+        limit: 8,
+      },
+      isUnavailable: true,
+    }));
+  const featured = featuredResult.data;
   const analyticsItems: AnalyticsItem[] = featured.items.map(
     (product, index) => ({
       item_id: product.id,
@@ -67,70 +62,76 @@ export default async function HomePage() {
       index: index + 1,
     }),
   );
+  const whatsappHref = whatsappLink(
+    "Hi Sunfabb, I'd like help choosing a design from your collection.",
+  );
 
   return (
-    <>
+    <div className="bg-home-paper text-home-graphite">
       <HeroSection />
 
       <TrackedSection
         sectionId="shopping-path"
         position={1}
-        labelledBy="shopping-path-title"
-        className="border-b border-outline-variant bg-surface-container-low"
+        labelledBy="home-intro-title"
+        className="border-b border-home-stone"
       >
-        <div className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-14 md:py-20">
-          <Reveal>
-            <div className="max-w-3xl mb-10 md:mb-14">
-              <p className="text-label-caps text-primary mb-4">
-                A considered way to shop
-              </p>
-              <h2
-                id="shopping-path-title"
-                className="font-display text-headline-md-mobile md:text-headline-md text-on-surface mb-4"
-              >
-                See the design. Check the details. Ask us directly.
-              </h2>
-              <p className="text-body-md text-on-surface-variant max-w-2xl">
-                Explore the collection at your pace, then message Sunfabb for
-                help with colours, sizes, availability and delivery before you
-                decide.
-              </p>
+        <div className="mx-auto grid max-w-(--spacing-container-max) gap-10 px-5 py-16 md:min-h-[46.875rem] md:grid-cols-[45%_55%] md:items-center md:gap-16 md:px-(--spacing-margin-desktop) md:py-24">
+          <div className="flex flex-col justify-center">
+            <p className="font-label text-xs font-bold uppercase tracking-[0.16em] text-home-graphite/60">
+              Sunfabb at home
+            </p>
+            <h2
+              id="home-intro-title"
+              className="mt-6 max-w-xl font-display text-3xl font-medium leading-[1.1] tracking-[-0.04em] sm:text-4xl md:text-5xl"
+            >
+              Good textiles should be easy to live with.
+            </h2>
+            <p className="mt-7 max-w-md text-[1.0625rem] leading-7 text-home-graphite/80">
+              Browse by room, compare the texture and size, and choose what
+              works with the home you already have.
+            </p>
+            <TrackedContentLink
+              href="/guides"
+              contentType="homepage_support"
+              contentId="intro_how_to_choose"
+              linkLocation="home_intro"
+              className="font-label mt-8 inline-flex w-fit border-b border-home-graphite pb-1 text-xs font-bold uppercase tracking-[0.16em] text-home-graphite transition-colors hover:text-home-graphite/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-graphite focus-visible:ring-offset-2"
+            >
+              How to choose
+            </TrackedContentLink>
+            <div className="mt-10 border-t border-home-graphite/20 pt-2">
+              {[
+                { label: 'Room', href: '/catalog', id: 'intro_room' },
+                { label: 'Material', href: '/guides', id: 'intro_material' },
+                { label: 'Colour', href: '/catalog', id: 'intro_colour' },
+              ].map((item) => (
+                <TrackedContentLink
+                  key={item.id}
+                  href={item.href}
+                  contentType="homepage_cta"
+                  contentId={item.id}
+                  linkLocation="home_intro_chooser"
+                  className="group flex min-h-14 items-center justify-between border-b border-home-graphite/20 py-3 text-[1.0625rem] text-home-graphite transition-colors hover:text-home-graphite/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-graphite focus-visible:ring-inset"
+                >
+                  <span>{item.label}</span>
+                  <span className="text-xl transition-transform group-hover:rotate-90" aria-hidden="true">
+                    +
+                  </span>
+                </TrackedContentLink>
+              ))}
             </div>
-          </Reveal>
-
-          <div className="grid gap-8 md:grid-cols-3 md:gap-10">
-            {[
-              {
-                number: '01',
-                title: 'Browse current designs',
-                body: 'Start with the patterns and colourways that suit your space.',
-              },
-              {
-                number: '02',
-                title: 'Compare the details',
-                body: 'Open a design to review its available options and product information.',
-              },
-              {
-                number: '03',
-                title: 'Confirm before you choose',
-                body: 'Ask us directly about current stock, price and delivery.',
-              },
-            ].map((step) => (
-              <div
-                key={step.number}
-                className="border-t border-outline-variant pt-5"
-              >
-                <p className="text-label-caps text-primary mb-4">
-                  {step.number}
-                </p>
-                <h3 className="font-display text-title-sm text-on-surface mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-body-sm text-on-surface-variant">
-                  {step.body}
-                </p>
-              </div>
-            ))}
+          </div>
+          <div className="relative min-h-[24rem] overflow-hidden rounded-sm md:h-full md:min-h-[36rem]">
+            <Image
+              src="/images/home/sunfabb-hero-option-a.png"
+              alt="Natural bedroom with layered home textiles"
+              fill
+              loading="eager"
+              sizes="(max-width: 767px) 100vw, 55vw"
+              className="object-cover"
+              style={{ objectPosition: '58% 52%' }}
+            />
           </div>
         </div>
       </TrackedSection>
@@ -138,53 +139,11 @@ export default async function HomePage() {
       <TrackedSection
         sectionId="collection-story"
         position={2}
-        labelledBy="collection-story-title"
-        className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-16 md:py-24 lg:py-32"
+        labelledBy="collection-browser-title"
+        className="bg-home-walnut"
       >
-        <div className="grid items-center gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:gap-20">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-surface-container">
-            {collectionImage ? (
-              <Image
-                src={collectionImage.url}
-                alt={collectionImage.alt_text ?? collectionLead?.name ?? ''}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 60vw"
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-outline text-5xl">
-                🧵
-              </div>
-            )}
-          </div>
-
-          <Reveal>
-            <div>
-              <p className="text-label-caps text-primary mb-4">
-                The current collection
-              </p>
-              <h2
-                id="collection-story-title"
-                className="font-display text-headline-md-mobile md:text-headline-md text-on-surface mb-5"
-              >
-                Start with a design that feels at home.
-              </h2>
-              <p className="text-body-md text-on-surface-variant mb-8">
-                Discover bedspread patterns across a growing range of
-                colourways. Save the design you like, then ask us to help
-                confirm the best available option for your space.
-              </p>
-              <TrackedContentLink
-                href="/catalog?category=bedspreads"
-                contentType="homepage_cta"
-                contentId="collection_story_bedspreads"
-                linkLocation="collection_story"
-                className="inline-flex items-center justify-center h-12 px-8 rounded bg-primary text-on-primary text-label-caps hover:bg-primary-container transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                Browse bedspreads
-              </TrackedContentLink>
-            </div>
-          </Reveal>
+        <div className="mx-auto max-w-(--spacing-container-max) px-5 py-16 md:px-(--spacing-margin-desktop) md:py-24 lg:py-28">
+          <CollectionBrowser />
         </div>
       </TrackedSection>
 
@@ -192,189 +151,70 @@ export default async function HomePage() {
         sectionId="featured-designs"
         position={3}
         labelledBy="featured-designs-title"
-        className="bg-surface-container-low"
+        className="border-y border-home-stone bg-home-paper"
       >
-        <div className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-16 md:py-24 lg:py-32">
-          <Reveal>
-            <div className="flex items-end justify-between gap-6 mb-10 md:mb-14">
-              <div>
-                <p className="text-label-caps text-primary mb-4">
-                  Explore the details
-                </p>
-                <h2
-                  id="featured-designs-title"
-                  className="font-display text-headline-md-mobile md:text-headline-md text-on-surface mb-2"
-                >
-                  Designs to begin with
-                </h2>
-                <p className="text-body-sm text-on-surface-variant">
-                  Open a design to compare its available colourways.
-                </p>
-              </div>
-              <TrackedContentLink
-                href="/catalog"
-                contentType="homepage_cta"
-                contentId="featured_view_all"
-                linkLocation="featured_designs"
-                className="text-label-caps text-primary hover:underline whitespace-nowrap rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                View all designs
-              </TrackedContentLink>
-            </div>
-          </Reveal>
-
+        <div className="mx-auto flex max-w-(--spacing-container-max) flex-col justify-center px-5 py-16 md:min-h-[56.25rem] md:px-(--spacing-margin-desktop) md:py-24">
+          <div className="mb-8 flex flex-col justify-between gap-5 md:mb-12 md:flex-row md:items-end">
+            <h2
+              id="featured-designs-title"
+              className="font-display text-3xl font-medium tracking-[-0.04em] sm:text-4xl md:text-5xl"
+            >
+              New textures
+            </h2>
+          </div>
           <TrackItemList
             items={analyticsItems}
             listName="Homepage designs"
             listId="homepage-designs"
             listKey="homepage-designs"
           />
-          {featured.items.length === 0 ? (
-            <p className="text-on-surface-variant">
-              The collection is temporarily unavailable. Please try again
-              shortly.
-            </p>
-          ) : (
-            <StaggerGroup className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 md:gap-x-8 md:gap-y-14">
-              {featured.items.map((product, index) => {
-                const primaryImage = primaryGalleryImage(product);
-                const price = lowestPrice(product);
-
-                return (
-                  <StaggerItem key={product.id}>
-                    <ProductCard
-                      slug={product.slug}
-                      name={product.name}
-                      imageUrl={primaryImage?.url}
-                      imageAlt={primaryImage?.alt_text ?? product.name}
-                      formattedPrice={
-                        price !== null ? formatPrice(price) : null
-                      }
-                      aspectRatio="3/4"
-                      sizes="(max-width: 768px) 50vw, 25vw"
-                      priority={index === 0}
-                      analytics={{
-                        item: analyticsItems[index],
-                        listName: 'Homepage designs',
-                        listId: 'homepage-designs',
-                      }}
-                    />
-                  </StaggerItem>
-                );
-              })}
-            </StaggerGroup>
-          )}
+          <ProductRail
+            products={featured.items}
+            analyticsItems={analyticsItems}
+            isUnavailable={featuredResult.isUnavailable}
+          />
         </div>
       </TrackedSection>
 
       <TrackedSection
-        sectionId="guided-shopping"
+        sectionId="table-linen"
         position={4}
-        labelledBy="guided-shopping-title"
-        className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-16 md:py-24"
+        labelledBy="table-linen-title"
+        className="bg-home-stone"
       >
-        <div className="overflow-hidden rounded-xl bg-inverse-surface px-6 py-12 text-inverse-on-surface md:px-12 md:py-16 lg:px-20">
-          <div className="grid items-end gap-10 lg:grid-cols-[1fr_auto]">
-            <div className="max-w-3xl">
-              <p className="text-label-caps text-inverse-primary mb-4">
-                Personal product guidance
-              </p>
-              <h2
-                id="guided-shopping-title"
-                className="font-display text-headline-md-mobile md:text-headline-md mb-5"
-              >
-                Found a design you like? Let&apos;s find the right option.
-              </h2>
-              <p className="text-body-md text-inverse-on-surface/75">
-                Message Sunfabb with the design you are considering. We&apos;ll
-                help confirm colours, size, current stock, price and delivery
-                before you decide.
-              </p>
-            </div>
-            {whatsappHref ? (
-              <TrackedWhatsAppLink
-                href={whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                tracking={{ linkLocation: 'home_guided_enquiry' }}
-                className="inline-flex h-12 items-center justify-center rounded bg-inverse-primary px-8 text-label-caps text-on-primary-fixed hover:bg-primary-fixed-dim transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inverse-primary focus-visible:ring-offset-2 focus-visible:ring-offset-inverse-surface"
-              >
-                Ask on WhatsApp
-              </TrackedWhatsAppLink>
-            ) : (
-              <TrackedContentLink
-                href="/contact"
-                contentType="homepage_cta"
-                contentId="guided_shopping_contact"
-                linkLocation="guided_shopping"
-                className="inline-flex h-12 items-center justify-center rounded bg-inverse-primary px-8 text-label-caps text-on-primary-fixed"
-              >
-                Contact Sunfabb
-              </TrackedContentLink>
-            )}
-          </div>
-        </div>
+        <TableLinenSplit />
       </TrackedSection>
 
       <TrackedSection
         sectionId="shopping-help"
         position={5}
-        labelledBy="shopping-help-title"
-        className="border-t border-outline-variant"
+        labelledBy="choosing-guide-title"
+        className="bg-home-paper"
       >
-        <div className="max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) py-16 md:py-24">
-          <div className="max-w-2xl mb-10">
-            <p className="text-label-caps text-primary mb-4">Buy with clarity</p>
-            <h2
-              id="shopping-help-title"
-              className="font-display text-headline-md-mobile md:text-headline-md text-on-surface"
-            >
-              Helpful details, before you enquire.
-            </h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              {
-                href: '/guides',
-                id: 'help_guides',
-                title: 'Product guides',
-                body: 'Explore practical guidance for choosing and caring for home textiles.',
-              },
-              {
-                href: '/shipping-policy',
-                id: 'help_shipping',
-                title: 'Shipping information',
-                body: 'Review how delivery timing and serviceability are confirmed.',
-              },
-              {
-                href: '/returns-policy',
-                id: 'help_returns',
-                title: 'Returns information',
-                body: 'Understand the working return conditions before placing an order.',
-              },
-            ].map((item) => (
-              <TrackedContentLink
-                key={item.id}
-                href={item.href}
-                contentType="homepage_support"
-                contentId={item.id}
-                linkLocation="shopping_help"
-                className="group rounded-xl border border-outline-variant bg-surface-container-lowest p-6 transition-colors hover:border-outline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                <h3 className="font-display text-title-sm text-on-surface mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-body-sm text-on-surface-variant mb-6">
-                  {item.body}
-                </p>
-                <span className="text-label-caps text-primary group-hover:underline">
-                  Read more
-                </span>
-              </TrackedContentLink>
-            ))}
-          </div>
+        <div className="mx-auto max-w-(--spacing-container-max) px-5 py-16 md:px-(--spacing-margin-desktop) md:py-32">
+          <ChoosingGuide whatsappHref={whatsappHref} />
         </div>
       </TrackedSection>
-    </>
+
+      <TrackedSection
+        sectionId="materials-care"
+        position={6}
+        labelledBy="materials-care-title"
+        className="bg-white"
+      >
+        <div className="mx-auto max-w-(--spacing-container-max) px-5 py-16 md:px-(--spacing-margin-desktop) md:py-20">
+          <MaterialsCare />
+        </div>
+      </TrackedSection>
+
+      <TrackedSection
+        sectionId="guided-shopping"
+        position={7}
+        labelledBy="image-cta-title"
+        className="bg-home-graphite"
+      >
+        <ImageCta whatsappHref={whatsappHref} />
+      </TrackedSection>
+    </div>
   );
 }

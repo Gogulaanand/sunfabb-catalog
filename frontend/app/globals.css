@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-display: var(--font-playfair-display);
-  --font-body: var(--font-inter);
+  --font-display: var(--font-dm-sans);
+  --font-body: var(--font-manrope);
+  --font-label: var(--font-space-mono);
 
   /* Ethos & Hearth — colors */
   --color-surface: #fbf9f8;
@@ -52,6 +53,16 @@
   --color-background: #fbf9f8;
   --color-on-background: #1b1c1c;
   --color-surface-variant: #e4e2e1;
+
+  /* Sunfabb home refresh palette */
+  --color-home-paper: #f7f6f2;
+  --color-home-stone: #d8d3cb;
+  --color-home-graphite: #2a2724;
+  --color-home-walnut: #55473e;
+  --color-home-walnut-soft: #67584f;
+  --color-home-tertiary: #a6826b;
+  /* A restrained accent, darkened slightly so small labels stay legible. */
+  --color-home-clay: #74503d;
 
   /* Typography scale */
   --text-display-lg: 48px;
@@ -116,6 +127,88 @@
 
 body {
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
+}
+
+/* Homepage-specific structure. These classes keep the art direction legible
+   in the JSX while leaving shared storefront primitives untouched. */
+.home-hero {
+  min-height: 100svh;
+  background: #4b392d;
+}
+
+.home-hero-scrim {
+  background:
+    linear-gradient(90deg, rgba(25, 19, 15, 0.74) 0%, rgba(35, 25, 19, 0.34) 38%, rgba(35, 25, 19, 0.03) 68%),
+    linear-gradient(0deg, rgba(20, 15, 12, 0.56) 0%, rgba(20, 15, 12, 0.04) 44%, transparent 66%);
+}
+
+.home-collection-card {
+  isolation: isolate;
+  min-height: 18rem;
+  background: #5e4538;
+}
+
+.home-collection-feature {
+  min-height: 24rem;
+}
+
+.home-collection-card::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(0deg, rgba(24, 15, 11, 0.78), rgba(24, 15, 11, 0.04) 68%);
+  content: "";
+}
+
+.home-collection-card img {
+  transition: transform 700ms var(--ease-out-expo), filter 700ms var(--ease-out-expo);
+  filter: saturate(0.86) contrast(0.94);
+}
+
+.home-collection-card:hover img,
+.home-collection-card:focus-visible img {
+  transform: scale(1.045);
+  filter: saturate(1) contrast(1);
+}
+
+.home-product-rail {
+  display: grid;
+  grid-auto-columns: minmax(14.5rem, 19rem);
+  grid-auto-flow: column;
+  gap: 1rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding: 0.25rem 0.25rem 1.25rem;
+  scroll-snap-type: inline proximity;
+  scrollbar-color: #9d4f35 transparent;
+  scrollbar-width: thin;
+}
+
+.home-product-rail > * {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+.home-cta-scrim {
+  background: linear-gradient(90deg, rgba(42, 39, 36, 0.92) 0%, rgba(42, 39, 36, 0.52) 44%, rgba(42, 39, 36, 0.08) 72%);
+}
+
+@media (min-width: 768px) {
+  .home-product-rail {
+    grid-auto-columns: minmax(16rem, 20rem);
+    gap: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-collection-card img {
+    transition: none;
+  }
+
+  .home-collection-card:hover img,
+  .home-collection-card:focus-visible img {
+    transform: none;
+  }
 }
 
 @keyframes storefront-page-fade-in {

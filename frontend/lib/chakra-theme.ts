@@ -32,8 +32,8 @@ const config = defineConfig({
         },
       },
       fonts: {
-        heading: { value: "var(--font-playfair-display), serif" },
-        body: { value: "var(--font-inter), sans-serif" },
+        heading: { value: "var(--font-dm-sans), sans-serif" },
+        body: { value: "var(--font-manrope), sans-serif" },
       },
       radii: {
         sm: { value: "0.25rem" },
