@@ -42,12 +42,22 @@ describe("Footer", () => {
     render(<Footer />);
 
     if (SITE.hours) {
-      expect(screen.getByText(SITE.hours)).toHaveClass("text-on-surface-variant");
+      expect(screen.getByText(SITE.hours)).toHaveClass(
+        "text-inverse-on-surface/65",
+      );
       expect(screen.getByText(SITE.hours)).not.toHaveClass("text-outline");
     }
-    expect(screen.getByText(/All rights reserved/)).toHaveClass(
-      "text-on-surface-variant",
+    expect(screen.getByText(/© \d{4} SUNFABB/)).toBeVisible();
+  });
+
+  it("uses the graphite surface with readable India and currency context", () => {
+    render(<Footer />);
+
+    expect(screen.getByRole("contentinfo")).toHaveClass(
+      "bg-home-graphite",
+      "text-white/65",
     );
+    expect(screen.getByText(`${SITE.region} / ${SITE.currency}`)).toBeVisible();
   });
 
   it("keeps the map link accessible name aligned with its visible label", () => {

@@ -1,71 +1,59 @@
 'use client';
 
-import Image from 'next/image';
-import { motion } from 'motion/react';
-import { TrackedContentLink } from '@/components/analytics/tracked-content-link';
+import Image from "next/image";
+import { motion } from "motion/react";
+import { TrackedContentLink } from "@/components/analytics/tracked-content-link";
 
-const HERO_IMAGE = '/images/home/sunfabb-hero-option-e.png';
+const HERO_IMAGE = "/images/home/sunfabb-hero-option-e.png";
+
+const HERO_CATEGORIES = [
+  { label: "Bedspreads", href: "/catalog?category=bedspreads", id: "hero_category_bedspreads" },
+  { label: "Towels", href: "/catalog?category=towels", id: "hero_category_towels" },
+  { label: "Table linen", href: "/catalog?category=table-linen", id: "hero_category_table_linen" },
+  { label: "Napkins", href: "/catalog?category=table-linen", id: "hero_category_napkins" },
+] as const;
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function HeroSection() {
   return (
-    <section
-      className="relative flex items-end overflow-hidden"
-      style={{ height: 'calc(100svh - 5rem)', minHeight: '600px' }}
-    >
-      {/* Ken Burns image - MotionProvider's reducedMotion="user" disables on prefers-reduced-motion */}
-      <motion.div
-        className="absolute inset-0"
-        initial={{ scale: 1 }}
-        animate={{ scale: 1.06 }}
-        transition={{
-          duration: 20,
-          ease: 'easeInOut',
-          repeat: Infinity,
-          repeatType: 'reverse',
-        }}
-      >
-        <Image
-          src={HERO_IMAGE}
-          alt="Sunfabb bedspread, towels and table linen in a sunlit home"
-          fill
-          priority
-          loading="eager"
-          sizes="100vw"
-          className="object-cover"
-        />
-      </motion.div>
+    <section className="home-hero relative isolate flex items-end overflow-hidden">
+      <Image
+        src={HERO_IMAGE}
+        alt="Bedspread and folded home textiles in a sunlit room"
+        fill
+        priority
+        loading="eager"
+        sizes="100vw"
+        className="object-cover"
+      />
 
-      {/* Bottom-to-top gradient scrim */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+      <div className="home-hero-scrim absolute inset-0" aria-hidden="true" />
 
-      {/* Hero copy - bottom aligned, staggered reveal on mount */}
-      <div className="relative z-10 w-full max-w-(--spacing-container-max) mx-auto px-5 md:px-(--spacing-margin-desktop) pb-16 md:pb-28">
+      <div className="relative z-10 mx-auto w-full max-w-(--spacing-container-max) px-5 pb-14 sm:pb-28 md:px-(--spacing-margin-desktop) md:pb-32">
         <motion.h1
-          className="font-display text-white mb-4"
+          className="mb-5 max-w-4xl font-display text-5xl font-medium leading-[1.04] tracking-[-0.045em] text-white sm:text-6xl lg:text-[4.5rem]"
           style={{
-            fontSize: 'clamp(2.5rem, 5vw + 1rem, 5.5rem)',
-            lineHeight: 1.05,
-            letterSpacing: '-0.02em',
+            textWrap: "balance",
           }}
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: EASE }}
         >
-          Crafted for Comfort
+          Textiles that make a room feel lived in.
         </motion.h1>
 
         <motion.p
-          className="text-white/80 text-body-md max-w-xs md:max-w-sm mb-8"
+          className="max-w-xl text-[1.0625rem] leading-7 text-white/90 md:text-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease: EASE, delay: 0.12 }}
         >
-          A considered collection of home textiles from India.
+          Bedspreads, towels and table linen chosen for everyday homes.
         </motion.p>
 
         <motion.div
+          className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: EASE, delay: 0.24 }}
@@ -75,12 +63,42 @@ export function HeroSection() {
             contentType="homepage_cta"
             contentId="hero_explore_designs"
             linkLocation="hero"
-            className="inline-flex items-center justify-center h-12 px-10 rounded bg-primary text-on-primary text-label-caps hover:bg-primary-container transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="inline-flex min-h-12 items-center justify-center rounded bg-white px-8 text-xs font-bold uppercase tracking-[0.14em] text-home-graphite transition-colors hover:bg-home-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-home-graphite"
           >
-            Explore designs
+            Browse collections
+          </TrackedContentLink>
+          <TrackedContentLink
+            href="/catalog"
+            contentType="homepage_cta"
+            contentId="hero_new_arrivals"
+            linkLocation="hero"
+            className="rounded text-xs font-bold uppercase tracking-[0.16em] text-white/90 underline decoration-white/45 underline-offset-8 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#38271f]"
+          >
+            See new arrivals
           </TrackedContentLink>
         </motion.div>
       </div>
+
+      <nav
+        aria-label="Shop by category"
+        className="absolute inset-x-0 bottom-0 z-20 hidden border-t border-white/20 bg-home-walnut/80 text-white backdrop-blur-sm sm:block"
+      >
+        <div className="mx-auto flex h-16 max-w-(--spacing-container-max) items-center gap-10 px-(--spacing-margin-desktop)">
+          {HERO_CATEGORIES.map((category) => (
+            <TrackedContentLink
+              key={category.id}
+              href={category.href}
+              contentType="homepage_cta"
+              contentId={category.id}
+              linkLocation="hero_category_ribbon"
+              className="inline-flex items-center gap-3 rounded text-sm font-medium text-white/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              {category.label}
+              <span aria-hidden="true">→</span>
+            </TrackedContentLink>
+          ))}
+        </div>
+      </nav>
     </section>
   );
 }

@@ -1,7 +1,17 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import type { HTMLAttributes, ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { shouldCompactHeader, Header } from "./Header";
+import { isHomeRoute, shouldCompactHeader, Header } from "./Header";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+}));
 
 vi.mock("@/components/cart/cart-icon", () => ({
   default: () => <a href="/cart">Cart</a>,
@@ -33,6 +43,14 @@ describe("shouldCompactHeader", () => {
   });
 });
 
+describe("isHomeRoute", () => {
+  it("only treats the storefront root as the overlaid home route", () => {
+    expect(isHomeRoute("/")).toBe(true);
+    expect(isHomeRoute("/catalog")).toBe(false);
+    expect(isHomeRoute(null)).toBe(false);
+  });
+});
+
 describe("Header mobile menu", () => {
   beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_STOREFRONT_MODE", "TRANSACTIONAL_COMMERCE");
@@ -42,7 +60,7 @@ describe("Header mobile menu", () => {
     vi.unstubAllEnvs();
   });
 
-  it("renders navigation links in the opened menu", () => {
+  it("renders real navigation routes in the opened menu", () => {
     render(<Header />);
 
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
@@ -50,9 +68,61 @@ describe("Header mobile menu", () => {
     const menu = screen.getByRole("dialog", { name: "Navigation menu" });
     const menuQueries = within(menu);
     expect(menu).toBeVisible();
-    expect(menuQueries.getByRole("link", { name: "Bedspreads" })).toBeVisible();
-    expect(menuQueries.getByRole("link", { name: "All Products" })).toBeVisible();
+    expect(menuQueries.getByRole("link", { name: "Shop" })).toHaveAttribute(
+      "href",
+      "/catalog",
+    );
+    expect(
+      menuQueries.getByRole("link", { name: "Collections" }),
+    ).toHaveAttribute("href", "/catalog?category=bedspreads");
+    expect(menuQueries.getByRole("link", { name: "Materials" })).toHaveAttribute(
+      "href",
+      "/guides",
+    );
+    expect(menuQueries.getByRole("link", { name: "Contact" })).toHaveAttribute(
+      "href",
+      "/contact",
+    );
     expect(menuQueries.getByRole("link", { name: "Account" })).toBeVisible();
+  });
+
+  it("locks scroll, traps focus, closes on escape, and restores focus", async () => {
+    render(<Header />);
+
+    const openButton = screen.getByRole("button", { name: "Open menu" });
+    openButton.focus();
+    fireEvent.click(openButton);
+
+    const menu = screen.getByRole("dialog", { name: "Navigation menu" });
+    const closeButton = within(menu).getByRole("button", { name: "Close menu" });
+    const lastFocusable = within(menu).getByRole("link", { name: "Account" });
+    expect(document.body.style.overflow).toBe("hidden");
+    expect(closeButton).toHaveFocus();
+
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(lastFocusable).toHaveFocus();
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(closeButton).toHaveFocus();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(openButton).toHaveFocus());
+    expect(document.body.style.overflow).toBe("");
+  });
+
+  it("uses the Stitch-style translucent strip at the top and graphite surface after scroll", () => {
+    render(<Header />);
+
+    const header = screen.getByRole("banner");
+    expect(header).toHaveClass("fixed", "bg-home-graphite/30", "backdrop-blur-sm", "h-20");
+
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 60,
+    });
+    fireEvent.scroll(window);
+
+    expect(header).toHaveClass("fixed", "bg-inverse-surface/95", "h-14");
   });
 
   it("hides cart and account controls in lead-generation mode", () => {
