@@ -29,7 +29,7 @@ export function ChoosingGuide({ whatsappHref }: ChoosingGuideProps) {
     <div className="grid gap-10 lg:min-h-[37rem] lg:grid-cols-[55%_45%] lg:items-stretch lg:gap-16">
       <div className="relative min-h-[26rem] overflow-hidden rounded-sm bg-home-stone lg:min-h-0">
         <Image
-          src="/images/home/stitch/choosing-detail.jpg"
+          src="/images/home/stitch/choosing-sunfabb-v2.jpg"
           alt="A hand feeling the texture of a bedspread"
           fill
           sizes="(max-width: 1023px) 100vw, 55vw"

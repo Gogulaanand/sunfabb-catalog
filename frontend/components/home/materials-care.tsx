@@ -5,7 +5,7 @@ const STORIES = [
   {
     title: "Materials",
     body: "Understand the difference between percale, sateen, and linen to find the perfect feel for your home.",
-    image: "/images/home/stitch/material-weave.jpg",
+    image: "/images/home/stitch/material-weave-sunfabb-v2.jpg",
     alt: "Macro view of a natural cotton weave",
     href: "/guides",
     contentId: "materials_explore",
@@ -14,7 +14,7 @@ const STORIES = [
   {
     title: "Care",
     body: "Simple routines to keep your textiles looking and feeling their best wash after wash.",
-    image: "/images/home/stitch/care-folded.jpg",
+    image: "/images/home/stitch/care-sunfabb-v2.jpg",
     alt: "Carefully folded home textile",
     href: "/guides/how-to-wash-cotton-bedspreads",
     contentId: "care_guide",

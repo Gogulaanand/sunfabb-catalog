@@ -6,7 +6,7 @@ export function TableLinenSplit() {
     <div className="grid items-stretch bg-home-stone md:min-h-[53.125rem] md:grid-cols-[60%_40%]">
       <div className="relative min-h-80 md:min-h-[53.125rem]">
         <Image
-          src="/images/home/stitch/table-linen-setting.jpg"
+          src="/images/home/stitch/table-linen-setting-sunfabb-v2.jpg"
           alt="Table runner and napkins arranged for a shared meal"
           fill
           sizes="(max-width: 767px) 100vw, 55vw"
