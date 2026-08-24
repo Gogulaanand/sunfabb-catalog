@@ -12,7 +12,7 @@ const COLLECTIONS = [
     href: "/catalog?category=towels",
     contentId: "collection_towels",
     title: "Towels",
-    image: "/images/home/stitch/collection-towels.jpg",
+    image: "/images/home/stitch/collection-towels-sunfabb-v2.jpg",
     alt: "Folded towels in a sunlit room",
     position: "50% 50%",
   },
@@ -20,7 +20,7 @@ const COLLECTIONS = [
     href: "/catalog?category=table-linen",
     contentId: "collection_table_linen",
     title: "Table linen",
-    image: "/images/home/stitch/collection-table-linen.jpg",
+    image: "/images/home/stitch/collection-table-linen-sunfabb-v2.jpg",
     alt: "Table linen laid across a wooden dining table",
     position: "50% 50%",
   },
@@ -28,7 +28,7 @@ const COLLECTIONS = [
     href: "/catalog?category=table-linen",
     contentId: "collection_napkins",
     title: "Napkins",
-    image: "/images/home/stitch/collection-napkins.jpg",
+    image: "/images/home/stitch/collection-napkins-sunfabb-v2.jpg",
     alt: "Folded napkins arranged with home textiles",
     position: "50% 50%",
   },
@@ -55,7 +55,7 @@ export function CollectionBrowser() {
         className={`home-collection-card home-collection-feature group relative mb-4 block overflow-hidden rounded-sm md:mb-6 ${focusClasses}`}
       >
         <Image
-          src="/images/home/stitch/collection-bedspreads.jpg"
+          src="/images/home/stitch/collection-bedspreads-sunfabb-v2.jpg"
           alt="Patterned bedspread in a sunlit bedroom"
           fill
           sizes="(max-width: 767px) 100vw, 80vw"

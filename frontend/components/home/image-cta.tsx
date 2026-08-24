@@ -10,7 +10,7 @@ export function ImageCta({ whatsappHref }: ImageCtaProps) {
   return (
     <div className="relative isolate min-h-[36rem] overflow-hidden bg-home-graphite text-white md:min-h-[40.625rem]">
       <Image
-        src="/images/home/stitch/final-room.jpg"
+        src="/images/home/stitch/final-room-sunfabb-v2.jpg"
         alt="Beautiful bedroom setting with layered neutral textiles"
         fill
         sizes="100vw"
