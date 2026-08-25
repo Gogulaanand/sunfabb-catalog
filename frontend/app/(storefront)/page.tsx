@@ -1,6 +1,12 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { getProducts, type ProductListItem } from '@/lib/api';
+import {
+  getCategories,
+  getColors,
+  getMaterials,
+  getProducts,
+  type ProductListItem,
+} from '@/lib/api';
 import { HeroSection } from '@/components/home/hero-section';
 import { TrackItemList } from '@/components/analytics/track-item-list';
 import { TrackedContentLink } from '@/components/analytics/tracked-content-link';
@@ -13,6 +19,7 @@ import { TableLinenSplit } from '@/components/home/table-linen-split';
 import { ChoosingGuide } from '@/components/home/choosing-guide';
 import { MaterialsCare } from '@/components/home/materials-care';
 import { ImageCta } from '@/components/home/image-cta';
+import { ShoppingFacetAccordion } from '@/components/home/shopping-facet-accordion';
 
 export const metadata: Metadata = {
   title: {
@@ -41,17 +48,22 @@ function lowestPrice(product: ProductListItem): number | null {
 }
 
 export default async function HomePage() {
-  const featuredResult = await getProducts({ limit: 8 })
-    .then((data) => ({ data, isUnavailable: false }))
-    .catch(() => ({
-      data: {
-        items: [],
-        total: 0,
-        page: 1,
-        limit: 8,
-      },
-      isUnavailable: true,
-    }));
+  const [featuredResult, categories, materials, colors] = await Promise.all([
+    getProducts({ limit: 8 })
+      .then((data) => ({ data, isUnavailable: false }))
+      .catch(() => ({
+        data: {
+          items: [],
+          total: 0,
+          page: 1,
+          limit: 8,
+        },
+        isUnavailable: true,
+      })),
+    getCategories().catch(() => []),
+    getMaterials().catch(() => []),
+    getColors().catch(() => []),
+  ]);
   const featured = featuredResult.data;
   const analyticsItems: AnalyticsItem[] = featured.items.map(
     (product, index) => ({
@@ -100,27 +112,11 @@ export default async function HomePage() {
             >
               How to choose
             </TrackedContentLink>
-            <div className="mt-10 border-t border-home-graphite/20 pt-2">
-              {[
-                { label: 'Room', href: '/catalog', id: 'intro_room' },
-                { label: 'Material', href: '/guides', id: 'intro_material' },
-                { label: 'Colour', href: '/catalog', id: 'intro_colour' },
-              ].map((item) => (
-                <TrackedContentLink
-                  key={item.id}
-                  href={item.href}
-                  contentType="homepage_cta"
-                  contentId={item.id}
-                  linkLocation="home_intro_chooser"
-                  className="group flex min-h-14 items-center justify-between border-b border-home-graphite/20 py-3 text-[1.0625rem] text-home-graphite transition-colors hover:text-home-graphite/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-graphite focus-visible:ring-inset"
-                >
-                  <span>{item.label}</span>
-                  <span className="text-xl transition-transform group-hover:rotate-90" aria-hidden="true">
-                    +
-                  </span>
-                </TrackedContentLink>
-              ))}
-            </div>
+            <ShoppingFacetAccordion
+              categories={categories}
+              materials={materials}
+              colors={colors}
+            />
           </div>
           <div className="relative min-h-[24rem] overflow-hidden rounded-sm md:h-full md:min-h-[36rem]">
             <Image
