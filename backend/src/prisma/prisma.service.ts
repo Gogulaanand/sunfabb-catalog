@@ -2,31 +2,88 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../generated/prisma/client.js';
 import type { Prisma } from '../../generated/prisma/client.js';
+import type { PoolConfig } from 'pg';
+
+const POSTGRES_PROTOCOLS = new Set(['postgres:', 'postgresql:']);
+const SUPPORTED_SSL_MODES = new Set(['disable', 'require', 'verify-full']);
+const UNSUPPORTED_SSL_MODE_ERROR =
+  'DATABASE_URL uses unsupported sslmode; allowed values are disable, require, or verify-full; unsafe modes no-verify and prefer are rejected';
+
+/**
+ * Convert the application DATABASE_URL into the explicit pg options used by
+ * Prisma's adapter. Keeping this separate makes the security-sensitive
+ * connection behavior unit-testable without opening a database connection.
+ */
+export function createDatabaseConnectionConfig(
+  databaseUrl: string | undefined,
+): PoolConfig {
+  if (!databaseUrl?.trim()) {
+    throw new Error('DATABASE_URL is not set');
+  }
+
+  let dbUrl: URL;
+  try {
+    dbUrl = new URL(databaseUrl);
+  } catch {
+    throw new Error('DATABASE_URL must be a valid PostgreSQL connection URL');
+  }
+
+  if (!POSTGRES_PROTOCOLS.has(dbUrl.protocol)) {
+    throw new Error(
+      'DATABASE_URL must use the postgres:// or postgresql:// protocol',
+    );
+  }
+
+  const database = dbUrl.pathname.replace(/^\/+/, '');
+  if (!dbUrl.hostname || !database) {
+    throw new Error(
+      'DATABASE_URL must include a database host and database name',
+    );
+  }
+
+  const sslmode = dbUrl.searchParams.get('sslmode');
+  if (sslmode && !SUPPORTED_SSL_MODES.has(sslmode)) {
+    throw new Error(UNSUPPORTED_SSL_MODE_ERROR);
+  }
+
+  let user: string;
+  let password: string;
+  let decodedDatabase: string;
+  try {
+    user = decodeURIComponent(dbUrl.username);
+    password = decodeURIComponent(dbUrl.password);
+    decodedDatabase = decodeURIComponent(database);
+  } catch {
+    throw new Error(
+      'DATABASE_URL contains invalid URL-encoded credentials or database name',
+    );
+  }
+
+  return {
+    host: dbUrl.hostname,
+    port: Number(dbUrl.port || 5432),
+    user,
+    password,
+    database: decodedDatabase,
+    // Do not disable certificate verification. Node's TLS defaults verify the
+    // server against trusted CAs and check its hostname when this is true.
+    ssl:
+      sslmode === 'disable'
+        ? false
+        : sslmode === 'require' || sslmode === 'verify-full'
+          ? { rejectUnauthorized: true }
+          : undefined,
+  };
+}
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
   private readonly client: PrismaClient;
 
   constructor() {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) throw new Error('DATABASE_URL is not set');
-
-    // pg 8.21+ treats sslmode=require as verify-full when a connection string is passed.
-    // Parsing the URL manually lets us set ssl directly and bypass that. Only enable it when
-    // the URL actually asks for it (Neon does; a plain local/CI Postgres doesn't support SSL
-    // at all and errors out if we force it).
-    const dbUrl = new URL(databaseUrl);
-    const adapter = new PrismaPg({
-      host: dbUrl.hostname,
-      port: parseInt(dbUrl.port || '5432'),
-      user: decodeURIComponent(dbUrl.username),
-      password: decodeURIComponent(dbUrl.password),
-      database: dbUrl.pathname.slice(1),
-      ssl:
-        dbUrl.searchParams.get('sslmode') === 'require'
-          ? { rejectUnauthorized: false }
-          : undefined,
-    });
+    const adapter = new PrismaPg(
+      createDatabaseConnectionConfig(process.env.DATABASE_URL),
+    );
     this.client = new PrismaClient({ adapter });
   }
 

@@ -361,6 +361,7 @@ export function VariantSelector({
                 [selectedVariant.size, selectedVariant.color.name, selectedVariant.material.name]
                   .filter(Boolean)
                   .join(" · "),
+                `/catalog/${productSlug}`,
               ),
             )}
             target="_blank"

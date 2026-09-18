@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import {
-  getCategories,
-  getMaterials,
-  getColors,
+  getPublicCategories,
+  getPublicMaterials,
+  getPublicColors,
   getProducts,
   formatPrice,
   type ProductsQuery,
@@ -40,9 +40,9 @@ export default async function CatalogContent({
   const limit = 20;
 
   const [categories, materials, colors] = await Promise.all([
-    getCategories().catch(() => []),
-    getMaterials().catch(() => []),
-    getColors().catch(() => []),
+    getPublicCategories().catch(() => []),
+    getPublicMaterials().catch(() => []),
+    getPublicColors().catch(() => []),
   ]);
 
   const query = constrainCatalogQuery(

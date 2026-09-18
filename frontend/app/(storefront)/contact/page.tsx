@@ -11,7 +11,7 @@ import ContactForm from '@/components/storefront/contact-form';
 import { TrackedWhatsAppLink } from '@/components/analytics/tracked-whatsapp-link';
 
 export const metadata: Metadata = {
-  title: 'Contact Us | Sunfabb',
+  title: 'Contact Us',
   description:
     'Contact Sunfabb about bedspreads, towels, napkins and table linen.',
   alternates: { canonical: `${SITE_URL}/contact` },

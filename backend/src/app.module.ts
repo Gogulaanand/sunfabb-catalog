@@ -21,6 +21,7 @@ import { WebhooksModule } from './webhooks/webhooks.module.js';
 import { OrderExpiryModule } from './expiry/order-expiry.module.js';
 import { ContactModule } from './contact/contact.module.js';
 import { AdminOrdersModule } from './admin/orders/admin-orders.module.js';
+import { AdminEnquiriesModule } from './admin/enquiries/admin-enquiries.module.js';
 import { HealthModule } from './health/health.module.js';
 import { CatalogTimingMiddleware } from './observability/catalog-timing.middleware.js';
 
@@ -51,6 +52,7 @@ import { CatalogTimingMiddleware } from './observability/catalog-timing.middlewa
     OrderExpiryModule,
     ContactModule,
     AdminOrdersModule,
+    AdminEnquiriesModule,
     HealthModule,
   ],
 })

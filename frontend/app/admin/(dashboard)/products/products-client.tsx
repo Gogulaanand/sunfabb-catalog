@@ -214,8 +214,13 @@ export function ProductsClient({
               <Table.Cell>{product.category.name}</Table.Cell>
               <Table.Cell>{product.variants[0] ? formatPrice(product.variants[0].price) : "—"}</Table.Cell>
               <Table.Cell>
-                <Tag.Root colorPalette={product.is_active ? "green" : "gray"} size="sm">
-                  <Tag.Label>{product.is_active ? "Active" : "Inactive"}</Tag.Label>
+                <Tag.Root
+                  colorPalette={product.is_active ? "green" : product.published_at ? "orange" : "gray"}
+                  size="sm"
+                >
+                  <Tag.Label>
+                    {product.is_active ? "Published" : product.published_at ? "Hidden" : "Draft"}
+                  </Tag.Label>
                 </Tag.Root>
               </Table.Cell>
               <Table.Cell>

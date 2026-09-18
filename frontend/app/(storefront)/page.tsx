@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import {
-  getCategories,
-  getColors,
-  getMaterials,
+  getPublicCategories,
+  getPublicColors,
+  getPublicMaterials,
   getProducts,
   type ProductListItem,
 } from '@/lib/api';
@@ -60,9 +60,9 @@ export default async function HomePage() {
         },
         isUnavailable: true,
       })),
-    getCategories().catch(() => []),
-    getMaterials().catch(() => []),
-    getColors().catch(() => []),
+    getPublicCategories().catch(() => []),
+    getPublicMaterials().catch(() => []),
+    getPublicColors().catch(() => []),
   ]);
   const featured = featuredResult.data;
   const analyticsItems: AnalyticsItem[] = featured.items.map(

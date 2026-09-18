@@ -7,7 +7,12 @@ import {
 } from "@testing-library/react";
 import type { HTMLAttributes, ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { isHomeRoute, shouldCompactHeader, Header } from "./Header";
+import {
+  buildNavLinks,
+  isHomeRoute,
+  shouldCompactHeader,
+  Header,
+} from "./Header";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
@@ -51,6 +56,19 @@ describe("isHomeRoute", () => {
   });
 });
 
+describe("buildNavLinks", () => {
+  it("builds storefront navigation from populated public categories", () => {
+    expect(
+      buildNavLinks([{ name: "Bedspreads", slug: "bedspreads" }]),
+    ).toEqual([
+      { href: "/catalog?category=bedspreads", label: "Bedspreads" },
+      { href: "/catalog", label: "All Products" },
+      { href: "/guides", label: "Guides" },
+      { href: "/contact", label: "Contact" },
+    ]);
+  });
+});
+
 describe("Header mobile menu", () => {
   beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_STOREFRONT_MODE", "TRANSACTIONAL_COMMERCE");
@@ -61,21 +79,24 @@ describe("Header mobile menu", () => {
   });
 
   it("renders real navigation routes in the opened menu", () => {
-    render(<Header />);
+    render(
+      <Header categories={[{ name: "Bedspreads", slug: "bedspreads" }]} />,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
 
     const menu = screen.getByRole("dialog", { name: "Navigation menu" });
     const menuQueries = within(menu);
     expect(menu).toBeVisible();
-    expect(menuQueries.getByRole("link", { name: "Shop" })).toHaveAttribute(
+    expect(menuQueries.getByRole("link", { name: "Bedspreads" })).toHaveAttribute(
+      "href",
+      "/catalog?category=bedspreads",
+    );
+    expect(menuQueries.getByRole("link", { name: "All Products" })).toHaveAttribute(
       "href",
       "/catalog",
     );
-    expect(
-      menuQueries.getByRole("link", { name: "Collections" }),
-    ).toHaveAttribute("href", "/catalog?category=bedspreads");
-    expect(menuQueries.getByRole("link", { name: "Materials" })).toHaveAttribute(
+    expect(menuQueries.getByRole("link", { name: "Guides" })).toHaveAttribute(
       "href",
       "/guides",
     );
@@ -84,6 +105,9 @@ describe("Header mobile menu", () => {
       "/contact",
     );
     expect(menuQueries.getByRole("link", { name: "Account" })).toBeVisible();
+    expect(menuQueries.queryByRole("link", { name: "Towels" })).toBeNull();
+    expect(menuQueries.queryByRole("link", { name: "Table Linen" })).toBeNull();
+    expect(menuQueries.queryByRole("link", { name: "Napkins" })).toBeNull();
   });
 
   it("locks scroll, traps focus, closes on escape, and restores focus", async () => {

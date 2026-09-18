@@ -8,6 +8,8 @@ import {
   TRUST_PAGE_LINKS,
   isTestImageUrl,
   shouldRenderStorefrontImage,
+  buildCapabilityEnquiryMessage,
+  buildProductEnquiryMessage,
   whatsappLink,
 } from './site-config';
 
@@ -79,6 +81,27 @@ describe('whatsappLink', () => {
 
   it('accepts an emoji in the custom message without throwing', () => {
     expect(() => whatsappLink('Hi 👋 Sunfabb')).not.toThrow();
+  });
+});
+
+describe('enquiry messages', () => {
+  it('keeps the selected variant and absolute product URL in a product enquiry', () => {
+    const message = buildProductEnquiryMessage(
+      'Royal Bedspread',
+      'Queen · Indigo · Cotton',
+      '/catalog/royal-bedspread',
+    );
+
+    expect(message).toContain('Queen · Indigo · Cotton');
+    expect(message).toContain(
+      'Product link: https://sunfabb.com/catalog/royal-bedspread',
+    );
+  });
+
+  it('names capability enquiries without implying a populated category page', () => {
+    expect(buildCapabilityEnquiryMessage('Napkins')).toContain(
+      'Napkins capability',
+    );
   });
 });
 

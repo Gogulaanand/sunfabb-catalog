@@ -38,6 +38,21 @@ describe("Footer", () => {
     );
   });
 
+  it("sends unpopulated capabilities to an enquiry handoff", () => {
+    render(<Footer />);
+
+    for (const category of ["Towels", "Table Linen", "Napkins"]) {
+      const link = screen.getByRole("link", {
+        name: `Enquire about ${category}`,
+      });
+      expect(link).toHaveAttribute("href", expect.stringContaining("wa.me"));
+      expect(decodeURIComponent(link.getAttribute("href") ?? "")).toContain(
+        `${category === "Table Linen" ? "Table linen" : category} capability`,
+      );
+      expect(link.getAttribute("href")).not.toContain("/catalog?category=");
+    }
+  });
+
   it("uses readable text colors for muted footer details", () => {
     render(<Footer />);
 

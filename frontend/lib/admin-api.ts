@@ -1,8 +1,21 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { productImageRoleSchema, type Category, type Color, type Material, type ProductImageRole } from "./api";
+import {
+  productImageRoleSchema,
+  type Category,
+  type Color,
+  type Material,
+  type ProductImageRole,
+} from "./api";
+import {
+  MAX_PROCESSED_IMAGE_BYTES,
+  isSupportedImageMimeType,
+} from "./image-preprocessing";
 import { z } from "zod";
-import { adminOrderStatusSchema, type AdminOrderStatus } from "./admin-order-status";
+import {
+  adminOrderStatusSchema,
+  type AdminOrderStatus,
+} from "./admin-order-status";
 
 export { adminOrderStatusSchema } from "./admin-order-status";
 export type { AdminOrderStatus } from "./admin-order-status";
@@ -63,7 +76,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return res.json();
 }
 
-async function requestJson(path: string, init: RequestInit = {}): Promise<unknown> {
+async function requestJson(
+  path: string,
+  init: RequestInit = {},
+): Promise<unknown> {
   return request<unknown>(path, init);
 }
 
@@ -81,11 +97,20 @@ export function listCategories(): Promise<Category[]> {
 }
 
 export function createCategory(input: CategoryInput): Promise<Category> {
-  return request("/categories", { method: "POST", body: JSON.stringify(input) });
+  return request("/categories", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
-export function updateCategory(id: string, input: Partial<CategoryInput>): Promise<Category> {
-  return request(`/categories/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+export function updateCategory(
+  id: string,
+  input: Partial<CategoryInput>,
+): Promise<Category> {
+  return request(`/categories/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
 }
 
 export function deleteCategory(id: string): Promise<void> {
@@ -106,8 +131,14 @@ export function createMaterial(input: MaterialInput): Promise<Material> {
   return request("/materials", { method: "POST", body: JSON.stringify(input) });
 }
 
-export function updateMaterial(id: string, input: Partial<MaterialInput>): Promise<Material> {
-  return request(`/materials/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+export function updateMaterial(
+  id: string,
+  input: Partial<MaterialInput>,
+): Promise<Material> {
+  return request(`/materials/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
 }
 
 export function deleteMaterial(id: string): Promise<void> {
@@ -129,8 +160,14 @@ export function createColor(input: ColorInput): Promise<Color> {
   return request("/colors", { method: "POST", body: JSON.stringify(input) });
 }
 
-export function updateColor(id: string, input: Partial<ColorInput>): Promise<Color> {
-  return request(`/colors/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+export function updateColor(
+  id: string,
+  input: Partial<ColorInput>,
+): Promise<Color> {
+  return request(`/colors/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
 }
 
 export function deleteColor(id: string): Promise<void> {
@@ -149,6 +186,7 @@ const adminProductListItemSchema = z.object({
   description: z.string().nullable(),
   care_instructions: z.string().nullable(),
   is_active: z.boolean(),
+  published_at: z.string().datetime().nullable(),
   category: z.object({ name: z.string(), slug: z.string() }),
   // Narrowed to the primary gallery image by the backend — thumbnail only.
   images: z.array(z.object({ url: z.string() })),
@@ -200,20 +238,40 @@ const adminProductSchema = z.object({
   care_instructions: z.string().nullable(),
   category_id: z.string(),
   is_active: z.boolean(),
+  published_at: z.string().datetime().nullable(),
   category: z.object({ name: z.string(), slug: z.string() }),
   variants: z.array(adminProductVariantSchema),
   images: z.array(adminProductImageSchema),
 });
 
+// Product mutation endpoints return the Prisma product row rather than the
+// expanded admin detail shape. Keep those responses validated at this
+// boundary too, while the detail reader continues to validate variants/images.
+const productMutationResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().nullable(),
+  care_instructions: z.string().nullable(),
+  category_id: z.string(),
+  is_active: z.boolean(),
+  published_at: z.string().datetime().nullable(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+
 export type AdminProductVariant = z.infer<typeof adminProductVariantSchema>;
 export type AdminProductImage = z.infer<typeof adminProductImageSchema>;
 export type AdminProduct = z.infer<typeof adminProductSchema>;
+export type ProductMutationResponse = z.infer<
+  typeof productMutationResponseSchema
+>;
 
 export interface ProductInput {
   name: string;
   slug: string;
-  description?: string;
-  care_instructions?: string;
+  description?: string | null;
+  care_instructions?: string | null;
   category_id: string;
 }
 
@@ -224,22 +282,46 @@ export function getAdminProducts(): Promise<AdminProductsResponse> {
 }
 
 export function getAdminProduct(slug: string): Promise<AdminProduct> {
-  return requestJson(`/products/${slug}`).then((body) => adminProductSchema.parse(body));
+  return requestJson(`/products/admin/${slug}`).then((body) =>
+    adminProductSchema.parse(body),
+  );
 }
 
-export function createProduct(input: ProductInput): Promise<AdminProduct> {
-  return request("/products", { method: "POST", body: JSON.stringify(input) });
+export function createProduct(
+  input: ProductInput,
+): Promise<ProductMutationResponse> {
+  return requestJson("/products", {
+    method: "POST",
+    body: JSON.stringify(input),
+  }).then((body) => productMutationResponseSchema.parse(body));
 }
 
 export function updateProduct(
   id: string,
-  input: Partial<ProductInput> & { is_active?: boolean },
-): Promise<AdminProduct> {
-  return request(`/products/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+  input: Partial<ProductInput>,
+): Promise<ProductMutationResponse> {
+  return requestJson(`/products/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  }).then((body) => productMutationResponseSchema.parse(body));
 }
 
-export function deleteProduct(id: string): Promise<AdminProduct> {
-  return request(`/products/${id}`, { method: "DELETE" });
+export function deleteProduct(id: string): Promise<ProductMutationResponse> {
+  return requestJson(`/products/${id}`, { method: "DELETE" }).then((body) =>
+    productMutationResponseSchema.parse(body),
+  );
+}
+
+export function publishProduct(id: string): Promise<ProductMutationResponse> {
+  return requestJson(`/products/${id}/publish`, { method: "PATCH" }).then(
+    (body) => productMutationResponseSchema.parse(body),
+  );
+}
+
+export function restoreProduct(id: string): Promise<ProductMutationResponse> {
+  return requestJson(`/products/${id}/restore`, { method: "PATCH" }).then(
+    (body) => productMutationResponseSchema.parse(body),
+  );
 }
 
 // --- Variants ---
@@ -253,7 +335,10 @@ export interface VariantInput {
   sku: string;
 }
 
-export function addVariant(productId: string, input: VariantInput): Promise<AdminProductVariant> {
+export function addVariant(
+  productId: string,
+  input: VariantInput,
+): Promise<AdminProductVariant> {
   return request(`/products/${productId}/variants`, {
     method: "POST",
     body: JSON.stringify(input),
@@ -264,7 +349,10 @@ export function updateVariant(
   id: string,
   input: Partial<VariantInput> & { is_active?: boolean },
 ): Promise<AdminProductVariant> {
-  return request(`/variants/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+  return request(`/variants/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
 }
 
 export function deleteVariant(id: string): Promise<AdminProductVariant> {
@@ -283,15 +371,24 @@ export interface ImageInput {
   image_role?: ProductImageRole;
 }
 
-export function addImage(productId: string, input: ImageInput): Promise<AdminProductImage> {
-  return request(`/products/${productId}/images`, {
+export function addImage(
+  productId: string,
+  input: ImageInput,
+): Promise<AdminProductImage> {
+  return requestJson(`/products/${productId}/images`, {
     method: "POST",
     body: JSON.stringify(input),
-  });
+  }).then((body) => adminProductImageSchema.parse(body));
 }
 
 export function deleteImage(id: string): Promise<void> {
   return request(`/images/${id}`, { method: "DELETE" });
+}
+
+export function setImageCover(id: string): Promise<AdminProductImage> {
+  return requestJson(`/images/${id}/cover`, { method: "PATCH" }).then((body) =>
+    adminProductImageSchema.parse(body),
+  );
 }
 
 // --- Orders ---
@@ -419,10 +516,13 @@ export interface AdminOrdersQuery {
   date_to?: string;
 }
 
-export function listAdminOrders(params: AdminOrdersQuery = {}): Promise<AdminOrdersResponse> {
+export function listAdminOrders(
+  params: AdminOrdersQuery = {},
+): Promise<AdminOrdersResponse> {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") searchParams.set(key, String(value));
+    if (value !== undefined && value !== "")
+      searchParams.set(key, String(value));
   }
   const query = searchParams.toString();
   return requestJson(`/admin/orders${query ? `?${query}` : ""}`).then((body) =>
@@ -431,7 +531,9 @@ export function listAdminOrders(params: AdminOrdersQuery = {}): Promise<AdminOrd
 }
 
 export function getAdminOrder(id: string): Promise<AdminOrderDetail> {
-  return requestJson(`/admin/orders/${id}`).then((body) => adminOrderDetailSchema.parse(body));
+  return requestJson(`/admin/orders/${id}`).then((body) =>
+    adminOrderDetailSchema.parse(body),
+  );
 }
 
 export function updateAdminOrderStatus(
@@ -444,7 +546,29 @@ export function updateAdminOrderStatus(
   }).then((body) => adminOrderDetailSchema.parse(body));
 }
 
-export async function uploadImage(file: File): Promise<{ url: string; public_id: string }> {
+export async function uploadImage(
+  file: File,
+): Promise<{ url: string; public_id: string }> {
+  const serverActionLimit = 4 * 1024 * 1024;
+  if (!isSupportedImageMimeType(file.type)) {
+    throw new AdminApiError(415, {
+      message: "Choose a JPEG, PNG, or WebP image.",
+    });
+  }
+  if (file.size > serverActionLimit) {
+    throw new AdminApiError(413, {
+      message: "This image is too large to upload. Choose an image under 4 MB.",
+    });
+  }
+  // This is the client-side post-process contract. The Multer boundary is
+  // still authoritative, so a caller that bypasses preprocessing receives a
+  // clear response instead of an unbounded multipart body.
+  if (file.size > MAX_PROCESSED_IMAGE_BYTES) {
+    throw new AdminApiError(413, {
+      message: "Prepare the image under 3 MB before uploading.",
+    });
+  }
+
   const cookieStore = await cookies();
   const token = cookieStore.get("admin_token")?.value;
 
@@ -462,5 +586,7 @@ export async function uploadImage(file: File): Promise<{ url: string; public_id:
     throw new AdminApiError(res.status, body);
   }
 
-  return z.object({ url: z.string(), public_id: z.string() }).parse(await res.json());
+  return z
+    .object({ url: z.string(), public_id: z.string() })
+    .parse(await res.json());
 }

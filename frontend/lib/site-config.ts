@@ -191,10 +191,18 @@ export function isWhatsAppConfigured(): boolean {
 export function buildProductEnquiryMessage(
   productName: string,
   variantLabel: string,
+  productPathOrUrl?: string,
 ): string {
+  const productUrl = productPathOrUrl
+    ? new URL(productPathOrUrl, SITE.url).toString()
+    : undefined;
   return `Hi Sunfabb, I'd like to enquire about ${productName}${
     variantLabel ? ` (${variantLabel})` : ''
-  }.`;
+  }${productUrl ? ` Product link: ${productUrl}` : ''}.`;
+}
+
+export function buildCapabilityEnquiryMessage(categoryName: string): string {
+  return `Hi Sunfabb, I'd like to enquire about your ${categoryName} capability.`;
 }
 
 export const telLink = SITE.phone.e164 ? `tel:${SITE.phone.e164}` : undefined;

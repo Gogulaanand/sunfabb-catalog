@@ -47,7 +47,10 @@ model Product {
   care_instructions String?
   hsn_code          String? // GST HSN code; one per design, shared by its variants (Phase 6, D35/C4)
   category_id       String
-  is_active         Boolean  @default(true)
+  // Products are prepared in the admin before they become customer-visible.
+  // Publish/restore explicitly enables this flag after completeness checks.
+  is_active         Boolean  @default(false)
+  published_at      DateTime?
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 

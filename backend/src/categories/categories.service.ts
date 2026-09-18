@@ -13,6 +13,25 @@ export class CategoriesService {
     });
   }
 
+  /** Public facets only include categories with publishable variants. */
+  async findPublic() {
+    const categories = await this.prisma.category.findMany({
+      where: {
+        products: {
+          some: {
+            is_active: true,
+            variants: { some: { is_active: true } },
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    // Category copy is an admin-managed field until the public wording is
+    // approved. Keep the public facet contract truthful without leaking it.
+    return categories.map((category) => ({ ...category, description: null }));
+  }
+
   findOne(slug: string) {
     return this.prisma.category.findUnique({
       where: { slug },

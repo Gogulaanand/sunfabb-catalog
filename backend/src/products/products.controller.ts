@@ -33,6 +33,14 @@ export class ProductsController {
     return this.productsService.findAllAdmin(dto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/:slug')
+  async findOneAdmin(@Param('slug') slug: string) {
+    const product = await this.productsService.findOneAdmin(slug);
+    if (!product) throw new NotFoundException(`Product '${slug}' not found`);
+    return product;
+  }
+
   @Get(':slug')
   async findOne(@Param('slug') slug: string) {
     const product = await this.productsService.findOne(slug);
@@ -56,6 +64,18 @@ export class ProductsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/publish')
+  publish(@Param('id') id: string) {
+    return this.productsService.publish(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/restore')
+  restore(@Param('id') id: string) {
+    return this.productsService.restore(id);
   }
 
   @UseGuards(JwtAuthGuard)

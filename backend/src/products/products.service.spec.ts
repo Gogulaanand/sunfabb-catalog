@@ -4,6 +4,7 @@ import { ProductImageRole } from '../../generated/prisma/enums.js';
 import { ProductsService } from './products.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { FindProductsDto } from './dto/find-products.dto.js';
+import { UpdateProductDto } from './dto/update-product.dto.js';
 import { DEMO_PRODUCT_IDENTIFIERS } from './demo-product-identifiers.js';
 
 const mockProduct = {
@@ -14,6 +15,7 @@ const mockProduct = {
   care_instructions: null,
   category_id: 'cuid-cat-1',
   is_active: true,
+  published_at: new Date('2026-01-01'),
   created_at: new Date('2026-01-01'),
   updated_at: new Date('2026-01-01'),
   category: { name: 'Bedspreads', slug: 'bedspreads' },
@@ -36,7 +38,9 @@ const mockPrisma = {
   productImage: {
     create: jest.fn(),
     groupBy: jest.fn(),
+    updateMany: jest.fn(),
   },
+  $transaction: jest.fn(),
 };
 
 describe('ProductsService', () => {
@@ -44,6 +48,10 @@ describe('ProductsService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockPrisma.$transaction.mockImplementation(
+      (callback: (tx: typeof mockPrisma) => Promise<unknown>) =>
+        callback(mockPrisma),
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -467,6 +475,30 @@ describe('ProductsService', () => {
     });
   });
 
+  describe('findOneAdmin', () => {
+    it('returns inactive products and variants for the protected admin detail', async () => {
+      const hidden = {
+        ...mockProduct,
+        is_active: false,
+        variants: [{ id: 'variant-1', is_active: false }],
+      };
+      mockPrisma.product.findUnique.mockResolvedValue(hidden);
+
+      await expect(service.findOneAdmin('classic-bedspread')).resolves.toEqual(
+        hidden,
+      );
+      expect(mockPrisma.product.findUnique).toHaveBeenCalledWith({
+        where: { slug: 'classic-bedspread' },
+        include: expect.objectContaining({
+          variants: expect.objectContaining({
+            include: expect.any(Object) as unknown,
+          }) as unknown,
+          images: expect.any(Object) as unknown,
+        }) as unknown,
+      });
+    });
+  });
+
   describe('create', () => {
     it('creates a product', async () => {
       const dto = {
@@ -479,7 +511,9 @@ describe('ProductsService', () => {
       const result = await service.create(dto);
 
       expect(result).toEqual({ ...mockProduct, ...dto });
-      expect(mockPrisma.product.create).toHaveBeenCalledWith({ data: dto });
+      expect(mockPrisma.product.create).toHaveBeenCalledWith({
+        data: { ...dto, is_active: false },
+      });
     });
   });
 
@@ -494,6 +528,47 @@ describe('ProductsService', () => {
       expect(mockPrisma.product.update).toHaveBeenCalledWith({
         where: { id: 'cuid-1' },
         data: dto,
+      });
+    });
+
+    it('rejects lifecycle flags instead of allowing generic PATCH to publish', async () => {
+      const dto = { is_active: true } as unknown as UpdateProductDto;
+
+      await expect(service.update('cuid-1', dto)).rejects.toThrow(
+        'Product lifecycle state must be changed through publish, restore, or hide endpoints.',
+      );
+      expect(mockPrisma.product.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects clearing a published product description', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({ is_active: true });
+
+      await expect(
+        service.update('cuid-1', { description: null }),
+      ).rejects.toThrow('Hide the product before clearing');
+
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.product.update).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.product.update).not.toHaveBeenCalledWith({
+        where: { id: 'cuid-1' },
+        data: { description: null },
+      });
+    });
+
+    it('permits clearing draft description after locking the parent', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({ is_active: false });
+      mockPrisma.product.update.mockResolvedValue({
+        ...mockProduct,
+        is_active: false,
+        description: null,
+      });
+
+      await expect(
+        service.update('cuid-1', { description: null }),
+      ).resolves.toEqual(expect.objectContaining({ description: null }));
+      expect(mockPrisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'cuid-1' },
+        data: { description: null },
       });
     });
   });
@@ -512,6 +587,121 @@ describe('ProductsService', () => {
         where: { id: 'cuid-1' },
         data: { is_active: false },
       });
+    });
+  });
+
+  describe('publish and restore', () => {
+    const completeProduct = {
+      id: 'cuid-1',
+      description: 'A customer-ready woven bedspread.',
+      published_at: null,
+      variants: [{ price: 125000, stock_quantity: 4 }],
+      images: [{ id: 'image-1' }],
+    };
+
+    it('publishes a complete product', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue(completeProduct);
+      mockPrisma.product.update.mockResolvedValue({
+        ...mockProduct,
+        is_active: true,
+      });
+
+      await expect(service.publish('cuid-1')).resolves.toEqual({
+        ...mockProduct,
+        is_active: true,
+      });
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'cuid-1' },
+        data: { updated_at: expect.any(Date) as unknown },
+        select: { id: true },
+      });
+      expect(mockPrisma.product.findUnique).toHaveBeenCalledTimes(2);
+      expect(mockPrisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'cuid-1' },
+        data: {
+          is_active: true,
+          published_at: expect.any(Date) as unknown,
+        },
+      });
+    });
+
+    it('uses the same completeness rule when restoring a hidden product', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue({
+        ...completeProduct,
+        published_at: new Date('2026-01-01'),
+      });
+      mockPrisma.product.update.mockResolvedValue({
+        ...mockProduct,
+        is_active: true,
+      });
+
+      await service.restore('cuid-1');
+
+      expect(mockPrisma.product.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'cuid-1' } }),
+      );
+      expect(mockPrisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'cuid-1' },
+        data: { is_active: true },
+      });
+    });
+
+    it('rejects restoring a draft that has no publication timestamp', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue(completeProduct);
+
+      await expect(service.restore('cuid-1')).rejects.toThrow(
+        'Product cannot be restored because it has not been published yet.',
+      );
+      expect(mockPrisma.product.update).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.product.update).not.toHaveBeenCalledWith(
+        expect.objectContaining({ data: { is_active: true } }),
+      );
+    });
+
+    it.each([
+      ['a blank description', { ...completeProduct, description: '  ' }],
+      [
+        'internal placeholder copy',
+        { ...completeProduct, description: 'Refine in admin catalog.' },
+      ],
+      [
+        'no priced and available variant',
+        { ...completeProduct, variants: [{ price: 0, stock_quantity: 0 }] },
+      ],
+      ['no primary gallery image', { ...completeProduct, images: [] }],
+    ])('rejects publishing with %s', async (_reason, incompleteProduct) => {
+      mockPrisma.product.findUnique.mockResolvedValue(incompleteProduct);
+
+      await expect(service.publish('cuid-1')).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(mockPrisma.product.update).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.product.update).not.toHaveBeenCalledWith(
+        expect.objectContaining({ data: { is_active: true } }),
+      );
+    });
+
+    it('rechecks the cover after locking before publishing', async () => {
+      mockPrisma.product.findUnique
+        .mockResolvedValueOnce({ id: 'cuid-1' })
+        .mockResolvedValueOnce({ ...completeProduct, images: [] });
+
+      await expect(service.publish('cuid-1')).rejects.toThrow(
+        'a primary gallery image',
+      );
+      expect(mockPrisma.product.update).toHaveBeenCalledTimes(1);
+      expect(
+        mockPrisma.product.update.mock.invocationCallOrder[0],
+      ).toBeLessThan(mockPrisma.product.findUnique.mock.invocationCallOrder[1]);
+    });
+
+    it('returns not found when publishing an unknown product', async () => {
+      mockPrisma.product.findUnique.mockResolvedValue(null);
+
+      await expect(service.publish('missing')).rejects.toThrow(
+        "Product 'missing' not found",
+      );
     });
   });
 
@@ -555,6 +745,66 @@ describe('ProductsService', () => {
       expect(result).toEqual(created);
       expect(mockPrisma.productImage.create).toHaveBeenCalledWith({
         data: { ...dto, product_id: 'cuid-1' },
+      });
+      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('clears existing gallery primaries before creating a requested cover atomically', async () => {
+      const dto = {
+        url: 'https://res.cloudinary.com/test/new-cover.jpg',
+        image_role: ProductImageRole.GALLERY,
+        is_primary: true,
+      };
+      const created = { id: 'cuid-img-new', product_id: 'cuid-1', ...dto };
+      mockPrisma.productImage.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.productImage.create.mockResolvedValue(created);
+
+      await expect(service.addImage('cuid-1', dto)).resolves.toEqual(created);
+
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'cuid-1' },
+        data: { updated_at: expect.any(Date) as unknown },
+        select: { id: true },
+      });
+      expect(
+        mockPrisma.product.update.mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        mockPrisma.productImage.updateMany.mock.invocationCallOrder[0],
+      );
+      expect(mockPrisma.productImage.updateMany).toHaveBeenCalledWith({
+        where: { product_id: 'cuid-1', image_role: ProductImageRole.GALLERY },
+        data: { is_primary: false },
+      });
+      expect(mockPrisma.productImage.create).toHaveBeenCalledWith({
+        data: { ...dto, product_id: 'cuid-1' },
+      });
+    });
+
+    it('treats an omitted image role as the gallery default for a requested cover', async () => {
+      const dto = {
+        url: 'https://res.cloudinary.com/test/default-cover.jpg',
+        is_primary: true,
+      };
+      const created = { id: 'cuid-img-default', product_id: 'cuid-1', ...dto };
+      mockPrisma.productImage.create.mockResolvedValue(created);
+
+      await expect(service.addImage('cuid-1', dto)).resolves.toEqual(created);
+
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'cuid-1' },
+        data: { updated_at: expect.any(Date) as unknown },
+        select: { id: true },
+      });
+      expect(
+        mockPrisma.product.update.mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        mockPrisma.productImage.updateMany.mock.invocationCallOrder[0],
+      );
+      expect(mockPrisma.productImage.updateMany).toHaveBeenCalledWith({
+        where: { product_id: 'cuid-1', image_role: ProductImageRole.GALLERY },
+        data: { is_primary: false },
       });
     });
 

@@ -7,8 +7,14 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 
 /** Workspace root: tools/image-pipeline */
 export const ROOT = path.resolve(here, '..');
-export const INPUT_DIR = path.join(ROOT, 'input');
-export const WORK_DIR = path.join(ROOT, 'work');
+function configuredPath(name: string, fallback: string): string {
+  const value = process.env[name];
+  return value ? path.resolve(value) : fallback;
+}
+
+/** Optional per-run roots keep independent source batches out of shared state. */
+export const INPUT_DIR = configuredPath('IMAGE_PIPELINE_INPUT_DIR', path.join(ROOT, 'input'));
+export const WORK_DIR = configuredPath('IMAGE_PIPELINE_WORK_DIR', path.join(ROOT, 'work'));
 export const CROPS_DIR = path.join(WORK_DIR, 'crops');
 export const SWATCHES_DIR = path.join(WORK_DIR, 'swatches');
 export const SCENES_DIR = path.join(WORK_DIR, 'scenes');

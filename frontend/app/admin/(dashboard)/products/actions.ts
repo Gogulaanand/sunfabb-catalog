@@ -12,6 +12,9 @@ import {
   updateProduct,
   updateVariant,
   uploadImage,
+  publishProduct,
+  restoreProduct,
+  setImageCover,
   type ImageInput,
   type ProductInput,
   type VariantInput,
@@ -20,10 +23,15 @@ import {
 type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
 function toError(err: unknown, fallback: string): ActionResult<never> {
-  return { ok: false, error: err instanceof AdminApiError ? err.message : fallback };
+  return {
+    ok: false,
+    error: err instanceof AdminApiError ? err.message : fallback,
+  };
 }
 
-export async function createProductAction(input: ProductInput): Promise<ActionResult<{ id: string; slug: string }>> {
+export async function createProductAction(
+  input: ProductInput,
+): Promise<ActionResult<{ id: string; slug: string }>> {
   try {
     const product = await createProduct(input);
     revalidatePath("/admin/products");
@@ -36,9 +44,18 @@ export async function createProductAction(input: ProductInput): Promise<ActionRe
 export async function updateProductAction(
   id: string,
   slug: string,
-  input: Partial<ProductInput> & { is_active?: boolean },
+  input: Partial<ProductInput>,
 ): Promise<ActionResult<void>> {
   try {
+    const rawInput = input as unknown as Record<string, unknown>;
+    if ('is_active' in rawInput || 'published_at' in rawInput) {
+      return {
+        ok: false,
+        error:
+          "Product lifecycle state must be changed through publish, restore, or hide actions.",
+      };
+    }
+
     await updateProduct(id, input);
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${slug}`);
@@ -48,13 +65,45 @@ export async function updateProductAction(
   }
 }
 
-export async function deleteProductAction(id: string): Promise<ActionResult<void>> {
+export async function deleteProductAction(
+  id: string,
+  slug?: string,
+): Promise<ActionResult<void>> {
   try {
     await deleteProduct(id);
     revalidatePath("/admin/products");
+    if (slug) revalidatePath(`/admin/products/${slug}`);
     return { ok: true, data: undefined };
   } catch (err) {
     return toError(err, "Failed to deactivate product");
+  }
+}
+
+export async function publishProductAction(
+  id: string,
+  slug: string,
+): Promise<ActionResult<void>> {
+  try {
+    await publishProduct(id);
+    revalidatePath("/admin/products");
+    revalidatePath(`/admin/products/${slug}`);
+    return { ok: true, data: undefined };
+  } catch (err) {
+    return toError(err, "Failed to publish product");
+  }
+}
+
+export async function restoreProductAction(
+  id: string,
+  slug: string,
+): Promise<ActionResult<void>> {
+  try {
+    await restoreProduct(id);
+    revalidatePath("/admin/products");
+    revalidatePath(`/admin/products/${slug}`);
+    return { ok: true, data: undefined };
+  } catch (err) {
+    return toError(err, "Failed to restore product");
   }
 }
 
@@ -86,7 +135,10 @@ export async function updateVariantAction(
   }
 }
 
-export async function deleteVariantAction(id: string, slug: string): Promise<ActionResult<void>> {
+export async function deleteVariantAction(
+  id: string,
+  slug: string,
+): Promise<ActionResult<void>> {
   try {
     await deleteVariant(id);
     revalidatePath(`/admin/products/${slug}`);
@@ -104,11 +156,14 @@ export async function uploadAndAddImageAction(
 ): Promise<ActionResult<void>> {
   try {
     const uploaded = await uploadImage(file);
-    await addImage(productId, {
-      ...options,
+    const { is_primary: wantsCover, ...imageOptions } = options;
+    const image = await addImage(productId, {
+      ...imageOptions,
+      is_primary: false,
       url: uploaded.url,
       public_id: uploaded.public_id,
     });
+    if (wantsCover) await setImageCover(image.id);
     revalidatePath(`/admin/products/${slug}`);
     return { ok: true, data: undefined };
   } catch (err) {
@@ -116,7 +171,24 @@ export async function uploadAndAddImageAction(
   }
 }
 
-export async function deleteImageAction(id: string, slug: string): Promise<ActionResult<void>> {
+export async function setImageCoverAction(
+  id: string,
+  slug: string,
+): Promise<ActionResult<void>> {
+  try {
+    await setImageCover(id);
+    revalidatePath(`/admin/products/${slug}`);
+    revalidatePath("/admin/products");
+    return { ok: true, data: undefined };
+  } catch (err) {
+    return toError(err, "Failed to make image the cover");
+  }
+}
+
+export async function deleteImageAction(
+  id: string,
+  slug: string,
+): Promise<ActionResult<void>> {
   try {
     await deleteImage(id);
     revalidatePath(`/admin/products/${slug}`);

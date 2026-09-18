@@ -24,9 +24,12 @@ const mockProductsService = {
   findAll: jest.fn(),
   findAllAdmin: jest.fn(),
   findOne: jest.fn(),
+  findOneAdmin: jest.fn(),
   create: jest.fn(),
   update: jest.fn(),
   remove: jest.fn(),
+  publish: jest.fn(),
+  restore: jest.fn(),
   addVariant: jest.fn(),
   addImage: jest.fn(),
 };
@@ -105,6 +108,27 @@ describe('ProductsController', () => {
     });
   });
 
+  describe('findOneAdmin', () => {
+    it('delegates the protected inactive-capable lookup', async () => {
+      mockProductsService.findOneAdmin.mockResolvedValue(mockProduct);
+
+      await expect(controller.findOneAdmin('classic-bedspread')).resolves.toBe(
+        mockProduct,
+      );
+      expect(mockProductsService.findOneAdmin).toHaveBeenCalledWith(
+        'classic-bedspread',
+      );
+    });
+
+    it('throws NotFoundException when the admin product does not exist', async () => {
+      mockProductsService.findOneAdmin.mockResolvedValue(null);
+
+      await expect(controller.findOneAdmin('missing')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
   describe('create', () => {
     it('creates a product', async () => {
       const dto = {
@@ -144,6 +168,34 @@ describe('ProductsController', () => {
 
       expect(result).toEqual({ ...mockProduct, is_active: false });
       expect(mockProductsService.remove).toHaveBeenCalledWith('cuid-1');
+    });
+  });
+
+  describe('publish and restore', () => {
+    it('publishes through the service', async () => {
+      mockProductsService.publish.mockResolvedValue({
+        ...mockProduct,
+        is_active: true,
+      });
+
+      await expect(controller.publish('cuid-1')).resolves.toEqual({
+        ...mockProduct,
+        is_active: true,
+      });
+      expect(mockProductsService.publish).toHaveBeenCalledWith('cuid-1');
+    });
+
+    it('restores through the service', async () => {
+      mockProductsService.restore.mockResolvedValue({
+        ...mockProduct,
+        is_active: true,
+      });
+
+      await expect(controller.restore('cuid-1')).resolves.toEqual({
+        ...mockProduct,
+        is_active: true,
+      });
+      expect(mockProductsService.restore).toHaveBeenCalledWith('cuid-1');
     });
   });
 

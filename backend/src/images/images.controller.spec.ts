@@ -16,6 +16,7 @@ const mockImage = {
 
 const mockImagesService = {
   remove: jest.fn(),
+  makeCover: jest.fn(),
 };
 
 describe('ImagesController', () => {
@@ -43,6 +44,17 @@ describe('ImagesController', () => {
 
       expect(result).toEqual(mockImage);
       expect(mockImagesService.remove).toHaveBeenCalledWith('cuid-img-1');
+    });
+  });
+
+  describe('makeCover', () => {
+    it('makes an image the cover', async () => {
+      mockImagesService.makeCover.mockResolvedValue(mockImage);
+
+      const result = await controller.makeCover('cuid-img-1');
+
+      expect(result).toEqual(mockImage);
+      expect(mockImagesService.makeCover).toHaveBeenCalledWith('cuid-img-1');
     });
   });
 });

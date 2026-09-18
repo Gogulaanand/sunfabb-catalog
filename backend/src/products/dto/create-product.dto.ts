@@ -9,11 +9,11 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string | null;
 
   @IsOptional()
   @IsString()
-  care_instructions?: string;
+  care_instructions?: string | null;
 
   @IsString()
   category_id: string;
