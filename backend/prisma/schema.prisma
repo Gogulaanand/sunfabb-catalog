@@ -40,19 +40,22 @@ model Color {
 }
 
 model Product {
-  id                String   @id @default(uuid())
-  name              String
-  slug              String   @unique
-  description       String?
-  care_instructions String?
-  hsn_code          String? // GST HSN code; one per design, shared by its variants (Phase 6, D35/C4)
-  category_id       String
+  id                 String    @id @default(uuid())
+  name               String
+  slug               String    @unique
+  description        String?
+  care_instructions  String?
+  measured_width_cm  Float?
+  measured_length_cm Float?
+  set_contents       String?
+  hsn_code           String? // GST HSN code; one per design, shared by its variants (Phase 6, D35/C4)
+  category_id        String
   // Products are prepared in the admin before they become customer-visible.
   // Publish/restore explicitly enables this flag after completeness checks.
-  is_active         Boolean  @default(false)
-  published_at      DateTime?
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  is_active          Boolean   @default(false)
+  published_at       DateTime?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
 
   category Category         @relation(fields: [category_id], references: [id])
   variants ProductVariant[]
@@ -85,14 +88,14 @@ enum ProductImageRole {
 }
 
 model ProductImage {
-  id         String  @id @default(uuid())
+  id         String           @id @default(uuid())
   product_id String
   variant_id String?
   url        String
   public_id  String?
   alt_text   String?
-  sort_order Int     @default(0)
-  is_primary Boolean @default(false)
+  sort_order Int              @default(0)
+  is_primary Boolean          @default(false)
   image_role ProductImageRole @default(GALLERY)
 
   product Product         @relation(fields: [product_id], references: [id])

@@ -12,7 +12,10 @@ import {
 } from './admin-images.service.js';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
 
-const mockAdminImagesService = { uploadImage: jest.fn() };
+const mockAdminImagesService = {
+  uploadImage: jest.fn(),
+  deleteUploadedImage: jest.fn(),
+};
 
 describe('AdminImagesController', () => {
   let controller: AdminImagesController;
@@ -90,6 +93,17 @@ describe('AdminImagesController', () => {
     } as Express.Multer.File;
 
     await expect(controller.upload(mockFile)).rejects.toBe(serverError);
+  });
+
+  it('deletes an unattached uploaded image', async () => {
+    mockAdminImagesService.deleteUploadedImage.mockResolvedValue(undefined);
+
+    await expect(
+      controller.deleteUploadedImage({ public_id: 'sunfabb/image' }),
+    ).resolves.toBeUndefined();
+    expect(mockAdminImagesService.deleteUploadedImage).toHaveBeenCalledWith(
+      'sunfabb/image',
+    );
   });
 
   it('allows JPEG, PNG, and WebP and rejects other MIME types', () => {

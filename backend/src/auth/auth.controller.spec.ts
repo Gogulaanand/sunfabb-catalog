@@ -3,7 +3,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { AdminLoginThrottlerGuard } from './admin-login-throttler.guard.js';
 
 const mockAuthService = { login: jest.fn() };
 
@@ -22,7 +22,7 @@ describe('AuthController', () => {
       controllers: [AuthController],
       providers: [{ provide: AuthService, useValue: mockAuthService }],
     })
-      .overrideGuard(ThrottlerGuard)
+      .overrideGuard(AdminLoginThrottlerGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -31,7 +31,7 @@ describe('AuthController', () => {
 
   it('protects admin login with the explicit throttler policy', () => {
     expect(Reflect.getMetadata(GUARDS_METADATA, loginHandler)).toEqual([
-      ThrottlerGuard,
+      AdminLoginThrottlerGuard,
     ]);
     expect(Reflect.getMetadata('THROTTLER:LIMITdefault', loginHandler)).toBe(5);
     expect(Reflect.getMetadata('THROTTLER:TTLdefault', loginHandler)).toBe(

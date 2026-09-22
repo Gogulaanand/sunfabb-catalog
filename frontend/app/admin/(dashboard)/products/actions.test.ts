@@ -12,6 +12,7 @@ const updateVariant = vi.fn();
 const deleteVariant = vi.fn();
 const addImage = vi.fn();
 const deleteImage = vi.fn();
+const deleteUploadedImage = vi.fn();
 const setImageCover = vi.fn();
 const uploadImage = vi.fn();
 
@@ -29,6 +30,7 @@ vi.mock("@/lib/admin-api", async () => {
     deleteVariant: (...args: unknown[]) => deleteVariant(...args),
     addImage: (...args: unknown[]) => addImage(...args),
     deleteImage: (...args: unknown[]) => deleteImage(...args),
+    deleteUploadedImage: (...args: unknown[]) => deleteUploadedImage(...args),
     setImageCover: (...args: unknown[]) => setImageCover(...args),
     uploadImage: (...args: unknown[]) => uploadImage(...args),
   };
@@ -242,7 +244,10 @@ describe("product server actions", () => {
   });
 
   it("uploadAndAddImageAction uploads then attaches the image with the returned url", async () => {
-    uploadImage.mockResolvedValue({ url: "https://cdn/x.jpg", public_id: "x" });
+    uploadImage.mockResolvedValue({
+      url: "https://cdn/x.jpg",
+      public_id: "sunfabb/x",
+    });
     addImage.mockResolvedValue({ id: "image-1" });
     setImageCover.mockResolvedValue({});
     const file = new File(["x"], "a.jpg");
@@ -259,13 +264,16 @@ describe("product server actions", () => {
       image_role: "GALLERY",
       is_primary: false,
       url: "https://cdn/x.jpg",
-      public_id: "x",
+      public_id: "sunfabb/x",
     });
     expect(setImageCover).toHaveBeenCalledWith("image-1");
   });
 
   it("uploadAndAddImageAction leaves a non-cover image unpromoted", async () => {
-    uploadImage.mockResolvedValue({ url: "https://cdn/x.jpg", public_id: "x" });
+    uploadImage.mockResolvedValue({
+      url: "https://cdn/x.jpg",
+      public_id: "sunfabb/x",
+    });
     addImage.mockResolvedValue({ id: "image-1" });
 
     const result = await uploadAndAddImageAction(
@@ -294,6 +302,72 @@ describe("product server actions", () => {
 
     expect(result).toEqual({ ok: false, error: "file too large" });
     expect(addImage).not.toHaveBeenCalled();
+    expect(deleteUploadedImage).not.toHaveBeenCalled();
+  });
+
+  it("removes the uploaded asset when attaching it to the product fails", async () => {
+    uploadImage.mockResolvedValue({
+      url: "https://cdn/x.jpg",
+      public_id: "sunfabb/x",
+    });
+    addImage.mockRejectedValue(
+      new AdminApiError(400, { message: "invalid image" }),
+    );
+    deleteUploadedImage.mockResolvedValue(undefined);
+
+    const result = await uploadAndAddImageAction(
+      "1",
+      "royal-bedspread",
+      new File(["x"], "a.jpg"),
+      {},
+    );
+
+    expect(result).toEqual({ ok: false, error: "invalid image" });
+    expect(deleteUploadedImage).toHaveBeenCalledWith("sunfabb/x");
+    expect(deleteImage).not.toHaveBeenCalled();
+  });
+
+  it("removes the attached image when cover selection fails", async () => {
+    uploadImage.mockResolvedValue({
+      url: "https://cdn/x.jpg",
+      public_id: "sunfabb/x",
+    });
+    addImage.mockResolvedValue({ id: "image-1" });
+    setImageCover.mockRejectedValue(
+      new AdminApiError(400, { message: "cover rejected" }),
+    );
+    deleteImage.mockResolvedValue(undefined);
+
+    const result = await uploadAndAddImageAction(
+      "1",
+      "royal-bedspread",
+      new File(["x"], "a.jpg"),
+      { is_primary: true },
+    );
+
+    expect(result).toEqual({ ok: false, error: "cover rejected" });
+    expect(deleteImage).toHaveBeenCalledWith("image-1");
+    expect(deleteUploadedImage).not.toHaveBeenCalled();
+  });
+
+  it("preserves the attachment error when orphan cleanup also fails", async () => {
+    uploadImage.mockResolvedValue({
+      url: "https://cdn/x.jpg",
+      public_id: "sunfabb/x",
+    });
+    addImage.mockRejectedValue(
+      new AdminApiError(400, { message: "invalid image" }),
+    );
+    deleteUploadedImage.mockRejectedValue(new Error("cleanup unavailable"));
+
+    await expect(
+      uploadAndAddImageAction(
+        "1",
+        "royal-bedspread",
+        new File(["x"], "a.jpg"),
+        {},
+      ),
+    ).resolves.toEqual({ ok: false, error: "invalid image" });
   });
 
   it("deleteImageAction revalidates the product detail path", async () => {

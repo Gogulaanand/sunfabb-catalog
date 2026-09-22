@@ -7,6 +7,7 @@ import {
   addVariant,
   createProduct,
   deleteImage,
+  deleteUploadedImage,
   deleteProduct,
   deleteVariant,
   updateProduct,
@@ -157,13 +158,39 @@ export async function uploadAndAddImageAction(
   try {
     const uploaded = await uploadImage(file);
     const { is_primary: wantsCover, ...imageOptions } = options;
-    const image = await addImage(productId, {
-      ...imageOptions,
-      is_primary: false,
-      url: uploaded.url,
-      public_id: uploaded.public_id,
-    });
-    if (wantsCover) await setImageCover(image.id);
+    let image: Awaited<ReturnType<typeof addImage>>;
+    try {
+      image = await addImage(productId, {
+        ...imageOptions,
+        is_primary: false,
+        url: uploaded.url,
+        public_id: uploaded.public_id,
+      });
+    } catch (err) {
+      try {
+        await deleteUploadedImage(uploaded.public_id);
+      } catch {
+        // Preserve the database attachment error. The orphan can be retried
+        // independently if Cloudinary cleanup is temporarily unavailable.
+      }
+      throw err;
+    }
+
+    if (wantsCover) {
+      try {
+        await setImageCover(image.id);
+      } catch (err) {
+        try {
+          // This existing endpoint removes the database row first and then
+          // destroys its Cloudinary asset without masking a committed delete.
+          await deleteImage(image.id);
+        } catch {
+          // If rollback fails, retain both records rather than deleting the
+          // asset while the database may still reference it.
+        }
+        throw err;
+      }
+    }
     revalidatePath(`/admin/products/${slug}`);
     return { ok: true, data: undefined };
   } catch (err) {

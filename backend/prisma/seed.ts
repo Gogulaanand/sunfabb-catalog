@@ -107,6 +107,9 @@ async function main() {
       description:
         'A breathable pure-linen bedspread with a hand-finished hem, woven for year-round comfort.',
       care_instructions: 'Machine wash cold, line dry. Cool iron if needed.',
+      measured_width_cm: 228,
+      measured_length_cm: 254,
+      set_contents: '1 bedspread',
       categorySlug: 'bedspreads',
       heroImage:
         'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=1200&q=80',
@@ -145,6 +148,9 @@ async function main() {
       description:
         'Plush, diamond-quilted cotton bedspread with reversible styling for two looks in one.',
       care_instructions: 'Machine wash warm, tumble dry low.',
+      measured_width_cm: 228,
+      measured_length_cm: 254,
+      set_contents: '1 reversible bedspread',
       categorySlug: 'bedspreads',
       heroImage:
         'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&q=80',
@@ -176,6 +182,9 @@ async function main() {
         'Ultra-absorbent, long-staple Turkish cotton towel that stays soft wash after wash.',
       care_instructions:
         'Machine wash warm. Avoid fabric softener for best absorbency.',
+      measured_width_cm: 75,
+      measured_length_cm: 150,
+      set_contents: '1 bath towel',
       categorySlug: 'towels',
       heroImage:
         'https://images.unsplash.com/photo-1583845112239-97ef1341b271?w=1200&q=80',
@@ -214,6 +223,9 @@ async function main() {
       description:
         'Lightweight waffle-textured hand towel with a quick-dry weave, ideal for daily use.',
       care_instructions: 'Machine wash cold, tumble dry low.',
+      measured_width_cm: 40,
+      measured_length_cm: 60,
+      set_contents: '1 hand towel',
       categorySlug: 'towels',
       heroImage:
         'https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=1200&q=80',
@@ -245,6 +257,9 @@ async function main() {
         'A tactile linen runner with mitred corners, anchoring the table with quiet texture.',
       care_instructions:
         'Hand wash or gentle machine cycle. Iron on linen setting while damp.',
+      measured_width_cm: 35,
+      measured_length_cm: 180,
+      set_contents: '1 table runner',
       categorySlug: 'table-linen',
       heroImage:
         'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=1200&q=80',
@@ -275,6 +290,9 @@ async function main() {
       description:
         'A set of four cotton napkins finished with delicate hand embroidery along the edge.',
       care_instructions: 'Machine wash cold, cool iron.',
+      measured_width_cm: 45,
+      measured_length_cm: 45,
+      set_contents: '4 napkins',
       categorySlug: 'table-linen',
       heroImage:
         'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=1200&q=80',
@@ -320,6 +338,9 @@ async function main() {
           name: p.name,
           description: p.description,
           care_instructions: p.care_instructions,
+          measured_width_cm: p.measured_width_cm,
+          measured_length_cm: p.measured_length_cm,
+          set_contents: p.set_contents,
           category_id: category.id,
           is_active: false,
         },

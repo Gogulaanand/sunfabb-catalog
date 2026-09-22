@@ -44,6 +44,9 @@ const baseProduct: AdminProduct = {
   slug: "royal-bedspread",
   description: "A customer-ready woven bedspread.",
   care_instructions: "Cold wash.",
+  measured_width_cm: 240,
+  measured_length_cm: 260,
+  set_contents: "1 bedspread and 1 pillow cover",
   category_id: "category-1",
   is_active: false,
   published_at: null,
@@ -104,6 +107,17 @@ describe("ProductDetailClient publication controls", () => {
     expect(screen.getByRole("button", { name: "Preview" })).toBeInTheDocument();
   });
 
+  it.each([
+    ["care instructions", { care_instructions: null }],
+    ["measured width", { measured_width_cm: null }],
+    ["measured length", { measured_length_cm: null }],
+    ["set contents", { set_contents: null }],
+  ])("keeps Publish unavailable without %s", (_field, override) => {
+    renderClient({ ...baseProduct, ...override });
+
+    expect(screen.getByRole("button", { name: "Publish" })).toBeDisabled();
+  });
+
   it("shows only Publish for a complete draft and calls the action", async () => {
     const user = userEvent.setup();
     renderClient();
@@ -147,6 +161,9 @@ describe("ProductDetailClient publication controls", () => {
         slug: "royal-bedspread",
         description: null,
         care_instructions: null,
+        measured_width_cm: 240,
+        measured_length_cm: 260,
+        set_contents: "1 bedspread and 1 pillow cover",
         category_id: "category-1",
       }),
     );

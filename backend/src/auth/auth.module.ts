@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { JwtStrategy } from './strategies/jwt.strategy.js';
 import { getJwtSecret } from './jwt-secret.js';
+import { AdminLoginThrottlerGuard } from './admin-login-throttler.guard.js';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { getJwtSecret } from './jwt-secret.js';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, AdminLoginThrottlerGuard],
   exports: [JwtModule],
 })
 export class AuthModule {}

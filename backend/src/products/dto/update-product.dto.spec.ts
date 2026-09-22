@@ -17,9 +17,20 @@ describe('UpdateProductDto', () => {
         name: 'Updated Bedspread',
         description: null,
         care_instructions: null,
+        measured_width_cm: 240.5,
+        measured_length_cm: 260,
+        set_contents: '1 bedspread and 1 pillow cover',
         category_id: 'category-1',
       }),
     ).resolves.toHaveLength(0);
+  });
+
+  it('rejects non-positive measured dimensions', async () => {
+    const errors = await validationErrors({ measured_width_cm: 0 });
+
+    expect(errors.map((error) => error.property)).toContain(
+      'measured_width_cm',
+    );
   });
 
   it('rejects lifecycle fields from generic product updates', async () => {

@@ -4,6 +4,7 @@ import { getProduct, getProducts, formatPrice, NotFoundError } from "@/lib/api";
 import { ProductDetailInteractive } from "./ProductDetailInteractive";
 import { CareDisclosure } from "./CareDisclosure";
 import { ProductTrustBlocks } from "./ProductTrustBlocks";
+import { VerifiedProductFacts } from "./VerifiedProductFacts";
 import { getInitialVariantId } from "./product-gallery-utils";
 import { ProductSchema } from "@/components/seo/ProductSchema";
 import { BreadcrumbSchema } from "@/components/seo/BreadcrumbSchema";
@@ -181,6 +182,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
                     <dd className="text-on-surface">{uniqueMaterials.join(", ")}</dd>
                   </div>
                 )}
+                <VerifiedProductFacts
+                  measuredWidthCm={product.measured_width_cm}
+                  measuredLengthCm={product.measured_length_cm}
+                  setContents={product.set_contents}
+                />
                 {uniqueColors.length > 0 && (
                   <div className="flex gap-x-6 py-2.5 text-body-sm transition-colors hover:bg-surface-container/50 rounded px-1">
                     <dt className="text-on-surface-variant w-20 shrink-0">Colours</dt>

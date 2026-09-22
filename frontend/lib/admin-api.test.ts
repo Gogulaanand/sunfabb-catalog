@@ -33,6 +33,7 @@ import {
   deleteVariant,
   addImage,
   deleteImage,
+  deleteUploadedImage,
   setImageCover,
   uploadImage,
   getAdminOrder,
@@ -48,6 +49,9 @@ describe("admin-api", () => {
     slug: "royal-bedspread",
     description: null,
     care_instructions: null,
+    measured_width_cm: 240,
+    measured_length_cm: 260,
+    set_contents: "1 bedspread and 1 pillow cover",
     category_id: "category-1",
     is_active: true,
     published_at: "2026-07-18T08:30:00.000Z",
@@ -85,6 +89,9 @@ describe("admin-api", () => {
     slug: "royal-bedspread",
     description: "A customer-ready woven bedspread.",
     care_instructions: null,
+    measured_width_cm: 240,
+    measured_length_cm: 260,
+    set_contents: "1 bedspread and 1 pillow cover",
     category_id: "category-1",
     is_active: true,
     published_at: "2026-07-18T08:30:00.000Z",
@@ -468,6 +475,18 @@ describe("admin-api", () => {
     );
   });
 
+  it("rejects admin detail when measured owner facts are missing", async () => {
+    const { measured_width_cm, ...withoutMeasuredWidth } = adminProductFixture;
+    void measured_width_cm;
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => withoutMeasuredWidth,
+    });
+
+    await expect(getAdminProduct("royal-bedspread")).rejects.toThrow();
+  });
+
   it.each([
     [
       "addImage",
@@ -549,6 +568,26 @@ describe("admin-api", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain("/admin/images/upload");
     expect(init.body).toBeInstanceOf(FormData);
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      "Bearer test-jwt",
+    );
+  });
+
+  it("deleteUploadedImage calls the authenticated orphan-cleanup endpoint", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => undefined,
+    });
+
+    await expect(deleteUploadedImage("sunfabb/image")).resolves.toBeUndefined();
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain("/admin/images/upload");
+    expect(init).toMatchObject({
+      method: "DELETE",
+      body: JSON.stringify({ public_id: "sunfabb/image" }),
+    });
     expect((init.headers as Record<string, string>).Authorization).toBe(
       "Bearer test-jwt",
     );

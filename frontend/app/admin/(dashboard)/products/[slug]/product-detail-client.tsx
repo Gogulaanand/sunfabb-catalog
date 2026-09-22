@@ -34,6 +34,13 @@ function nullableText(value: string): string | null {
   return value.trim() ? value : null;
 }
 
+function nullablePositiveNumber(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 export function ProductDetailClient({
   product,
   categories,
@@ -51,6 +58,9 @@ export function ProductDetailClient({
     slug: product.slug,
     description: product.description ?? "",
     care_instructions: product.care_instructions ?? "",
+    measured_width_cm: product.measured_width_cm?.toString() ?? "",
+    measured_length_cm: product.measured_length_cm?.toString() ?? "",
+    set_contents: product.set_contents ?? "",
     category_id: product.category_id,
   });
   const [error, setError] = useState<string | null>(null);
@@ -63,13 +73,24 @@ export function ProductDetailClient({
   const hasCustomerSafeDescription = Boolean(
     form.description.trim() && !INTERNAL_COPY_PATTERN.test(form.description),
   );
+  const hasCareInstructions = Boolean(form.care_instructions.trim());
+  const hasMeasuredDimensions =
+    nullablePositiveNumber(form.measured_width_cm) !== null &&
+    nullablePositiveNumber(form.measured_length_cm) !== null;
+  const hasSetContents = Boolean(form.set_contents.trim());
   const hasAvailableVariant = product.variants.some(
     (variant) => variant.is_active && variant.price > 0 && variant.stock_quantity > 0,
   );
   const hasPrimaryGallery = product.images.some(
     (image) => image.image_role === "GALLERY" && image.is_primary,
   );
-  const isComplete = hasCustomerSafeDescription && hasAvailableVariant && hasPrimaryGallery;
+  const isComplete =
+    hasCustomerSafeDescription &&
+    hasCareInstructions &&
+    hasMeasuredDimensions &&
+    hasSetContents &&
+    hasAvailableVariant &&
+    hasPrimaryGallery;
   const isDraft = !product.is_active && product.published_at === null;
   const isHidden = !product.is_active && product.published_at !== null;
   const status = product.is_active ? "Published" : isHidden ? "Hidden" : "Draft";
@@ -90,6 +111,9 @@ export function ProductDetailClient({
       // backend cannot distinguish “clear” from “leave unchanged”.
       description: nullableText(form.description),
       care_instructions: nullableText(form.care_instructions),
+      measured_width_cm: nullablePositiveNumber(form.measured_width_cm),
+      measured_length_cm: nullablePositiveNumber(form.measured_length_cm),
+      set_contents: nullableText(form.set_contents),
       category_id: form.category_id,
     });
     setSubmitting(false);
@@ -179,12 +203,12 @@ export function ProductDetailClient({
 
       {isDraft && !isComplete && (
         <Text color="fg.muted" fontSize="sm" role="status">
-          Publish when the description is customer-safe, an active variant has a positive price and stock, and a primary gallery image is present.
+          Publish when customer-safe copy, care instructions, measured dimensions, set contents, an active material-backed variant with positive price and stock, and a primary gallery image are present.
         </Text>
       )}
       {isHidden && !isComplete && (
         <Text color="fg.muted" fontSize="sm" role="status">
-          Restore when the description is customer-safe, an active variant has a positive price and stock, and a primary gallery image is present.
+          Restore when customer-safe copy, care instructions, measured dimensions, set contents, an active material-backed variant with positive price and stock, and a primary gallery image are present.
         </Text>
       )}
       {isHidden && isComplete && (
@@ -215,6 +239,12 @@ export function ProductDetailClient({
             )}
             <Heading size="lg">{form.name}</Heading>
             <Text>{form.description || "Description is not ready for customers yet."}</Text>
+            {hasMeasuredDimensions && (
+              <Text color="fg.muted">
+                {form.measured_width_cm} × {form.measured_length_cm} cm
+              </Text>
+            )}
+            {form.set_contents && <Text color="fg.muted">Set: {form.set_contents}</Text>}
             {form.care_instructions && <Text color="fg.muted">{form.care_instructions}</Text>}
             <Text fontSize="sm" color="fg.muted">
               {product.variants.filter((variant) => variant.is_active).length} active variant(s)
@@ -258,6 +288,33 @@ export function ProductDetailClient({
             <Textarea
               value={form.care_instructions}
               onChange={(e) => setForm({ ...form, care_instructions: e.target.value })}
+            />
+          </Field>
+          <HStack gap="4" align="start">
+            <Field label="Measured width (cm)" optionalText="Required to publish">
+              <Input
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={form.measured_width_cm}
+                onChange={(e) => setForm({ ...form, measured_width_cm: e.target.value })}
+              />
+            </Field>
+            <Field label="Measured length (cm)" optionalText="Required to publish">
+              <Input
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={form.measured_length_cm}
+                onChange={(e) => setForm({ ...form, measured_length_cm: e.target.value })}
+              />
+            </Field>
+          </HStack>
+          <Field label="Set contents" optionalText="Required to publish">
+            <Textarea
+              value={form.set_contents}
+              onChange={(e) => setForm({ ...form, set_contents: e.target.value })}
+              placeholder="For example: 1 bedspread and 2 pillow covers"
             />
           </Field>
           <Button type="submit" colorPalette="primary" loading={submitting} alignSelf="flex-start">

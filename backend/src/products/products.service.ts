@@ -23,6 +23,10 @@ function isCustomerSafeDescription(description: string | null): boolean {
   return !INTERNAL_COPY_PATTERN.test(trimmed);
 }
 
+function hasText(value: string | null): boolean {
+  return Boolean(value?.trim());
+}
+
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -296,13 +300,20 @@ export class ProductsService {
       );
     }
 
-    if (!('description' in rawDto)) {
+    const releaseFactFields = [
+      'description',
+      'care_instructions',
+      'measured_width_cm',
+      'measured_length_cm',
+      'set_contents',
+    ];
+    if (!releaseFactFields.some((field) => field in rawDto)) {
       return this.prisma.product.update({ where: { id }, data: dto });
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // Serialize description edits with publish/restore. Draft copy may be
-      // cleared, but a published product must retain customer-safe copy.
+      // Serialize release-fact edits with publish/restore. Draft facts may be
+      // incomplete, but a published product must retain every verified fact.
       await tx.product.update({
         where: { id },
         data: { updated_at: new Date() },
@@ -310,11 +321,50 @@ export class ProductsService {
       });
       const product = await tx.product.findUnique({
         where: { id },
-        select: { is_active: true },
+        select: {
+          is_active: true,
+          description: true,
+          care_instructions: true,
+          measured_width_cm: true,
+          measured_length_cm: true,
+          set_contents: true,
+        },
       });
-      if (product?.is_active && !isCustomerSafeDescription(dto.description ?? null)) {
+      const next = product
+        ? {
+            description:
+              'description' in rawDto
+                ? (dto.description ?? null)
+                : product.description,
+            care_instructions:
+              'care_instructions' in rawDto
+                ? (dto.care_instructions ?? null)
+                : product.care_instructions,
+            measured_width_cm:
+              'measured_width_cm' in rawDto
+                ? (dto.measured_width_cm ?? null)
+                : product.measured_width_cm,
+            measured_length_cm:
+              'measured_length_cm' in rawDto
+                ? (dto.measured_length_cm ?? null)
+                : product.measured_length_cm,
+            set_contents:
+              'set_contents' in rawDto
+                ? (dto.set_contents ?? null)
+                : product.set_contents,
+          }
+        : null;
+      if (
+        product?.is_active &&
+        next &&
+        (!isCustomerSafeDescription(next.description) ||
+          !hasText(next.care_instructions) ||
+          next.measured_width_cm === null ||
+          next.measured_length_cm === null ||
+          !hasText(next.set_contents))
+      ) {
         throw new BadRequestException(
-          'Hide the product before clearing or replacing its customer-safe description.',
+          'Hide the product before clearing required customer release facts.',
         );
       }
       return tx.product.update({ where: { id }, data: dto });
@@ -363,10 +413,18 @@ export class ProductsService {
         select: {
           id: true,
           description: true,
+          care_instructions: true,
+          measured_width_cm: true,
+          measured_length_cm: true,
+          set_contents: true,
           published_at: true,
           variants: {
             where: { is_active: true },
-            select: { price: true, stock_quantity: true },
+            select: {
+              price: true,
+              stock_quantity: true,
+              material_id: true,
+            },
           },
           images: {
             where: {
@@ -390,9 +448,24 @@ export class ProductsService {
       if (!isCustomerSafeDescription(product.description)) {
         reasons.push('a customer-safe description');
       }
+      if (!hasText(product.care_instructions)) {
+        reasons.push('care instructions');
+      }
+      if (
+        product.measured_width_cm === null ||
+        product.measured_length_cm === null
+      ) {
+        reasons.push('measured width and length in centimetres');
+      }
+      if (!hasText(product.set_contents)) {
+        reasons.push('set contents');
+      }
       if (
         !product.variants.some(
-          (variant) => variant.price > 0 && variant.stock_quantity > 0,
+          (variant) =>
+            variant.price > 0 &&
+            variant.stock_quantity > 0 &&
+            Boolean(variant.material_id),
         )
       ) {
         reasons.push(

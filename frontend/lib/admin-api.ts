@@ -236,6 +236,9 @@ const adminProductSchema = z.object({
   slug: z.string(),
   description: z.string().nullable(),
   care_instructions: z.string().nullable(),
+  measured_width_cm: z.number().positive().nullable(),
+  measured_length_cm: z.number().positive().nullable(),
+  set_contents: z.string().nullable(),
   category_id: z.string(),
   is_active: z.boolean(),
   published_at: z.string().datetime().nullable(),
@@ -253,6 +256,9 @@ const productMutationResponseSchema = z.object({
   slug: z.string(),
   description: z.string().nullable(),
   care_instructions: z.string().nullable(),
+  measured_width_cm: z.number().positive().nullable(),
+  measured_length_cm: z.number().positive().nullable(),
+  set_contents: z.string().nullable(),
   category_id: z.string(),
   is_active: z.boolean(),
   published_at: z.string().datetime().nullable(),
@@ -272,6 +278,9 @@ export interface ProductInput {
   slug: string;
   description?: string | null;
   care_instructions?: string | null;
+  measured_width_cm?: number | null;
+  measured_length_cm?: number | null;
+  set_contents?: string | null;
   category_id: string;
 }
 
@@ -383,6 +392,13 @@ export function addImage(
 
 export function deleteImage(id: string): Promise<void> {
   return request(`/images/${id}`, { method: "DELETE" });
+}
+
+export function deleteUploadedImage(publicId: string): Promise<void> {
+  return request("/admin/images/upload", {
+    method: "DELETE",
+    body: JSON.stringify({ public_id: publicId }),
+  });
 }
 
 export function setImageCover(id: string): Promise<AdminProductImage> {

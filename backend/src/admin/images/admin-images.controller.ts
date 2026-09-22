@@ -1,6 +1,10 @@
 import {
   BadRequestException,
+  Body,
   Controller,
+  Delete,
+  HttpCode,
+  HttpStatus,
   Post,
   UploadedFile,
   UseGuards,
@@ -14,6 +18,7 @@ import {
   AdminImagesService,
   CloudinaryUploadError,
 } from './admin-images.service.js';
+import { DeleteUploadedImageDto } from './dto/delete-uploaded-image.dto.js';
 
 const IMAGE_UPLOAD_ERROR_MESSAGE = 'Image upload failed';
 
@@ -68,5 +73,11 @@ export class AdminImagesController {
       }
       throw err;
     }
+  }
+
+  @Delete('upload')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteUploadedImage(@Body() dto: DeleteUploadedImageDto) {
+    await this.adminImagesService.deleteUploadedImage(dto.public_id);
   }
 }

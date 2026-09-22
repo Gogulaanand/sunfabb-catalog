@@ -6,6 +6,7 @@ import {
   ApiContractError,
   ApiHttpError,
   expectedImages,
+  explicitProductBody,
   isCustomerSafeDescription,
   parseArgs,
   prepareDraftForRepair,
@@ -39,6 +40,10 @@ function product(overrides: Record<string, unknown> = {}) {
   return AdminProductSchema.parse({
     id: 'product-1', slug: 'bedspread-design-1001', is_active: false,
     description: 'Blue checked woven bedspread with one matching pillow cover.', published_at: null,
+    care_instructions: 'Machine wash separately in cold water.',
+    measured_width_cm: 240,
+    measured_length_cm: 260,
+    set_contents: 'bedspread, pillow cover; pillow cover count: 1',
     variants: variants.map((variant, index) => ({ id: `variant-${index + 1}`, sku: variant.sku, is_active: true, color_id: variant.colorId, material_id: variant.materialId, size: variant.size, price: variant.price, stock_quantity: variant.stock })),
     images: images.map((image, index) => ({ id: `image-${index + 1}`, public_id: image.publicId, url: `https://cdn.test/${index}.png`, variant_id: index < 4 ? 'variant-1' : 'variant-2', image_role: 'GALLERY', sort_order: image.order, is_primary: image.primary })),
     ...overrides,
@@ -53,13 +58,31 @@ test('asset and SKU identities are deterministic and first hero is the only prim
   assert.equal(images[0]?.primary, true);
 });
 
+test('product payload preserves every explicit owner-recorded release fact', () => {
+  assert.deepEqual(
+    explicitProductBody('bedspread-design-1001', 'category-1', release),
+    {
+      name: 'Blue Check',
+      slug: 'bedspread-design-1001',
+      category_id: 'category-1',
+      description:
+        'Blue checked woven bedspread with one matching pillow cover.',
+      care_instructions: 'Machine wash separately in cold water.',
+      measured_width_cm: 240,
+      measured_length_cm: 260,
+      set_contents: 'bedspread, pillow cover; pillow cover count: 1',
+    },
+  );
+});
+
 test('completeness requires active variants, every deterministic gallery image, and a primary hero', () => {
-  assert.equal(productIsComplete(product(), variants, images), true);
+  assert.equal(productIsComplete(product(), variants, images, release), true);
   assert.equal(isCustomerSafeDescription('Refine in admin catalog.'), false);
-  assert.equal(productIsComplete(product({ description: 'Refine in admin catalog.' }), variants, images), false);
-  assert.equal(productIsComplete(product({ variants: [{ ...product().variants[0], is_active: false }, product().variants[1]] }), variants, images), false);
-  assert.equal(productIsComplete(product({ images: product().images.slice(0, -1) }), variants, images), false);
-  assert.equal(productIsComplete(product({ images: product().images.map((image, index) => index === 0 ? { ...image, is_primary: false } : image) }), variants, images), false);
+  assert.equal(productIsComplete(product({ description: 'Refine in admin catalog.' }), variants, images, release), false);
+  assert.equal(productIsComplete(product({ measured_width_cm: 230 }), variants, images, release), false);
+  assert.equal(productIsComplete(product({ variants: [{ ...product().variants[0], is_active: false }, product().variants[1]] }), variants, images, release), false);
+  assert.equal(productIsComplete(product({ images: product().images.slice(0, -1) }), variants, images, release), false);
+  assert.equal(productIsComplete(product({ images: product().images.map((image, index) => index === 0 ? { ...image, is_primary: false } : image) }), variants, images, release), false);
 });
 
 test('parseArgs rejects duplicate designs and allows tokenless dry runs', () => {
@@ -101,7 +124,12 @@ test('admin detail response is validated at the API boundary', async () => {
 });
 
 function draftProduct(): ReturnType<typeof product> {
-  return AdminProductSchema.parse({ id: 'product-1', slug: 'bedspread-design-1001', is_active: false, description: null, published_at: null, variants: [], images: [] });
+  return AdminProductSchema.parse({
+    id: 'product-1', slug: 'bedspread-design-1001', is_active: false,
+    description: null, care_instructions: null, measured_width_cm: null,
+    measured_length_cm: null, set_contents: null, published_at: null,
+    variants: [], images: [],
+  });
 }
 
 function fakeRepairApi(current: ReturnType<typeof product>, events: string[], failImageOnce = false): Api {
@@ -115,6 +143,10 @@ function fakeRepairApi(current: ReturnType<typeof product>, events: string[], fa
       const payload = body as Record<string, unknown>;
       if (requestPath === '/products') {
         current.description = typeof payload.description === 'string' ? payload.description : null;
+        current.care_instructions = typeof payload.care_instructions === 'string' ? payload.care_instructions : null;
+        current.measured_width_cm = typeof payload.measured_width_cm === 'number' ? payload.measured_width_cm : null;
+        current.measured_length_cm = typeof payload.measured_length_cm === 'number' ? payload.measured_length_cm : null;
+        current.set_contents = typeof payload.set_contents === 'string' ? payload.set_contents : null;
         return { id: current.id };
       }
       if (requestPath.endsWith('/variants')) {
@@ -140,9 +172,17 @@ function fakeRepairApi(current: ReturnType<typeof product>, events: string[], fa
       }
       throw new Error(`unexpected POST ${requestPath}`);
     },
-    patch: async (requestPath: string) => {
+    patch: async (requestPath: string, body: unknown) => {
       events.push(`PATCH ${requestPath}`);
       if (requestPath.endsWith('/publish') || requestPath.endsWith('/restore')) current.is_active = true;
+      else if (requestPath === `/products/${current.id}`) {
+        const payload = body as Record<string, unknown>;
+        current.description = typeof payload.description === 'string' ? payload.description : null;
+        current.care_instructions = typeof payload.care_instructions === 'string' ? payload.care_instructions : null;
+        current.measured_width_cm = typeof payload.measured_width_cm === 'number' ? payload.measured_width_cm : null;
+        current.measured_length_cm = typeof payload.measured_length_cm === 'number' ? payload.measured_length_cm : null;
+        current.set_contents = typeof payload.set_contents === 'string' ? payload.set_contents : null;
+      }
       return { id: current.id };
     },
     delete: async (requestPath: string) => {
@@ -174,7 +214,7 @@ test('active incomplete legacy products are hidden through the soft-delete endpo
   assert.equal(events.some((event) => event === 'PATCH /products/product-1'), false);
 });
 
-test('direct reconciliation also hides an active incomplete product without generic lifecycle PATCH', async () => {
+test('direct reconciliation hides, refreshes explicit facts, then publishes', async () => {
   const current = product({ is_active: true, images: [] });
   const events: string[] = [];
   const urls = new Map(
@@ -197,35 +237,33 @@ test('direct reconciliation also hides an active incomplete product without gene
   });
 
   assert.equal(events[0], 'DELETE /products/product-1');
-  assert.equal(events.some((event) => event === 'PATCH /products/product-1'), false);
+  assert.equal(events.includes('PATCH /products/product-1'), true);
   assert.equal(events.includes('PATCH /products/product-1/publish'), true);
 });
 
-test('active products with internal placeholder copy are hidden and left for copy repair', async () => {
+test('active products with internal placeholder copy are hidden and repaired from explicit owner facts', async () => {
   const current = product({ is_active: true, description: 'Refine in admin catalog.' });
   const events: string[] = [];
   const api = fakeRepairApi(current, events);
   const urls = new Map(images.map((image, index) => [image.publicId, `https://cdn.test/${index}.png`]));
 
-  await assert.rejects(
-    () => reconcileProduct({ api, existing: { kind: 'found', product: current }, slug: 'bedspread-design-1001', categoryId: 'category-1', release, variants, images, urls }),
-    /incomplete after repair; left inactive/,
-  );
+  await reconcileProduct({ api, existing: { kind: 'found', product: current }, slug: 'bedspread-design-1001', categoryId: 'category-1', release, variants, images, urls });
 
-  assert.equal(current.is_active, false);
+  assert.equal(current.is_active, true);
+  assert.equal(current.description, release.description);
+  assert.equal(current.measured_width_cm, release.measuredWidthCm);
   assert.equal(events[0], 'DELETE /products/product-1');
-  assert.equal(events.some((event) => event.endsWith('/publish') || event.endsWith('/restore')), false);
+  assert.equal(events.includes('PATCH /products/product-1'), true);
+  assert.equal(events.includes('PATCH /products/product-1/publish'), true);
 });
 
-test('draft preparation refuses an active product with internal copy before asset writes', async () => {
+test('draft preparation hides an active product with internal copy before repair', async () => {
   const current = product({ is_active: true, description: 'Refine in admin catalog.' });
   const events: string[] = [];
   const api = fakeRepairApi(current, events);
 
-  await assert.rejects(
-    () => prepareDraftForRepair(api, { kind: 'found', product: current }, 'bedspread-design-1001', 'category-1', release, variants, images),
-    /internal or missing customer copy/,
-  );
+  const prepared = await prepareDraftForRepair(api, { kind: 'found', product: current }, 'bedspread-design-1001', 'category-1', release, variants, images);
+  assert.equal(prepared.kind, 'found');
   assert.equal(current.is_active, false);
   assert.deepEqual(events, ['DELETE /products/product-1']);
 });

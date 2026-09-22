@@ -12,7 +12,10 @@ const mockProduct = {
   name: 'Classic Bedspread',
   slug: 'classic-bedspread',
   description: 'A classic handcrafted bedspread',
-  care_instructions: null,
+  care_instructions: 'Machine wash cold.',
+  measured_width_cm: 240,
+  measured_length_cm: 260,
+  set_contents: '1 bedspread and 1 pillow cover',
   category_id: 'cuid-cat-1',
   is_active: true,
   published_at: new Date('2026-01-01'),
@@ -541,7 +544,14 @@ describe('ProductsService', () => {
     });
 
     it('rejects clearing a published product description', async () => {
-      mockPrisma.product.findUnique.mockResolvedValue({ is_active: true });
+      mockPrisma.product.findUnique.mockResolvedValue({
+        is_active: true,
+        description: mockProduct.description,
+        care_instructions: mockProduct.care_instructions,
+        measured_width_cm: mockProduct.measured_width_cm,
+        measured_length_cm: mockProduct.measured_length_cm,
+        set_contents: mockProduct.set_contents,
+      });
 
       await expect(
         service.update('cuid-1', { description: null }),
@@ -555,8 +565,36 @@ describe('ProductsService', () => {
       });
     });
 
+    it.each([
+      ['care instructions', { care_instructions: null }],
+      ['measured width', { measured_width_cm: null }],
+      ['measured length', { measured_length_cm: null }],
+      ['set contents', { set_contents: ' ' }],
+    ])('rejects clearing published %s', async (_field, dto) => {
+      mockPrisma.product.findUnique.mockResolvedValue({
+        is_active: true,
+        description: mockProduct.description,
+        care_instructions: mockProduct.care_instructions,
+        measured_width_cm: mockProduct.measured_width_cm,
+        measured_length_cm: mockProduct.measured_length_cm,
+        set_contents: mockProduct.set_contents,
+      });
+
+      await expect(service.update('cuid-1', dto)).rejects.toThrow(
+        'Hide the product before clearing required customer release facts.',
+      );
+      expect(mockPrisma.product.update).toHaveBeenCalledTimes(1);
+    });
+
     it('permits clearing draft description after locking the parent', async () => {
-      mockPrisma.product.findUnique.mockResolvedValue({ is_active: false });
+      mockPrisma.product.findUnique.mockResolvedValue({
+        is_active: false,
+        description: mockProduct.description,
+        care_instructions: mockProduct.care_instructions,
+        measured_width_cm: mockProduct.measured_width_cm,
+        measured_length_cm: mockProduct.measured_length_cm,
+        set_contents: mockProduct.set_contents,
+      });
       mockPrisma.product.update.mockResolvedValue({
         ...mockProduct,
         is_active: false,
@@ -594,8 +632,14 @@ describe('ProductsService', () => {
     const completeProduct = {
       id: 'cuid-1',
       description: 'A customer-ready woven bedspread.',
+      care_instructions: 'Machine wash cold.',
+      measured_width_cm: 240,
+      measured_length_cm: 260,
+      set_contents: '1 bedspread and 1 pillow cover',
       published_at: null,
-      variants: [{ price: 125000, stock_quantity: 4 }],
+      variants: [
+        { price: 125000, stock_quantity: 4, material_id: 'material-1' },
+      ],
       images: [{ id: 'image-1' }],
     };
 
@@ -665,9 +709,27 @@ describe('ProductsService', () => {
         'internal placeholder copy',
         { ...completeProduct, description: 'Refine in admin catalog.' },
       ],
+      ['no care instructions', { ...completeProduct, care_instructions: ' ' }],
+      [
+        'no measured dimensions',
+        { ...completeProduct, measured_width_cm: null },
+      ],
+      ['no set contents', { ...completeProduct, set_contents: null }],
       [
         'no priced and available variant',
-        { ...completeProduct, variants: [{ price: 0, stock_quantity: 0 }] },
+        {
+          ...completeProduct,
+          variants: [
+            { price: 0, stock_quantity: 0, material_id: 'material-1' },
+          ],
+        },
+      ],
+      [
+        'no material-backed variant',
+        {
+          ...completeProduct,
+          variants: [{ price: 125000, stock_quantity: 4, material_id: '' }],
+        },
       ],
       ['no primary gallery image', { ...completeProduct, images: [] }],
     ])('rejects publishing with %s', async (_reason, incompleteProduct) => {
