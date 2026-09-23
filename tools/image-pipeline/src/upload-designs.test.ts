@@ -38,7 +38,7 @@ const release: ReleaseMetadata = {
 
 function product(overrides: Record<string, unknown> = {}) {
   return AdminProductSchema.parse({
-    id: 'product-1', slug: 'bedspread-design-1001', is_active: false,
+    id: 'product-1', name: 'Blue Check', slug: 'bedspread-design-1001', is_active: false,
     description: 'Blue checked woven bedspread with one matching pillow cover.', published_at: null,
     care_instructions: 'Machine wash separately in cold water.',
     measured_width_cm: 240,
@@ -125,7 +125,7 @@ test('admin detail response is validated at the API boundary', async () => {
 
 function draftProduct(): ReturnType<typeof product> {
   return AdminProductSchema.parse({
-    id: 'product-1', slug: 'bedspread-design-1001', is_active: false,
+    id: 'product-1', name: 'Blue Check', slug: 'bedspread-design-1001', is_active: false,
     description: null, care_instructions: null, measured_width_cm: null,
     measured_length_cm: null, set_contents: null, published_at: null,
     variants: [], images: [],
@@ -142,6 +142,7 @@ function fakeRepairApi(current: ReturnType<typeof product>, events: string[], fa
       events.push(`POST ${requestPath}`);
       const payload = body as Record<string, unknown>;
       if (requestPath === '/products') {
+        current.name = String(payload.name);
         current.description = typeof payload.description === 'string' ? payload.description : null;
         current.care_instructions = typeof payload.care_instructions === 'string' ? payload.care_instructions : null;
         current.measured_width_cm = typeof payload.measured_width_cm === 'number' ? payload.measured_width_cm : null;
@@ -177,6 +178,7 @@ function fakeRepairApi(current: ReturnType<typeof product>, events: string[], fa
       if (requestPath.endsWith('/publish') || requestPath.endsWith('/restore')) current.is_active = true;
       else if (requestPath === `/products/${current.id}`) {
         const payload = body as Record<string, unknown>;
+        current.name = String(payload.name);
         current.description = typeof payload.description === 'string' ? payload.description : null;
         current.care_instructions = typeof payload.care_instructions === 'string' ? payload.care_instructions : null;
         current.measured_width_cm = typeof payload.measured_width_cm === 'number' ? payload.measured_width_cm : null;
@@ -300,3 +302,24 @@ test('complete hidden products use restore rather than publish', async () => {
   assert.equal(events.includes('PATCH /products/product-1/restore'), true);
   assert.equal(events.includes('PATCH /products/product-1/publish'), false);
 });
+
+for (const active of [true, false]) {
+  test(`corrects the approved name before publishing an ${active ? 'active' : 'hidden'} product`, async () => {
+    const current = product({ name: 'Old product name', is_active: active, published_at: '2026-01-01T00:00:00.000Z' });
+    const events: string[] = [];
+    const api = fakeRepairApi(current, events);
+    assert.equal(productIsComplete(current, variants, images, release), false);
+
+    await reconcileProduct({ api, existing: { kind: 'found', product: current }, slug: current.slug, categoryId: 'category-1', release, variants, images, urls: new Map() });
+
+    assert.equal(current.name, release.commercialName);
+    assert.equal(current.is_active, true);
+    assert.ok(events.indexOf('PATCH /products/product-1') < events.indexOf('PATCH /products/product-1/restore'));
+    assert.equal(events.includes('PATCH /products/product-1'), true);
+    assert.equal(events.includes('PATCH /products/product-1/restore'), true);
+    events.length = 0;
+    const retry = await reconcileProduct({ api, existing: { kind: 'found', product: current }, slug: current.slug, categoryId: 'category-1', release, variants, images, urls: new Map() });
+    assert.equal(retry.status, 'already-complete');
+    assert.deepEqual(events, []);
+  });
+}

@@ -70,6 +70,18 @@ export function ProductDetailClient({
   const [publicationError, setPublicationError] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
 
+  // Compare with the refreshed server record, so a pending or failed save
+  // cannot enable publication of content different from the preview.
+  const hasUnsavedChanges =
+    form.name !== product.name ||
+    form.slug !== product.slug ||
+    nullableText(form.description) !== nullableText(product.description ?? "") ||
+    nullableText(form.care_instructions) !== nullableText(product.care_instructions ?? "") ||
+    nullablePositiveNumber(form.measured_width_cm) !== product.measured_width_cm ||
+    nullablePositiveNumber(form.measured_length_cm) !== product.measured_length_cm ||
+    nullableText(form.set_contents) !== nullableText(product.set_contents ?? "") ||
+    form.category_id !== product.category_id;
+
   const hasCustomerSafeDescription = Boolean(
     form.description.trim() && !INTERNAL_COPY_PATTERN.test(form.description),
   );
@@ -130,6 +142,7 @@ export function ProductDetailClient({
   }
 
   async function handlePublication(action: "publish" | "restore") {
+    if (hasUnsavedChanges || submitting || publishing) return;
     setPublishing(true);
     setPublicationError(null);
     const result =
@@ -182,7 +195,7 @@ export function ProductDetailClient({
               size="sm"
               colorPalette="primary"
               loading={publishing}
-              disabled={!isComplete}
+              disabled={!isComplete || hasUnsavedChanges || submitting || publishing}
               onClick={() => void handlePublication("publish")}
             >
               Publish
@@ -192,7 +205,7 @@ export function ProductDetailClient({
               size="sm"
               variant="outline"
               loading={publishing}
-              disabled={!isComplete}
+              disabled={!isComplete || hasUnsavedChanges || submitting || publishing}
               onClick={() => void handlePublication("restore")}
             >
               Restore
@@ -201,6 +214,11 @@ export function ProductDetailClient({
         </HStack>
       </HStack>
 
+      {!product.is_active && hasUnsavedChanges && (
+        <Text color="fg.muted" fontSize="sm" role="status">
+          Save changes before publishing or restoring this product. Preview includes unsaved changes.
+        </Text>
+      )}
       {isDraft && !isComplete && (
         <Text color="fg.muted" fontSize="sm" role="status">
           Publish when customer-safe copy, care instructions, measured dimensions, set contents, an active material-backed variant with positive price and stock, and a primary gallery image are present.

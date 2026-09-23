@@ -33,6 +33,7 @@ const AdminImageSchema = z
 
 export const AdminProductSchema = z
   .object({
+    name: z.string(),
     id: z.string().min(1),
     slug: z.string().min(1),
     is_active: z.boolean(),
@@ -128,6 +129,7 @@ function releaseFactsMatch(
   release: ReleaseMetadata,
 ): boolean {
   return (
+    product.name === release.commercialName &&
     product.description === release.description &&
     product.care_instructions === release.careInstructions &&
     product.measured_width_cm === release.measuredWidthCm &&

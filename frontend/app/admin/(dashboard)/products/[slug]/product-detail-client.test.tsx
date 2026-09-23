@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "@/components/ui/provider";
 import type { AdminProduct } from "@/lib/admin-api";
@@ -97,6 +97,51 @@ describe("ProductDetailClient publication controls", () => {
     updateProductAction.mockResolvedValue({ ok: true, data: undefined });
     publishProductAction.mockResolvedValue({ ok: true, data: undefined });
     restoreProductAction.mockResolvedValue({ ok: true, data: undefined });
+  });
+
+  it.each(["Publish", "Restore"])("requires saved preview edits before %s", async (action) => {
+    const user = userEvent.setup();
+    const product = {
+      ...baseProduct,
+      published_at: action === "Restore" ? "2026-07-18T08:30:00.000Z" : null,
+    };
+    const view = renderClient(product);
+    const description = screen.getByDisplayValue(product.description!);
+    await user.clear(description);
+    await user.type(description, "Corrected customer description.");
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+    expect(screen.getByText("Corrected customer description.", { selector: "p" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: action })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: action }));
+    expect(publishProductAction).not.toHaveBeenCalled();
+    expect(restoreProductAction).not.toHaveBeenCalled();
+
+    updateProductAction.mockResolvedValueOnce({ ok: false, error: "Save failed" });
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(await screen.findByText("Save failed")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: action })).toBeDisabled();
+
+    let finishSave!: (result: { ok: true; data: undefined }) => void;
+    updateProductAction.mockImplementationOnce(() => new Promise((resolve) => { finishSave = resolve; }));
+    await user.click(screen.getByRole("button", { name: "Save changes" }));
+    expect(screen.getByRole("button", { name: action })).toBeDisabled();
+    await act(async () => finishSave({ ok: true, data: undefined }));
+    // The action completing is insufficient: wait for the saved server record.
+    expect(screen.getByRole("button", { name: action })).toBeDisabled();
+    view.rerender(
+      <Provider>
+        <ProductDetailClient
+          product={{ ...product, description: "Corrected customer description." }}
+          categories={categories}
+          materials={[]}
+          colors={[]}
+        />
+      </Provider>,
+    );
+    expect(screen.getByRole("button", { name: action })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: action }));
+    expect(action === "Publish" ? publishProductAction : restoreProductAction)
+      .toHaveBeenCalledWith(product.id, product.slug);
   });
 
   it("shows Draft and keeps Publish unavailable until completeness is met", () => {
