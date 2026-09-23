@@ -132,8 +132,16 @@ body {
 /* Homepage-specific structure. These classes keep the art direction legible
    in the JSX while leaving shared storefront primitives untouched. */
 .home-hero {
-  min-height: 100svh;
+  /* The mobile header is fixed and overlays the hero; reserve its 5rem here
+     so the primary action remains inside the first viewport. */
+  min-height: calc(100svh - 5rem);
   background: #4b392d;
+}
+
+@media (min-width: 640px) {
+  .home-hero {
+    min-height: 100svh;
+  }
 }
 
 .home-hero-scrim {

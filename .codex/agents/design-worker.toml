@@ -1,6 +1,6 @@
 name = "design_worker"
 description = "Generate and self-review exactly one Catalog textile design assigned by the design-gen orchestrator."
-model = "gpt-5.6-luna"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "medium"
 
 developer_instructions = """

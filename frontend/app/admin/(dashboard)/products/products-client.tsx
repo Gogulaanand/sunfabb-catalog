@@ -31,6 +31,9 @@ interface ProductFormState {
   slug: string;
   description: string;
   care_instructions: string;
+  measured_width_cm: string;
+  measured_length_cm: string;
+  set_contents: string;
   category_id: string;
 }
 
@@ -42,6 +45,9 @@ function CreateProductDialog({ categories }: { categories: Category[] }) {
     slug: "",
     description: "",
     care_instructions: "",
+    measured_width_cm: "",
+    measured_length_cm: "",
+    set_contents: "",
     category_id: categories[0] ? String(categories[0].id) : "",
   });
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +66,13 @@ function CreateProductDialog({ categories }: { categories: Category[] }) {
       slug: form.slug,
       description: form.description || undefined,
       care_instructions: form.care_instructions || undefined,
+      measured_width_cm: form.measured_width_cm
+        ? Number(form.measured_width_cm)
+        : undefined,
+      measured_length_cm: form.measured_length_cm
+        ? Number(form.measured_length_cm)
+        : undefined,
+      set_contents: form.set_contents || undefined,
       category_id: form.category_id,
     });
     setSubmitting(false);
@@ -117,6 +130,32 @@ function CreateProductDialog({ categories }: { categories: Category[] }) {
                     <Textarea
                       value={form.care_instructions}
                       onChange={(e) => setForm({ ...form, care_instructions: e.target.value })}
+                    />
+                  </Field>
+                  <HStack gap="4" align="start">
+                    <Field label="Measured width (cm)" optionalText="Optional in draft">
+                      <Input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={form.measured_width_cm}
+                        onChange={(e) => setForm({ ...form, measured_width_cm: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Measured length (cm)" optionalText="Optional in draft">
+                      <Input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={form.measured_length_cm}
+                        onChange={(e) => setForm({ ...form, measured_length_cm: e.target.value })}
+                      />
+                    </Field>
+                  </HStack>
+                  <Field label="Set contents" optionalText="Optional in draft">
+                    <Textarea
+                      value={form.set_contents}
+                      onChange={(e) => setForm({ ...form, set_contents: e.target.value })}
                     />
                   </Field>
                 </Stack>
@@ -214,8 +253,13 @@ export function ProductsClient({
               <Table.Cell>{product.category.name}</Table.Cell>
               <Table.Cell>{product.variants[0] ? formatPrice(product.variants[0].price) : "—"}</Table.Cell>
               <Table.Cell>
-                <Tag.Root colorPalette={product.is_active ? "green" : "gray"} size="sm">
-                  <Tag.Label>{product.is_active ? "Active" : "Inactive"}</Tag.Label>
+                <Tag.Root
+                  colorPalette={product.is_active ? "green" : product.published_at ? "orange" : "gray"}
+                  size="sm"
+                >
+                  <Tag.Label>
+                    {product.is_active ? "Published" : product.published_at ? "Hidden" : "Draft"}
+                  </Tag.Label>
                 </Tag.Root>
               </Table.Cell>
               <Table.Cell>

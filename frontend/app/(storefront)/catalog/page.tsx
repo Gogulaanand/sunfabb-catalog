@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { getCategories } from '@/lib/api';
+import { getPublicCategories } from '@/lib/api';
 import { parseCatalogSearchParams } from '@/lib/catalog-query';
 import { BreadcrumbSchema } from '@/components/seo/BreadcrumbSchema';
 import CatalogContent from './CatalogContent';
@@ -21,7 +21,7 @@ export async function generateMetadata({
   const { categorySlug } = parseCatalogSearchParams(params);
 
   const categories = categorySlug
-    ? await getCategories().catch(() => [])
+    ? await getPublicCategories().catch(() => [])
     : [];
   const category = categories.find((c) => c.slug === categorySlug);
   const canonical = category
@@ -30,9 +30,9 @@ export async function generateMetadata({
 
   if (categorySlug) {
     const title = category ? `${category.name} Collection` : 'Catalog';
-    const description =
-      category?.description ??
-      `Browse Sunfabb's ${category?.name ?? ''} collection from India.`;
+    const description = category
+      ? `Browse Sunfabb's ${category.name} collection from India.`
+      : 'Browse the current Sunfabb catalog of home textiles from India.';
     return {
       title,
       description,
@@ -43,7 +43,7 @@ export async function generateMetadata({
   return {
     title: 'All Products',
     description:
-      'Browse the full Sunfabb range of bedspreads, towels, napkins and table linen from India.',
+      'Browse the currently listed Sunfabb home textiles from India.',
     alternates: { canonical },
   };
 }
@@ -71,7 +71,7 @@ export default async function CatalogPage({ searchParams }: PageProps) {
   // ISR-cached call generateMetadata already makes for category views, and
   // the unfiltered catalog skips it entirely.
   const categoryDescription = categorySlug
-    ? await getCategories()
+    ? await getPublicCategories()
         .catch(() => [])
         .then(
           (categories) =>

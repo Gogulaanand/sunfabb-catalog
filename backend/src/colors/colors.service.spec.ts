@@ -50,6 +50,25 @@ describe('ColorsService', () => {
     });
   });
 
+  describe('findPublic', () => {
+    it('returns colors represented by active variants of active products', async () => {
+      mockPrisma.color.findMany.mockResolvedValue([mockColor]);
+
+      await expect(service.findPublic()).resolves.toEqual([mockColor]);
+      expect(mockPrisma.color.findMany).toHaveBeenCalledWith({
+        where: {
+          variants: {
+            some: {
+              is_active: true,
+              product: { is_active: true },
+            },
+          },
+        },
+        orderBy: { name: 'asc' },
+      });
+    });
+  });
+
   describe('create', () => {
     it('creates a color', async () => {
       const dto = { name: 'Navy', hex_code: '#000080' };

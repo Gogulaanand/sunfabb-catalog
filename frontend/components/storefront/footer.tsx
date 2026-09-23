@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {
   SITE,
+  buildCapabilityEnquiryMessage,
   mailtoLink,
   telLink,
   whatsappLink,
@@ -8,10 +9,10 @@ import {
 import { TrackedWhatsAppLink } from '@/components/analytics/tracked-whatsapp-link';
 
 const SHOP_LINKS = [
-  { href: '/catalog?category=bedspreads', label: 'Bedspreads' },
-  { href: '/catalog?category=towels', label: 'Towels' },
-  { href: '/catalog?category=table-linen', label: 'Table Linen' },
-  { href: '/catalog?category=table-linen', label: 'Napkins' },
+  { kind: 'catalog', href: '/catalog?category=bedspreads', label: 'Bedspreads' },
+  { kind: 'capability', label: 'Towels', capability: 'Towels' },
+  { kind: 'capability', label: 'Table Linen', capability: 'Table linen' },
+  { kind: 'capability', label: 'Napkins', capability: 'Napkins' },
 ] as const;
 
 const HELP_LINKS = [
@@ -51,10 +52,29 @@ export default function Footer() {
               </h2>
               <ul className="space-y-4 text-sm">
                 {SHOP_LINKS.map((link) => (
-                  <li key={`${link.label}-${link.href}`}>
-                    <Link href={link.href} className={linkClass}>
-                      {link.label}
-                    </Link>
+                  <li key={`${link.label}-${link.kind}`}>
+                    {link.kind === 'catalog' ? (
+                      <Link href={link.href} className={linkClass}>
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <TrackedWhatsAppLink
+                        href={
+                          whatsappLink(
+                            buildCapabilityEnquiryMessage(
+                              link.capability,
+                            ),
+                          ) ?? '/contact'
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        tracking={{ linkLocation: 'footer' }}
+                        aria-label={`Enquire about ${link.label}`}
+                        className={linkClass}
+                      >
+                        {link.label} — Enquire
+                      </TrackedWhatsAppLink>
+                    )}
                   </li>
                 ))}
               </ul>

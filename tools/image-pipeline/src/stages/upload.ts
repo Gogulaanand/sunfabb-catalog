@@ -1,8 +1,8 @@
 import * as fs from 'node:fs';
 import { v2 as cloudinary } from 'cloudinary';
 import { UPLOADS_PATH, cloudinaryFolder, requireEnv, type PipelineConfig } from '../config.js';
-import { sceneSetFor } from '../prompts.js';
-import { activeItems, artifactAbsPath, artifactsByStatus, loadManifest, loadState, upsertArtifact } from '../state.js';
+import { productSceneSet, sceneSetFor } from '../prompts.js';
+import { activeItems, artifactAbsPath, artifactsByStatus, generationReadyItems, loadManifest, loadState, upsertArtifact } from '../state.js';
 import { buildPublicId, confirm, runLimited } from '../util.js';
 
 interface UploadRecord {
@@ -22,6 +22,16 @@ export async function runUpload(
     return;
   }
 
+  const manifest = loadManifest();
+  const readyDesigns = new Set(generationReadyItems(manifest).map((item) => item.designNo));
+  const blocked = approved.filter((artifact) => !readyDesigns.has(artifact.designNo));
+  if (blocked.length > 0) {
+    throw new Error(
+      `refusing upload: ${blocked.length} approved artifact(s) belong to incomplete classifications ` +
+        `(${[...new Set(blocked.map((artifact) => artifact.designNo))].join(', ')})`,
+    );
+  }
+
   const env = requireEnv(['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET']);
   cloudinary.config({
     cloud_name: env.CLOUDINARY_CLOUD_NAME,
@@ -38,10 +48,13 @@ export async function runUpload(
   }
 
   // Shot index gives carousel ordering: 01-hero, 02-closeup, ... per category's scene set.
-  const categoryByDesign = new Map(activeItems(loadManifest()).map((i) => [i.designNo, i.category]));
+  const itemByDesign = new Map(activeItems(manifest).map((i) => [i.designNo, i]));
   const shotIndex = (designNo: string, shot: string): number => {
-    const category = categoryByDesign.get(designNo) ?? 'other';
-    return sceneSetFor(category).findIndex((spec) => spec.shot === shot) + 1;
+    const item = itemByDesign.get(designNo);
+    const shots = item?.release?.productType && item.release.productType !== 'unknown'
+      ? productSceneSet(item.release.productType)
+      : sceneSetFor(item?.category ?? 'other');
+    return shots.findIndex((spec) => spec.shot === shot) + 1;
   };
 
   const { ok, failed } = await runLimited(approved, 3, async (artifact) => {

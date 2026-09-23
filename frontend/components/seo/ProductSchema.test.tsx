@@ -19,6 +19,9 @@ const productFixture: Product = {
   slug: "royal-cotton-bedspread",
   description: "A premium cotton bedspread.",
   care_instructions: "Machine wash cold.",
+  measured_width_cm: 240,
+  measured_length_cm: 260,
+  set_contents: "1 bedspread and 1 pillow cover",
   updated_at: "2026-01-01T00:00:00.000Z",
   category: { name: "Bedspreads", slug: "bedspreads" },
   variants: [

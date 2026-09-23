@@ -1,4 +1,4 @@
-import type { Category } from './types.js';
+import type { Category, ProductType, ReleaseMetadata } from './types.js';
 
 /**
  * Appended to every generation prompt. Pattern fidelity is the whole game for a
@@ -34,6 +34,27 @@ export interface ShotSpec {
   shot: string;
   prompt: string;
 }
+
+const PRODUCT_SCENE_PROFILES: Record<Exclude<ProductType, 'unknown'>, Record<string, string>> = {
+  bedspread: {
+    hero: 'A correctly sized bedspread with a visible decorative drop and only the confirmed matching pillow covers on a bright warm-neutral bedroom bed.',
+    closeup: 'One bedspread corner over the mattress edge, showing the print and cotton texture.',
+    folded: 'The confirmed bedspread set neatly folded on a pale wood bench; do not add unconfirmed pieces.',
+    room: 'A serene bedroom with the correctly sized bedspread, visible decorative drop, and only the confirmed pillow covers.',
+  },
+  bedsheet: {
+    hero: 'A bedsheet fitted or neatly tucked around the mattress with no decorative drop beyond the mattress edge in a bright warm-neutral bedroom.',
+    closeup: 'The tucked mattress corner, hem, and lighter bedsheet fabric, with no floor-length bedspread styling.',
+    folded: 'Only the confirmed bedsheet set contents neatly folded; do not add or invent pillow covers.',
+    room: 'A bedroom showing the bedsheet fitted and tucked around the mattress, with no decorative drop beyond the mattress edge.',
+  },
+  blanket: {
+    hero: 'A visibly thicker blanket with rounded folds and believable weight layered over a neutral bedsheet or folded back on the bed.',
+    closeup: 'The blanket edge thickness, rounded fold, and weave, making its heavier construction believable.',
+    folded: 'Only the confirmed blanket set contents folded with substantial rounded folds; do not invent pillow covers or accessories.',
+    room: 'A neutral bedroom with the thick blanket layered over a bedsheet or folded back on the bed, never masquerading as a floor-length spread.',
+  },
+};
 
 const SCENE_SETS: Record<Category, ShotSpec[]> = {
   bedspread: [
@@ -193,6 +214,27 @@ export function scenePrompt(category: Category, shot: string): string {
   const spec = SCENE_SETS[category].find((s) => s.shot === shot);
   if (!spec) throw new Error(`Unknown shot "${shot}" for category "${category}"`);
   return spec.prompt + FIDELITY_SUFFIX;
+}
+
+export function productScenePrompt(
+  productType: Exclude<ProductType, 'unknown'>,
+  shot: string,
+  release: ReleaseMetadata,
+): string {
+  const profile = PRODUCT_SCENE_PROFILES[productType][shot];
+  if (!profile) throw new Error(`Unknown shot "${shot}" for product type "${productType}"`);
+  const pillowCount = release.setContents?.pillowCoverCount;
+  const setNote = release.setContents
+    ? ` Confirmed set contents: ${release.setContents.pieces.join(', ')}; exact pillow-cover count: ${pillowCount}. Use only these confirmed set contents; never invent additional pieces.`
+    : ' Set contents are not confirmed; do not invent any pieces.';
+  return `Using the attached fabric swatch as the exact reference, ${profile} Bright warm-neutral Sunfabb catalog styling, pale wood or oatmeal furniture, soft daylight, restrained props, three-quarter composition. ${setNote} Recorded dimensions: ${release.measuredWidthCm} cm by ${release.measuredLengthCm} cm.` + FIDELITY_SUFFIX;
+}
+
+export function productSceneSet(productType: Exclude<ProductType, 'unknown'>): ShotSpec[] {
+  return ['hero', 'closeup', 'folded', 'room'].map((shot) => ({
+    shot,
+    prompt: PRODUCT_SCENE_PROFILES[productType][shot] ?? '',
+  }));
 }
 
 /** First image part: the finished master scene. Second image part: the target colorway swatch. */

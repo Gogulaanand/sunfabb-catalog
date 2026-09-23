@@ -2,12 +2,20 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { AdminImagesController } from './admin-images.controller.js';
 import {
+  ALLOWED_IMAGE_MIME_TYPES,
+  imageFileFilter,
+  MAX_IMAGE_UPLOAD_BYTES,
+} from './admin-images.controller.js';
+import {
   AdminImagesService,
   CloudinaryUploadError,
 } from './admin-images.service.js';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
 
-const mockAdminImagesService = { uploadImage: jest.fn() };
+const mockAdminImagesService = {
+  uploadImage: jest.fn(),
+  deleteUploadedImage: jest.fn(),
+};
 
 describe('AdminImagesController', () => {
   let controller: AdminImagesController;
@@ -85,5 +93,45 @@ describe('AdminImagesController', () => {
     } as Express.Multer.File;
 
     await expect(controller.upload(mockFile)).rejects.toBe(serverError);
+  });
+
+  it('deletes an unattached uploaded image', async () => {
+    mockAdminImagesService.deleteUploadedImage.mockResolvedValue(undefined);
+
+    await expect(
+      controller.deleteUploadedImage({ public_id: 'sunfabb/image' }),
+    ).resolves.toBeUndefined();
+    expect(mockAdminImagesService.deleteUploadedImage).toHaveBeenCalledWith(
+      'sunfabb/image',
+    );
+  });
+
+  it('allows JPEG, PNG, and WebP and rejects other MIME types', () => {
+    expect(ALLOWED_IMAGE_MIME_TYPES).toEqual([
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ]);
+    expect(MAX_IMAGE_UPLOAD_BYTES).toBe(3 * 1024 * 1024);
+
+    const accepted = jest.fn();
+    imageFileFilter(
+      {},
+      { mimetype: 'image/webp' } as Express.Multer.File,
+      accepted,
+    );
+    expect(accepted).toHaveBeenCalledWith(null, true);
+
+    const rejected = jest.fn();
+    imageFileFilter(
+      {},
+      { mimetype: 'image/gif' } as Express.Multer.File,
+      rejected,
+    );
+    const [error] = rejected.mock.calls[0] as [unknown];
+    expect(error).toMatchObject({
+      message: 'Choose a JPEG, PNG, or WebP image.',
+    });
+    expect(rejected.mock.calls[0]).toHaveLength(1);
   });
 });

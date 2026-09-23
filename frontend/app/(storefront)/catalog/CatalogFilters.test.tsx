@@ -38,7 +38,11 @@ describe("CatalogFilters", () => {
   it("gives the sort control an accessible name and keeps filter headings sequential", () => {
     renderFilters();
 
-    expect(screen.getByRole("combobox", { name: "Sort by" })).toBeInTheDocument();
+    const sort = screen.getByRole("combobox", { name: "Sort by" });
+    expect(sort).toBeInTheDocument();
+    expect(sort).toHaveValue("");
+    expect(screen.getByRole("option", { name: "Name (A-Z)" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Newest Arrivals" })).toBeNull();
     expect(
       screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent),
     ).toEqual(["Sort by", "Category", "Material", "Color Palette"]);

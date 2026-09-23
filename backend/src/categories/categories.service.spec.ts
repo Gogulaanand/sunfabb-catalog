@@ -58,6 +58,31 @@ describe('CategoriesService', () => {
     });
   });
 
+  describe('findPublic', () => {
+    it('returns only categories represented by active products with active variants', async () => {
+      const category = {
+        ...mockCategory,
+        description: 'Admin-only category copy',
+      };
+      mockPrisma.category.findMany.mockResolvedValue([category]);
+
+      await expect(service.findPublic()).resolves.toEqual([
+        { ...category, description: null },
+      ]);
+      expect(mockPrisma.category.findMany).toHaveBeenCalledWith({
+        where: {
+          products: {
+            some: {
+              is_active: true,
+              variants: { some: { is_active: true } },
+            },
+          },
+        },
+        orderBy: { name: 'asc' },
+      });
+    });
+  });
+
   describe('findOne', () => {
     it('returns category when found by slug', async () => {
       mockPrisma.category.findUnique.mockResolvedValue(mockCategory);

@@ -3,8 +3,8 @@ import * as path from 'node:path';
 import { CROPS_DIR, SCENES_DIR, SWATCHES_DIR, WORK_DIR, type PipelineConfig } from '../config.js';
 import { pricePerImage } from '../cost.js';
 import { GeminiClient } from '../gemini.js';
-import { SWAP_PROMPT, SWATCH_PROMPT, retryNote, sceneSetFor, scenePrompt } from '../prompts.js';
-import { activeItems, artifactAbsPath, loadManifest, loadState, upsertArtifact } from '../state.js';
+import { SWAP_PROMPT, SWATCH_PROMPT, productScenePrompt, productSceneSet, retryNote, sceneSetFor, scenePrompt } from '../prompts.js';
+import { artifactAbsPath, generationReadyItems, loadManifest, loadState, upsertArtifact } from '../state.js';
 import { artifactKey, type Artifact, type ManifestItem } from '../types.js';
 import { confirm, ensureDir, mimeTypeFor, runLimited } from '../util.js';
 import { cropFileName, runCrop } from './crop.js';
@@ -47,9 +47,13 @@ export async function runGenerate(
   options: { yes?: boolean; dryRun?: boolean } = {},
 ): Promise<GenerateOutcome> {
   const manifest = loadManifest();
-  const items = activeItems(manifest);
+  const active = manifest.items.filter((item) => !item.skip);
+  const items = generationReadyItems(manifest);
+  for (const item of active.filter((candidate) => !items.includes(candidate))) {
+    console.log(`  blocked ${item.designNo}: classification is incomplete; no generation scheduled`);
+  }
   if (items.length === 0) {
-    console.log('Manifest is empty. Run: npm run pipeline -- scan');
+    console.log('No generation-ready classifications. Complete the classification review before generation.');
     return 'empty';
   }
   await runCrop();
@@ -83,7 +87,10 @@ export async function runGenerate(
 
     const master = item.colorways[0];
     if (!master) continue;
-    for (const spec of sceneSetFor(item.category)) {
+    const sceneSet = item.release?.productType && item.release.productType !== 'unknown'
+      ? productSceneSet(item.release.productType)
+      : sceneSetFor(item.category);
+    for (const spec of sceneSet) {
       const masterKey = artifactKey(item.designNo, master.color, spec.shot);
       const masterArtifact = state.artifacts[masterKey];
       const regenMaster = needsRegen(masterArtifact, config.maxAttempts);
@@ -221,7 +228,16 @@ export async function runGenerate(
   const sceneRun = await runLimited(sceneOps, config.concurrency, async (op) => {
     const image = await gemini.generateImage({
       model: op.model,
-      prompt: withRetryNote(scenePrompt(op.category ?? 'other', op.shot), op),
+      prompt: withRetryNote(
+        (() => {
+          const item = items.find((candidate) => candidate.designNo === op.designNo);
+          if (item?.release?.productType && item.release.productType !== 'unknown') {
+            return productScenePrompt(item.release.productType, op.shot, item.release);
+          }
+          return scenePrompt(op.category ?? 'other', op.shot);
+        })(),
+        op,
+      ),
       images: [readImage(swatchPath(op.designNo, op.color))],
       aspectRatio: config.sceneAspectRatio,
       imageSize: config.imageSize,

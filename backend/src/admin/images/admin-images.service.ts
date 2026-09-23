@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
+import { PrismaService } from '../../prisma/prisma.service.js';
 
 export class CloudinaryUploadError extends Error {
   constructor(
@@ -12,7 +13,7 @@ export class CloudinaryUploadError extends Error {
 
 @Injectable()
 export class AdminImagesService {
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
       api_key: process.env.CLOUDINARY_API_KEY,
@@ -38,5 +39,17 @@ export class AdminImagesService {
         )
         .end(buffer);
     });
+  }
+
+  async deleteUploadedImage(publicId: string): Promise<void> {
+    const attachedImage = await this.prisma.productImage.findFirst({
+      where: { public_id: publicId },
+      select: { id: true },
+    });
+    if (attachedImage) {
+      throw new ConflictException('Uploaded image is already attached');
+    }
+
+    await cloudinary.uploader.destroy(publicId);
   }
 }

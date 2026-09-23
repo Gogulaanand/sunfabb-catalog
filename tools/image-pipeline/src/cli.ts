@@ -11,6 +11,7 @@ import { runQa } from './stages/qa.js';
 import { runReview } from './stages/review.js';
 import { runScan } from './stages/scan.js';
 import { runUpload } from './stages/upload.js';
+import { writeClassificationArtifacts } from './classification.js';
 
 const USAGE = `Catalog image pipeline. Usage: npm run pipeline -- <command> [flags]
 
@@ -29,6 +30,7 @@ Commands (in workflow order):
   run         generate -> qa -> generate (retries) -> qa            [--yes]
   status      Show progress and estimated remaining cost
   doctor      Check env vars, models and connectivity
+  classify    Write unresolved candidate inventory, review table and contact sheet
 
 Flags:
   --yes       Skip confirmation prompts
@@ -137,6 +139,9 @@ async function main(): Promise<void> {
       break;
     case 'doctor':
       await doctor();
+      break;
+    case 'classify':
+      await writeClassificationArtifacts();
       break;
     default:
       console.log(USAGE);

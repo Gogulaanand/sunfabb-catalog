@@ -15,6 +15,7 @@ const mockCategory = {
 
 const mockCategoriesService = {
   findAll: jest.fn(),
+  findPublic: jest.fn(),
   findOne: jest.fn(),
   create: jest.fn(),
   update: jest.fn(),
@@ -48,6 +49,15 @@ describe('CategoriesController', () => {
 
       expect(result).toEqual([mockCategory]);
       expect(mockCategoriesService.findAll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('findPublic', () => {
+    it('returns the public category facets', async () => {
+      mockCategoriesService.findPublic.mockResolvedValue([mockCategory]);
+
+      await expect(controller.findPublic()).resolves.toEqual([mockCategory]);
+      expect(mockCategoriesService.findPublic).toHaveBeenCalledTimes(1);
     });
   });
 

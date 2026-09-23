@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
-import { getCategories, getProducts } from "@/lib/api";
+import { getPublicCategories, getProducts } from "@/lib/api";
 import { getAllGuides } from "@/lib/guides";
 import { SITE_URL, TRUST_PAGE_LINKS } from "@/lib/site-config";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [categories, productsData] = await Promise.all([
-    getCategories().catch(() => []),
+    getPublicCategories().catch(() => []),
     getProducts({ limit: 100 }).catch(() => ({
       items: [],
       total: 0,

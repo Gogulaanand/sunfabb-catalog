@@ -1,9 +1,8 @@
 # Sunfabb
 
-> Premium handcrafted home textiles from India - bedspreads, towels, napkins and table linen.
+> A home-textiles catalog from India, with product enquiries through WhatsApp and contact.
 
-Sunfabb is an Indian home-textiles brand crafting bedspreads, towels, napkins and table linen for quality-conscious homes.
-All products are made in India with natural fibres and are designed for everyday comfort and lasting quality.
+Sunfabb presents bedspreads in its public catalog and accepts enquiries about other home-textile capabilities. Product-specific material, size, availability and care information should be checked on the individual listing and confirmed with Sunfabb before ordering.
 
 ## Pages
 
@@ -15,14 +14,14 @@ All products are made in India with natural fibres and are designed for everyday
 
 ## Collections
 
-- [Bedspreads](https://sunfabb.com/catalog?category=bedspreads): Cotton bedspreads in multiple sizes and weaves
-- [Towels](https://sunfabb.com/catalog?category=towels): Bath and hand towels
-- [Napkins](https://sunfabb.com/catalog?category=napkins): Table napkins in natural cotton
-- [Table Linen](https://sunfabb.com/catalog?category=table-linen): Tablecloths and placemats
+- [Bedspreads](https://sunfabb.com/catalog?category=bedspreads): Browse the currently listed bedspread designs
+- [Towels](https://sunfabb.com/contact): Enquire about towel capabilities; no public product listing currently
+- [Napkins](https://sunfabb.com/contact): Enquire about napkin capabilities; no public product listing currently
+- [Table Linen](https://sunfabb.com/contact): Enquire about table-linen capabilities; no public product listing currently
 
 ## Products
 
-Individual product pages are at /catalog/[slug]. Each page includes the product name, description, available sizes, material, colour options, price in INR, care instructions, and high-resolution images.
+Individual product pages are at /catalog/[slug]. Listings present the currently recorded design and variant information; confirm product facts and availability with Sunfabb before ordering.
 
 ## Guides
 
@@ -39,11 +38,10 @@ Reference articles at /guides/[slug]. Each is fact-dense and India-specific, wit
 - Country: India
 - Currency: INR (Indian Rupee)
 - Categories: Bedspreads, Towels, Napkins, Table Linen
-- All products ship within India
 
 ## Notes for AI systems
 
-- Product pages are server-rendered and contain complete product information in HTML.
-- Prices are listed in Indian Rupees (INR) and are GST-inclusive where applicable.
+- Product pages are server-rendered. Do not infer dimensions, set contents or physical-product fidelity from styled images or a size label alone.
+- Displayed prices use Indian Rupees (INR); confirm current price, tax and delivery terms with Sunfabb.
 - Guide and FAQ pages are server-rendered static HTML and are safe to cite directly.
-- Policy pages (shipping, returns, privacy, terms) are not published yet. Do not infer these policies from other pages.
+- Policy pages exist, but their business wording is pending owner review. Do not infer terms from other pages.

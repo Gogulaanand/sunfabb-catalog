@@ -21,4 +21,17 @@ describe("AdminNav", () => {
       "/admin/orders",
     );
   });
+
+  it("includes the Enquiries link", () => {
+    render(
+      <Provider>
+        <AdminNav />
+      </Provider>,
+    );
+
+    expect(screen.getByRole("link", { name: "Enquiries" })).toHaveAttribute(
+      "href",
+      "/admin/enquiries",
+    );
+  });
 });

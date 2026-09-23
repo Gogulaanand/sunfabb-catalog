@@ -1,4 +1,4 @@
-import { Controller, Delete, Param, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Param, Patch, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { ImagesService } from './images.service.js';
 
@@ -10,5 +10,10 @@ export class ImagesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.imagesService.remove(id);
+  }
+
+  @Patch(':id/cover')
+  makeCover(@Param('id') id: string) {
+    return this.imagesService.makeCover(id);
   }
 }

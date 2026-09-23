@@ -1,5 +1,17 @@
 import Image from "next/image";
 import { TrackedContentLink } from "@/components/analytics/tracked-content-link";
+import { TrackedWhatsAppLink } from "@/components/analytics/tracked-whatsapp-link";
+import {
+  buildCapabilityEnquiryMessage,
+  whatsappLink,
+} from "@/lib/site-config";
+
+const tableLinenEnquiryHref = whatsappLink(
+  buildCapabilityEnquiryMessage("Table linen"),
+);
+
+const enquiryClassName =
+  "mt-10 inline-flex min-h-12 w-fit items-center rounded-sm border border-home-graphite bg-home-graphite px-7 text-sm font-semibold text-white transition-colors hover:bg-home-walnut focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-graphite focus-visible:ring-offset-2";
 
 export function TableLinenSplit() {
   return (
@@ -31,15 +43,29 @@ export function TableLinenSplit() {
           <span className="h-12 w-12 rounded-full border border-home-stone bg-[#e5e0d8] shadow-sm" />
           <span className="h-12 w-12 rounded-full border border-home-stone bg-[#c2b5a8] shadow-sm" />
         </div>
-        <TrackedContentLink
-          href="/catalog?category=table-linen"
-          contentType="homepage_cta"
-          contentId="table_linen_browse"
-          linkLocation="table_linen_split"
-          className="mt-10 inline-flex min-h-12 w-fit items-center rounded-sm border border-home-graphite bg-home-graphite px-7 text-sm font-semibold text-white transition-colors hover:bg-home-walnut focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-home-graphite focus-visible:ring-offset-2"
-        >
-          Browse table linen
-        </TrackedContentLink>
+        {tableLinenEnquiryHref ? (
+          <TrackedWhatsAppLink
+            href={tableLinenEnquiryHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            tracking={{ linkLocation: "home_guided_enquiry" }}
+            aria-label="Enquire about table linen"
+            className={enquiryClassName}
+          >
+            Enquire about table linen
+          </TrackedWhatsAppLink>
+        ) : (
+          <TrackedContentLink
+            href="/contact"
+            contentType="homepage_cta"
+            contentId="table_linen_enquiry"
+            linkLocation="table_linen_split"
+            aria-label="Enquire about table linen"
+            className={enquiryClassName}
+          >
+            Enquire about table linen
+          </TrackedContentLink>
+        )}
       </div>
     </div>
   );

@@ -2,14 +2,21 @@ import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
 import remarkGfm from "remark-gfm";
 import { getStorefrontMode } from "./lib/storefront-mode";
+import { getAdminLoginProxySecret } from "./lib/admin-login-proxy";
 
 if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_API_URL) {
   throw new Error("NEXT_PUBLIC_API_URL must be set in production");
 }
 
 getStorefrontMode();
+getAdminLoginProxySecret();
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "4mb",
+    },
+  },
   images: {
     remotePatterns: [
       {

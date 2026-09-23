@@ -100,9 +100,18 @@ describe('ProductDetailInteractive', () => {
       />,
     );
 
-    expect(
-      screen.getByRole('link', { name: 'Enquire on WhatsApp' }),
-    ).toHaveAttribute('href', expect.stringContaining('wa.me/917010735152'));
+    const enquiryLink = screen.getByRole('link', { name: 'Enquire on WhatsApp' });
+    expect(enquiryLink).toHaveAttribute(
+      'href',
+      expect.stringContaining('wa.me/917010735152'),
+    );
+    const enquiryHref = enquiryLink.getAttribute('href') ?? '';
+    expect(decodeURIComponent(enquiryHref)).toContain(
+      'Queen · Red · Cotton',
+    );
+    expect(decodeURIComponent(enquiryHref)).toContain(
+      'Product link: https://sunfabb.com/catalog/lead-generation-bedspread',
+    );
     expect(
       screen.queryByRole('button', { name: 'Add to Cart' }),
     ).not.toBeInTheDocument();

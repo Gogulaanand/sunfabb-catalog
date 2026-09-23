@@ -3,16 +3,30 @@ import { test, expect } from "@playwright/test";
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@sunfabb.com";
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "TestPassword123!";
 
+let adminStorageState:
+  | Awaited<
+      ReturnType<import("@playwright/test").BrowserContext["storageState"]>
+    >
+  | undefined;
+
 // Unique per run so re-runs against a persistent DB don't collide on
 // unique constraints (slug/name).
 const RUN_ID = `${Date.now()}`.slice(-6);
 
 async function loginAsAdmin(page: import("@playwright/test").Page) {
+  if (adminStorageState) {
+    await page.context().addCookies(adminStorageState.cookies);
+    await page.goto("/admin");
+    await expect(page).toHaveURL("/admin");
+    return;
+  }
+
   await page.goto("/admin/login");
   await page.getByLabel("Email").fill(ADMIN_EMAIL);
   await page.getByLabel("Password", { exact: true }).fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: "Log in" }).click();
   await expect(page).toHaveURL("/admin");
+  adminStorageState = await page.context().storageState();
 }
 
 test.describe.serial("golden path: storefront browse + admin CRUD", () => {
@@ -80,12 +94,7 @@ test.describe.serial("golden path: storefront browse + admin CRUD", () => {
   });
 
   test("admin login with valid credentials reaches the dashboard", async ({ page }) => {
-    await page.goto("/admin/login");
-    await page.getByLabel("Email").fill(ADMIN_EMAIL);
-    await page.getByLabel("Password", { exact: true }).fill(ADMIN_PASSWORD);
-    await page.getByRole("button", { name: "Log in" }).click();
-
-    await expect(page).toHaveURL("/admin");
+    await loginAsAdmin(page);
     await expect(page.getByRole("navigation").getByRole("link", { name: "Categories" })).toBeVisible();
   });
 
@@ -129,7 +138,7 @@ test.describe.serial("golden path: storefront browse + admin CRUD", () => {
     await expect(page.getByRole("heading", { name: productName })).toBeVisible();
   });
 
-  test("admin can add and then remove a variant", async ({ page }) => {
+  test("admin can add, hide, and restore a variant", async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto(`/admin/products/${productSlug}`);
 
@@ -143,9 +152,11 @@ test.describe.serial("golden path: storefront browse + admin CRUD", () => {
     const variantRow = page.getByRole("row", { name: new RegExp(`E2E-${RUN_ID}`) });
     await expect(variantRow).toBeVisible();
 
-    await variantRow.getByRole("button", { name: "Remove" }).click();
+    await variantRow.getByRole("button", { name: "Hide" }).click();
     await page.getByRole("alertdialog").getByRole("button", { name: "Delete" }).click();
 
-    await expect(page.getByText("No variants yet.")).toBeVisible();
+    await expect(variantRow.getByRole("button", { name: "Restore" })).toBeVisible();
+    await variantRow.getByRole("button", { name: "Restore" }).click();
+    await expect(variantRow.getByRole("button", { name: "Hide" })).toBeVisible();
   });
 });

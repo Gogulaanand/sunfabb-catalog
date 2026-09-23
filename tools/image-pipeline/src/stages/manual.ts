@@ -1,9 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { WORK_DIR } from '../config.js';
-import { SWAP_PROMPT, SWATCH_PROMPT, sceneSetFor, scenePrompt } from '../prompts.js';
-import { activeItems, loadManifest, loadState, upsertArtifact } from '../state.js';
-import { artifactKey, type ManifestItem } from '../types.js';
+import { ROOT, WORK_DIR } from '../config.js';
+import { SWAP_PROMPT, SWATCH_PROMPT, productScenePrompt, scenePrompt, sceneSetFor, productSceneSet } from '../prompts.js';
+import { generationReadyItems, loadManifest, loadState, upsertArtifact } from '../state.js';
+import { artifactKey, classificationReadinessIssues, type ManifestItem } from '../types.js';
 import { ensureDir } from '../util.js';
 import { cropFileName } from './crop.js';
 
@@ -20,12 +20,17 @@ export interface ManualStep {
 const SQUARE_NOTE = ' Square 1:1 aspect ratio.';
 const LANDSCAPE_NOTE = ' Landscape 4:3 aspect ratio.';
 
+function workRelativePath(...parts: string[]): string {
+  const relativeWorkDir = path.relative(ROOT, WORK_DIR).split(path.sep).join('/');
+  return path.posix.join(relativeWorkDir || '.', ...parts);
+}
+
 function swatchPath(designNo: string, color: string): string {
-  return path.posix.join('work', 'swatches', `${designNo}-${color}.png`);
+  return workRelativePath('swatches', `${designNo}-${color}.png`);
 }
 
 function scenePath(designNo: string, color: string, shot: string): string {
-  return path.posix.join('work', 'scenes', designNo, color, `${shot}.png`);
+  return workRelativePath('scenes', designNo, color, `${shot}.png`);
 }
 
 /**
@@ -39,23 +44,29 @@ export function buildManualSteps(item: ManifestItem): ManualStep[] {
     steps.push({
       kind: 'swatch',
       key: artifactKey(item.designNo, colorway.color, 'swatch'),
-      attach: [path.posix.join('work', 'crops', cropFileName(item.designNo, colorway.color))],
+      attach: [workRelativePath('crops', cropFileName(item.designNo, colorway.color))],
       saveAs: swatchPath(item.designNo, colorway.color),
       prompt: SWATCH_PROMPT + SQUARE_NOTE,
     });
   }
   const master = item.colorways[0];
   if (!master) return steps;
-  for (const spec of sceneSetFor(item.category)) {
+  const sceneSet = item.release?.productType && item.release.productType !== 'unknown'
+    ? productSceneSet(item.release.productType)
+    : sceneSetFor(item.category);
+  for (const spec of sceneSet) {
     steps.push({
       kind: 'scene',
       key: artifactKey(item.designNo, master.color, spec.shot),
       attach: [swatchPath(item.designNo, master.color)],
       saveAs: scenePath(item.designNo, master.color, spec.shot),
-      prompt: scenePrompt(item.category, spec.shot) + LANDSCAPE_NOTE,
+      prompt:
+        item.release?.productType && item.release.productType !== 'unknown'
+          ? productScenePrompt(item.release.productType, spec.shot, item.release) + LANDSCAPE_NOTE
+          : scenePrompt(item.category, spec.shot) + LANDSCAPE_NOTE,
     });
   }
-  for (const spec of sceneSetFor(item.category)) {
+  for (const spec of sceneSet) {
     for (const colorway of item.colorways.slice(1)) {
       steps.push({
         kind: 'swap',
@@ -100,9 +111,15 @@ function stepsMarkdown(item: ManifestItem, steps: ManualStep[]): string {
 
 /** Write work/prep/{design}-steps.md for every active design. */
 export function runPrep(): void {
-  const items = activeItems(loadManifest());
+  const manifest = loadManifest();
+  const active = manifest.items.filter((item) => !item.skip);
+  const blocked = active.filter((item) => classificationReadinessIssues(item).length > 0);
+  for (const item of blocked) {
+    console.log(`  blocked ${item.designNo}: ${classificationReadinessIssues(item).join('; ')}`);
+  }
+  const items = generationReadyItems(manifest);
   if (items.length === 0) {
-    console.log('Manifest is empty. Run: npm run pipeline -- scan');
+    console.log('No generation-ready classifications. Complete the classification review before prep.');
     return;
   }
   const prepDir = path.join(WORK_DIR, 'prep');
@@ -124,17 +141,17 @@ const IMPORT_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp'];
 
 /** Given a step's saveAs ("work/..."), find the file on disk; returns a work/-relative path. */
 function findExisting(saveAsPng: string): string | undefined {
-  const base = saveAsPng.replace(/^work\//, '').replace(/\.png$/, '');
+  const base = path.resolve(ROOT, saveAsPng).replace(/\.png$/, '');
   for (const ext of IMPORT_EXTENSIONS) {
     const candidate = `${base}.${ext}`;
-    if (fs.existsSync(path.join(WORK_DIR, candidate))) return candidate;
+    if (fs.existsSync(candidate)) return path.relative(WORK_DIR, candidate);
   }
   return undefined;
 }
 
 /** Register manually generated files (from prep steps) as pipeline artifacts. */
 export function runImport(): void {
-  const items = activeItems(loadManifest());
+  const items = generationReadyItems(loadManifest());
   const state = loadState();
   let added = 0;
   let missing = 0;

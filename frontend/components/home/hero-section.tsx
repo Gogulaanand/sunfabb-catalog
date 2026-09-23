@@ -3,14 +3,19 @@
 import Image from "next/image";
 import { motion } from "motion/react";
 import { TrackedContentLink } from "@/components/analytics/tracked-content-link";
+import { TrackedWhatsAppLink } from "@/components/analytics/tracked-whatsapp-link";
+import {
+  buildCapabilityEnquiryMessage,
+  whatsappLink,
+} from "@/lib/site-config";
 
 const HERO_IMAGE = "/images/home/sunfabb-hero-option-e.png";
 
 const HERO_CATEGORIES = [
-  { label: "Bedspreads", href: "/catalog?category=bedspreads", id: "hero_category_bedspreads" },
-  { label: "Towels", href: "/catalog?category=towels", id: "hero_category_towels" },
-  { label: "Table linen", href: "/catalog?category=table-linen", id: "hero_category_table_linen" },
-  { label: "Napkins", href: "/catalog?category=table-linen", id: "hero_category_napkins" },
+  { kind: "catalog", label: "Bedspreads", href: "/catalog?category=bedspreads", id: "hero_category_bedspreads" },
+  { kind: "capability", label: "Towels", capability: "Towels", id: "hero_category_towels" },
+  { kind: "capability", label: "Table linen", capability: "Table linen", id: "hero_category_table_linen" },
+  { kind: "capability", label: "Napkins", capability: "Napkins", id: "hero_category_napkins" },
 ] as const;
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -85,17 +90,37 @@ export function HeroSection() {
       >
         <div className="mx-auto flex h-16 max-w-(--spacing-container-max) items-center gap-10 px-(--spacing-margin-desktop)">
           {HERO_CATEGORIES.map((category) => (
-            <TrackedContentLink
-              key={category.id}
-              href={category.href}
-              contentType="homepage_cta"
-              contentId={category.id}
-              linkLocation="hero_category_ribbon"
-              className="inline-flex items-center gap-3 rounded text-sm font-medium text-white/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              {category.label}
-              <span aria-hidden="true">→</span>
-            </TrackedContentLink>
+            category.kind === "catalog" ? (
+              <TrackedContentLink
+                key={category.id}
+                href={category.href}
+                contentType="homepage_cta"
+                contentId={category.id}
+                linkLocation="hero_category_ribbon"
+                className="inline-flex items-center gap-3 rounded text-sm font-medium text-white/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                {category.label}
+                <span aria-hidden="true">→</span>
+              </TrackedContentLink>
+            ) : (
+              <TrackedWhatsAppLink
+                key={category.id}
+                href={whatsappLink(
+                  buildCapabilityEnquiryMessage(category.capability),
+                ) ?? "/contact"}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Enquire about ${category.label}`}
+                tracking={{ linkLocation: "home_guided_enquiry" }}
+                className="inline-flex items-center gap-3 rounded text-sm font-medium text-white/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                {category.label}
+                <span className="text-[0.65rem] uppercase tracking-[0.12em] text-white/65">
+                  Enquire
+                </span>
+                <span aria-hidden="true">→</span>
+              </TrackedWhatsAppLink>
+            )
           ))}
         </div>
       </nav>

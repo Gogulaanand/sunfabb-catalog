@@ -26,11 +26,15 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  publishProduct,
+  restoreProduct,
   addVariant,
   updateVariant,
   deleteVariant,
   addImage,
   deleteImage,
+  deleteUploadedImage,
+  setImageCover,
   uploadImage,
   getAdminOrder,
   listAdminOrders,
@@ -45,8 +49,12 @@ describe("admin-api", () => {
     slug: "royal-bedspread",
     description: null,
     care_instructions: null,
+    measured_width_cm: 240,
+    measured_length_cm: 260,
+    set_contents: "1 bedspread and 1 pillow cover",
     category_id: "category-1",
     is_active: true,
+    published_at: "2026-07-18T08:30:00.000Z",
     category: { name: "Bedspreads", slug: "bedspreads" },
     variants: [
       {
@@ -73,6 +81,22 @@ describe("admin-api", () => {
         image_role: "GALLERY",
       },
     ],
+  };
+
+  const productMutationFixture = {
+    id: "product-1",
+    name: "Royal Bedspread",
+    slug: "royal-bedspread",
+    description: "A customer-ready woven bedspread.",
+    care_instructions: null,
+    measured_width_cm: 240,
+    measured_length_cm: 260,
+    set_contents: "1 bedspread and 1 pillow cover",
+    category_id: "category-1",
+    is_active: true,
+    published_at: "2026-07-18T08:30:00.000Z",
+    created_at: "2026-07-18T08:30:00.000Z",
+    updated_at: "2026-07-18T08:35:00.000Z",
   };
 
   const adminOrderDetailFixture = {
@@ -104,7 +128,11 @@ describe("admin-api", () => {
     placed_at: "2026-07-18T08:35:00.000Z",
     created_at: "2026-07-18T08:30:00.000Z",
     updated_at: "2026-07-18T08:35:00.000Z",
-    customer: { full_name: "Jane Doe", email: "jane@example.com", phone: "9876543210" },
+    customer: {
+      full_name: "Jane Doe",
+      email: "jane@example.com",
+      phone: "9876543210",
+    },
     items: [
       {
         id: "770e8400-e29b-41d4-a716-446655440000",
@@ -136,7 +164,12 @@ describe("admin-api", () => {
       },
     ],
     shipment: null,
-    allowed_next_statuses: ["PROCESSING", "CANCELLED", "REFUNDED", "PARTIALLY_REFUNDED"],
+    allowed_next_statuses: [
+      "PROCESSING",
+      "CANCELLED",
+      "REFUNDED",
+      "PARTIALLY_REFUNDED",
+    ],
   };
 
   beforeEach(() => {
@@ -151,20 +184,32 @@ describe("admin-api", () => {
   });
 
   it("attaches the Authorization header from the admin_token cookie", async () => {
-    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => [] });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => [],
+    });
     await listCategories();
 
     const [, init] = fetchMock.mock.calls[0];
-    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer test-jwt");
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      "Bearer test-jwt",
+    );
   });
 
   it("omits Authorization when there is no cookie", async () => {
     getMock.mockReturnValue(undefined);
-    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => [] });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => [],
+    });
     await listCategories();
 
     const [, init] = fetchMock.mock.calls[0];
-    expect((init.headers as Record<string, string>).Authorization).toBeUndefined();
+    expect(
+      (init.headers as Record<string, string>).Authorization,
+    ).toBeUndefined();
   });
 
   it("throws AdminApiError with the response status and message on failure", async () => {
@@ -175,7 +220,9 @@ describe("admin-api", () => {
       json: async () => ({ message: "slug already exists" }),
     });
 
-    await expect(createCategory({ name: "Bedspreads", slug: "bedspreads" })).rejects.toMatchObject({
+    await expect(
+      createCategory({ name: "Bedspreads", slug: "bedspreads" }),
+    ).rejects.toMatchObject({
       status: 400,
       message: "slug already exists",
     });
@@ -213,25 +260,90 @@ describe("admin-api", () => {
       },
     });
 
-    const error = (await createCategory({ name: "x", slug: "x" }).catch((e) => e)) as AdminApiError;
+    const error = (await createCategory({ name: "x", slug: "x" }).catch(
+      (e) => e,
+    )) as AdminApiError;
     expect(error).toBeInstanceOf(AdminApiError);
     expect(error.status).toBe(500);
   });
 
   it("returns undefined for 204 No Content responses", async () => {
-    fetchMock.mockResolvedValue({ ok: true, status: 204, json: async () => ({}) });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => ({}),
+    });
     await expect(deleteCategory("1")).resolves.toBeUndefined();
   });
 
+  it("keeps explicit nulls in product updates so nullable copy can be cleared", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => productMutationFixture,
+    });
+
+    await updateProduct("product-1", {
+      description: null,
+      care_instructions: null,
+    });
+
+    const [, init] = fetchMock.mock.calls[0];
+    expect(JSON.parse(init.body as string)).toMatchObject({
+      description: null,
+      care_instructions: null,
+    });
+  });
+
   it.each([
-    ["updateCategory", () => updateCategory("1", { name: "x" }), "/categories/1", "PATCH"],
+    [
+      "createProduct",
+      () => createProduct({ name: "x", slug: "x", category_id: "1" }),
+    ],
+    ["updateProduct", () => updateProduct("1", { name: "x" })],
+    ["deleteProduct", () => deleteProduct("1")],
+  ] as const)(
+    "runtime-validates the %s mutation response",
+    async (_name, action) => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: "product-1" }),
+      });
+
+      await expect(action()).rejects.toThrow();
+    },
+  );
+
+  it.each([
+    [
+      "updateCategory",
+      () => updateCategory("1", { name: "x" }),
+      "/categories/1",
+      "PATCH",
+    ],
     ["listMaterials", () => listMaterials(), "/materials", "GET"],
-    ["createMaterial", () => createMaterial({ name: "Cotton" }), "/materials", "POST"],
-    ["updateMaterial", () => updateMaterial("1", { name: "x" }), "/materials/1", "PATCH"],
+    [
+      "createMaterial",
+      () => createMaterial({ name: "Cotton" }),
+      "/materials",
+      "POST",
+    ],
+    [
+      "updateMaterial",
+      () => updateMaterial("1", { name: "x" }),
+      "/materials/1",
+      "PATCH",
+    ],
     ["deleteMaterial", () => deleteMaterial("1"), "/materials/1", "DELETE"],
     ["listColors", () => listColors(), "/colors", "GET"],
     ["createColor", () => createColor({ name: "Indigo" }), "/colors", "POST"],
-    ["updateColor", () => updateColor("1", { name: "x" }), "/colors/1", "PATCH"],
+    [
+      "updateColor",
+      () => updateColor("1", { name: "x" }),
+      "/colors/1",
+      "PATCH",
+    ],
     ["deleteColor", () => deleteColor("1"), "/colors/1", "DELETE"],
     // getAdminProducts is not in this list: it runtime-validates its response,
     // so the shared `{}` mock body would fail the parse. It has dedicated
@@ -242,7 +354,12 @@ describe("admin-api", () => {
       "/products",
       "POST",
     ],
-    ["updateProduct", () => updateProduct("1", { name: "x" }), "/products/1", "PATCH"],
+    [
+      "updateProduct",
+      () => updateProduct("1", { name: "x" }),
+      "/products/1",
+      "PATCH",
+    ],
     ["deleteProduct", () => deleteProduct("1"), "/products/1", "DELETE"],
     [
       "addVariant",
@@ -258,12 +375,23 @@ describe("admin-api", () => {
       "/products/1/variants",
       "POST",
     ],
-    ["updateVariant", () => updateVariant("1", { price: 200 }), "/variants/1", "PATCH"],
+    [
+      "updateVariant",
+      () => updateVariant("1", { price: 200 }),
+      "/variants/1",
+      "PATCH",
+    ],
     ["deleteVariant", () => deleteVariant("1"), "/variants/1", "DELETE"],
-    ["addImage", () => addImage("1", { url: "https://x" }), "/products/1/images", "POST"],
     ["deleteImage", () => deleteImage("1"), "/images/1", "DELETE"],
   ] as const)("%s calls %s with method %s", async (_name, fn, path, method) => {
-    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({}) });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () =>
+        ["/products", "/products/1"].includes(path)
+          ? productMutationFixture
+          : {},
+    });
     await fn();
 
     const [url, init] = fetchMock.mock.calls[0];
@@ -281,6 +409,7 @@ describe("admin-api", () => {
           description: "Woven in Karur.",
           care_instructions: "Cold wash.",
           is_active: true,
+          published_at: "2026-07-18T08:30:00.000Z",
           category: { name: "Bedspreads", slug: "bedspreads" },
           images: [{ url: "https://res.cloudinary.com/x.jpg" }],
           _count: { images: 4 },
@@ -316,6 +445,7 @@ describe("admin-api", () => {
             description: null,
             care_instructions: null,
             is_active: true,
+            published_at: null,
             category: { name: "Bedspreads", slug: "bedspreads" },
             images: [],
             variants: [],
@@ -331,10 +461,64 @@ describe("admin-api", () => {
   });
 
   it("runtime-validates the admin product detail response", async () => {
-    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => adminProductFixture });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => adminProductFixture,
+    });
 
-    await expect(getAdminProduct("royal-bedspread")).resolves.toEqual(adminProductFixture);
+    await expect(getAdminProduct("royal-bedspread")).resolves.toEqual(
+      adminProductFixture,
+    );
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      "/products/admin/royal-bedspread",
+    );
   });
+
+  it("rejects admin detail when measured owner facts are missing", async () => {
+    const { measured_width_cm, ...withoutMeasuredWidth } = adminProductFixture;
+    void measured_width_cm;
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => withoutMeasuredWidth,
+    });
+
+    await expect(getAdminProduct("royal-bedspread")).rejects.toThrow();
+  });
+
+  it.each([
+    [
+      "addImage",
+      () => addImage("1", { url: "https://x" }),
+      "/products/1/images",
+      "POST",
+    ],
+    ["setImageCover", () => setImageCover("1"), "/images/1/cover", "PATCH"],
+  ] as const)(
+    "%s uses its protected image endpoint",
+    async (_name, action, path, method) => {
+      const image = {
+        id: "image-1",
+        url: "https://example.com/image.jpg",
+        alt_text: null,
+        sort_order: 0,
+        is_primary: true,
+        variant_id: null,
+        image_role: "GALLERY",
+      };
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => image,
+      });
+
+      await expect(action()).resolves.toEqual(image);
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toContain(path);
+      expect(init.method).toBe(method);
+    },
+  );
 
   it("rejects an admin product detail response with malformed image metadata", async () => {
     fetchMock.mockResolvedValue({
@@ -349,8 +533,34 @@ describe("admin-api", () => {
     await expect(getAdminProduct("royal-bedspread")).rejects.toThrow();
   });
 
+  it.each([
+    ["publishProduct", publishProduct, "/products/product-1/publish"],
+    ["restoreProduct", restoreProduct, "/products/product-1/restore"],
+  ] as const)(
+    "%s uses the protected publication endpoint",
+    async (_name, action, path) => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => productMutationFixture,
+      });
+
+      await expect(action("product-1")).resolves.toEqual(
+        productMutationFixture,
+      );
+
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toContain(path);
+      expect(init.method).toBe("PATCH");
+    },
+  );
+
   it("uploadImage sends multipart form data with the bearer token, no Content-Type override", async () => {
-    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => ({ url: "x", public_id: "y" }) });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ url: "x", public_id: "y" }),
+    });
     const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
 
     await uploadImage(file);
@@ -358,7 +568,29 @@ describe("admin-api", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain("/admin/images/upload");
     expect(init.body).toBeInstanceOf(FormData);
-    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer test-jwt");
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      "Bearer test-jwt",
+    );
+  });
+
+  it("deleteUploadedImage calls the authenticated orphan-cleanup endpoint", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => undefined,
+    });
+
+    await expect(deleteUploadedImage("sunfabb/image")).resolves.toBeUndefined();
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain("/admin/images/upload");
+    expect(init).toMatchObject({
+      method: "DELETE",
+      body: JSON.stringify({ public_id: "sunfabb/image" }),
+    });
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      "Bearer test-jwt",
+    );
   });
 
   it("uploadImage throws AdminApiError on failure", async () => {
@@ -370,7 +602,31 @@ describe("admin-api", () => {
       json: async () => ({ message: "file too large" }),
     });
 
-    await expect(uploadImage(new File(["x"], "a.jpg"))).rejects.toMatchObject({ status: 413 });
+    await expect(
+      uploadImage(new File(["x"], "a.jpg", { type: "image/jpeg" })),
+    ).rejects.toMatchObject({ status: 413 });
+  });
+
+  it("uploadImage rejects unsupported MIME types before sending a request", async () => {
+    await expect(
+      uploadImage(new File(["x"], "a.gif", { type: "image/gif" })),
+    ).rejects.toMatchObject({
+      status: 415,
+      message: "Choose a JPEG, PNG, or WebP image.",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("uploadImage rejects a post-process payload above the backend's 3 MB limit", async () => {
+    const file = new File([new Uint8Array(3 * 1024 * 1024 + 1)], "large.jpg", {
+      type: "image/jpeg",
+    });
+
+    await expect(uploadImage(file)).rejects.toMatchObject({
+      status: 413,
+      message: "Prepare the image under 3 MB before uploading.",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("lists admin orders with validated filters and pagination", async () => {
@@ -393,23 +649,41 @@ describe("admin-api", () => {
       page: 2,
       limit: 10,
     };
-    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => response });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => response,
+    });
 
     await expect(
-      listAdminOrders({ page: 2, limit: 10, status: "PAID", date_from: "2026-07-01", date_to: "2026-07-18" }),
+      listAdminOrders({
+        page: 2,
+        limit: 10,
+        status: "PAID",
+        date_from: "2026-07-01",
+        date_to: "2026-07-18",
+      }),
     ).resolves.toEqual(response);
 
     const [url] = fetchMock.mock.calls[0];
-    expect(url).toContain("/admin/orders?page=2&limit=10&status=PAID&date_from=2026-07-01&date_to=2026-07-18");
+    expect(url).toContain(
+      "/admin/orders?page=2&limit=10&status=PAID&date_from=2026-07-01&date_to=2026-07-18",
+    );
   });
 
   it("gets and updates a validated admin order detail", async () => {
-    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => adminOrderDetailFixture });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => adminOrderDetailFixture,
+    });
 
-    await expect(getAdminOrder(adminOrderDetailFixture.id)).resolves.toEqual(adminOrderDetailFixture);
-    await expect(updateAdminOrderStatus(adminOrderDetailFixture.id, "PROCESSING")).resolves.toEqual(
+    await expect(getAdminOrder(adminOrderDetailFixture.id)).resolves.toEqual(
       adminOrderDetailFixture,
     );
+    await expect(
+      updateAdminOrderStatus(adminOrderDetailFixture.id, "PROCESSING"),
+    ).resolves.toEqual(adminOrderDetailFixture);
 
     const [url, init] = fetchMock.mock.calls[1];
     expect(url).toContain(`/admin/orders/${adminOrderDetailFixture.id}/status`);

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Box, Button, Dialog, Heading, HStack, Input, NativeSelect, Portal, Stack, Table } from "@chakra-ui/react";
+import { Box, Button, Dialog, Heading, HStack, Input, NativeSelect, Portal, Stack, Table, Text } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import { ConfirmDeleteDialog } from "@/components/admin/confirm-delete-dialog";
 import type { Color, Material } from "@/lib/api";
@@ -186,6 +186,20 @@ export function VariantsSection({
   colors: Color[];
 }) {
   const router = useRouter();
+  const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+
+  async function handleRestore(variantId: string) {
+    setRestoringId(variantId);
+    setRestoreError(null);
+    const result = await updateVariantAction(variantId, product.slug, { is_active: true });
+    setRestoringId(null);
+    if (!result.ok) {
+      setRestoreError(result.error);
+      return;
+    }
+    router.refresh();
+  }
 
   return (
     <Box borderWidth="1px" borderColor="border" borderRadius="lg" p="6" bg="bg.panel">
@@ -222,6 +236,12 @@ export function VariantsSection({
           No variants yet.
         </Box>
       ) : (
+        <>
+        {restoreError && (
+          <Text color="red.600" fontSize="sm" mb="3" role="alert">
+            {restoreError}
+          </Text>
+        )}
         <Table.Root size="sm" variant="outline">
           <Table.Header>
             <Table.Row>
@@ -274,26 +294,39 @@ export function VariantsSection({
                         return result.ok ? { ok: true } : { ok: false, error: result.error };
                       }}
                     />
-                    <ConfirmDeleteDialog
-                      trigger={
-                        <Button size="xs" colorPalette="red" variant="outline">
-                          Remove
-                        </Button>
-                      }
-                      title="Remove variant"
-                      description={`This deactivates the "${variant.sku}" variant. It can be reactivated later via the API.`}
-                      onConfirm={async () => {
-                        const result = await deleteVariantAction(variant.id, product.slug);
-                        if (!result.ok) throw new Error(result.error);
-                        router.refresh();
-                      }}
-                    />
+                    {variant.is_active ? (
+                      <ConfirmDeleteDialog
+                        trigger={
+                          <Button size="xs" colorPalette="red" variant="outline">
+                            Hide
+                          </Button>
+                        }
+                        title="Hide variant"
+                        description={`This hides the "${variant.sku}" variant from customers. It can be restored later.`}
+                        onConfirm={async () => {
+                          const result = await deleteVariantAction(variant.id, product.slug);
+                          if (!result.ok) throw new Error(result.error);
+                          router.refresh();
+                        }}
+                      />
+                    ) : (
+                      <Button
+                        size="xs"
+                        colorPalette="primary"
+                        variant="outline"
+                        loading={restoringId === variant.id}
+                        onClick={() => void handleRestore(variant.id)}
+                      >
+                        Restore
+                      </Button>
+                    )}
                   </HStack>
                 </Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>
         </Table.Root>
+        </>
       )}
     </Box>
   );

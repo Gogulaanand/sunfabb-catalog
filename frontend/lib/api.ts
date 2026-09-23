@@ -99,12 +99,43 @@ const productImageSchema = z.object({
   image_role: productImageRoleSchema,
 });
 
+// These fields were introduced by the launch-hardening migration. Accepting a
+// missing key keeps a frontend deploy compatible with the previous backend
+// during the short rolling-deploy window; the public readers below still fail
+// closed by excluding any product whose owner facts are absent.
+const releaseFactFields = {
+  measured_width_cm: z.number().positive().nullish().transform((value) => value ?? null),
+  measured_length_cm: z.number().positive().nullish().transform((value) => value ?? null),
+  set_contents: z.string().trim().min(1).nullish().transform((value) => value ?? null),
+};
+
+type VerifiedReleaseFacts = {
+  measured_width_cm: number;
+  measured_length_cm: number;
+  set_contents: string;
+};
+
+function hasVerifiedReleaseFacts<
+  T extends {
+  measured_width_cm: number | null;
+  measured_length_cm: number | null;
+  set_contents: string | null;
+  },
+>(product: T): product is T & VerifiedReleaseFacts {
+  return (
+    product.measured_width_cm !== null &&
+    product.measured_length_cm !== null &&
+    product.set_contents !== null
+  );
+}
+
 const productSchema = z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
   care_instructions: z.string().nullable(),
+  ...releaseFactFields,
   updated_at: z.string(),
   category: productCategorySchema,
   variants: z.array(productVariantSchema),
@@ -116,6 +147,7 @@ const productListItemSchema = z.object({
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
+  ...releaseFactFields,
   updated_at: z.string(),
   category: productCategorySchema,
   variants: z.array(productListVariantSchema),
@@ -135,7 +167,7 @@ export type Color = z.infer<typeof colorSchema>;
 export type ProductVariant = z.infer<typeof productVariantSchema>;
 export type ProductImage = z.infer<typeof productImageSchema>;
 export type ProductImageRole = z.infer<typeof productImageRoleSchema>;
-export type Product = z.infer<typeof productSchema>;
+export type Product = z.infer<typeof productSchema> & VerifiedReleaseFacts;
 export type ProductListItem = z.infer<typeof productListItemSchema>;
 export type ProductsResponse = z.infer<typeof productsResponseSchema>;
 
@@ -305,6 +337,38 @@ export function getColors(): Promise<Color[]> {
   );
 }
 
+/**
+ * Public facet lookups are intentionally separate from the complete admin
+ * lookups. The backend filters these endpoints to values represented by the
+ * active catalogue, so stale taxonomy never becomes a dead storefront link.
+ */
+export function getPublicCategories(): Promise<Category[]> {
+  return fetchAndParse(
+    `${API_BASE}/categories/public`,
+    z.array(categorySchema),
+    { next: { revalidate: 60 } },
+    'Failed to fetch public categories',
+  );
+}
+
+export function getPublicMaterials(): Promise<Material[]> {
+  return fetchAndParse(
+    `${API_BASE}/materials/public`,
+    z.array(materialSchema),
+    { next: { revalidate: 60 } },
+    'Failed to fetch public materials',
+  );
+}
+
+export function getPublicColors(): Promise<Color[]> {
+  return fetchAndParse(
+    `${API_BASE}/colors/public`,
+    z.array(colorSchema),
+    { next: { revalidate: 60 } },
+    'Failed to fetch public colors',
+  );
+}
+
 export function getProducts(
   query: ProductsQuery = {},
 ): Promise<ProductsResponse> {
@@ -323,15 +387,25 @@ export function getProducts(
     productsResponseSchema,
     { next: { revalidate: 30 } },
     'Failed to fetch products',
-  ).then((response) => ({
-    ...response,
-    items: response.items.map((product) => ({
-      ...product,
-      images: product.images.filter((image) =>
-        shouldRenderStorefrontImage(image.url),
-      ),
-    })),
-  }));
+  ).then((response) => {
+    const items = response.items
+      .filter(hasVerifiedReleaseFacts)
+      .map((product) => ({
+        ...product,
+        images: product.images.filter((image) =>
+          shouldRenderStorefrontImage(image.url),
+        ),
+      }));
+
+    return {
+      ...response,
+      items,
+      // The previous backend can report legacy active rows that this frontend
+      // deliberately suppresses. Avoid rendering pagination into empty pages
+      // until the migration has hidden those rows at the source.
+      total: items.length === response.items.length ? response.total : items.length,
+    };
+  });
 }
 
 export function getProduct(slug: string): Promise<Product> {
@@ -340,10 +414,14 @@ export function getProduct(slug: string): Promise<Product> {
     productSchema,
     { next: { revalidate: 30 } },
     `Failed to fetch product: ${slug}`,
-  ).then((product) => ({
-    ...product,
-    images: product.images.filter((image) =>
-      shouldRenderStorefrontImage(image.url),
-    ),
-  }));
+  ).then((product) => {
+    if (!hasVerifiedReleaseFacts(product)) throw new NotFoundError();
+
+    return {
+      ...product,
+      images: product.images.filter((image) =>
+        shouldRenderStorefrontImage(image.url),
+      ),
+    };
+  });
 }

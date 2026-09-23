@@ -6,6 +6,9 @@ import {
   getProducts,
   getProduct,
   getCategories,
+  getPublicCategories,
+  getPublicMaterials,
+  getPublicColors,
   NotFoundError,
 } from "./api";
 
@@ -53,6 +56,9 @@ const productFixture = {
   slug: "royal-cotton-bedspread",
   description: null,
   care_instructions: null,
+  measured_width_cm: 240,
+  measured_length_cm: 260,
+  set_contents: "1 bedspread and 1 pillow cover",
   updated_at: "2026-01-01T00:00:00.000Z",
   category: productCategoryFixture,
   variants: [detailVariantFixture],
@@ -68,6 +74,9 @@ const listProductFixture = {
   name: "Royal Cotton Bedspread",
   slug: "royal-cotton-bedspread",
   description: null,
+  measured_width_cm: 240,
+  measured_length_cm: 260,
+  set_contents: "1 bedspread and 1 pillow cover",
   updated_at: "2026-01-01T00:00:00.000Z",
   category: productCategoryFixture,
   variants: [listVariantFixture],
@@ -201,6 +210,34 @@ describe("getProducts", () => {
 
     await expect(getProducts()).rejects.toThrow();
   });
+
+  it("fails closed on legacy list rows without verified release facts", async () => {
+    const {
+      measured_width_cm,
+      measured_length_cm,
+      set_contents,
+      ...legacyProduct
+    } = listProductFixture;
+    void measured_width_cm;
+    void measured_length_cm;
+    void set_contents;
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [legacyProduct],
+        total: 1,
+        page: 1,
+        limit: 20,
+      }),
+    });
+
+    await expect(getProducts()).resolves.toEqual({
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+    });
+  });
 });
 
 describe("getProduct", () => {
@@ -235,6 +272,23 @@ describe("getProduct", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("treats a legacy detail without verified release facts as not found", async () => {
+    const {
+      measured_width_cm,
+      measured_length_cm,
+      set_contents,
+      ...legacyProduct
+    } = productFixture;
+    void measured_width_cm;
+    void measured_length_cm;
+    void set_contents;
+    fetchMock.mockResolvedValue({ ok: true, json: async () => legacyProduct });
+
+    await expect(getProduct("royal-cotton-bedspread")).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
+  });
+
   it("returns a parsed product matching the real backend shape", async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => productFixture });
 
@@ -242,6 +296,15 @@ describe("getProduct", () => {
     expect(result.variants[0].stock_quantity).toBe(4);
     expect(typeof result.id).toBe("string");
     expect(result).toEqual(productFixture);
+  });
+
+  it("fails closed when a public product is missing verified set contents", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ ...productFixture, set_contents: null }),
+    });
+
+    await expect(getProduct("royal-cotton-bedspread")).rejects.toThrow();
   });
 
   it("throws when a variant is missing stock_quantity", async () => {
@@ -300,5 +363,32 @@ describe("getCategories", () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => categories });
 
     await expect(getCategories()).resolves.toEqual(categories);
+  });
+});
+
+describe("public taxonomy lookups", () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    fetchMock.mockReset();
+  });
+
+  it("uses populated public routes rather than complete admin lookups", async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => [] });
+
+    await getPublicCategories();
+    await getPublicMaterials();
+    await getPublicColors();
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      expect.stringContaining("/categories/public"),
+      expect.stringContaining("/materials/public"),
+      expect.stringContaining("/colors/public"),
+    ]);
   });
 });

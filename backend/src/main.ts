@@ -9,6 +9,7 @@ import {
   parseConfiguredOrigins,
 } from './config/cors-origin.js';
 import { getStorefrontMode } from './config/storefront-mode.js';
+import { getAdminLoginProxySecret } from './auth/admin-login-throttler.guard.js';
 
 // Node's Happy Eyeballs (autoSelectFamily) can time out connecting to hosts that
 // round-robin across IPv4 + IPv6 (e.g. Neon's pooler) on networks with no IPv6 route.
@@ -20,6 +21,7 @@ async function bootstrap() {
   // test environments the safe lead-generation default remains available; a
   // production deployment must choose its mode explicitly.
   getStorefrontMode();
+  getAdminLoginProxySecret();
 
   // rawBody: true exposes the untouched request bytes on req.rawBody, which the
   // Razorpay webhook needs to verify X-Razorpay-Signature — the HMAC is computed

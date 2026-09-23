@@ -13,6 +13,53 @@ export const CATEGORIES = ['bedspread', 'towel', 'table_linen', 'napkin', 'other
 export const CategorySchema = z.enum(CATEGORIES);
 export type Category = z.infer<typeof CategorySchema>;
 
+export const PRODUCT_TYPES = ['bedspread', 'bedsheet', 'blanket', 'unknown'] as const;
+export const ProductTypeSchema = z.enum(PRODUCT_TYPES);
+export type ProductType = z.infer<typeof ProductTypeSchema>;
+
+export const CLASSIFICATION_STATUSES = [
+  'unclassified',
+  'ready',
+  're-photograph',
+  'identification-pending',
+  'duplicate',
+  'authorization-blocked',
+] as const;
+export const ClassificationStatusSchema = z.enum(CLASSIFICATION_STATUSES);
+export type ClassificationStatus = z.infer<typeof ClassificationStatusSchema>;
+
+export const CropQualitySchema = z.enum(['accepted', 're-photograph', 'not-reviewed']);
+export type CropQuality = z.infer<typeof CropQualitySchema>;
+
+export const SetContentsSchema = z.object({
+  pieces: z.array(z.string().trim().min(1)).min(1),
+  pillowCoverCount: z.number().int().min(0),
+});
+
+const OptionalCommercialCopy = z.string().trim().min(1).nullable().optional();
+
+/** Classification and owner-recorded release facts. No commercial defaults belong here. */
+export const ReleaseMetadataSchema = z.object({
+  productType: ProductTypeSchema,
+  measuredWidthCm: z.number().positive().nullable(),
+  measuredLengthCm: z.number().positive().nullable(),
+  materialConstruction: z.string().trim().min(1).nullable(),
+  setContents: SetContentsSchema.nullable(),
+  sourceQuality: CropQualitySchema,
+  classificationStatus: ClassificationStatusSchema,
+  commercialDesignNo: z.string().trim().regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).nullable(),
+  commercialName: z.string().trim().min(1).nullable(),
+  variantSize: z.string().trim().min(1).nullable(),
+  materialName: z.string().trim().min(1).nullable(),
+  pricePaise: z.number().int().positive().nullable(),
+  stockQuantity: z.number().int().positive().nullable(),
+  /** Explicit owner-approved public copy; optional in classification files, required to publish. */
+  description: OptionalCommercialCopy,
+  careInstructions: OptionalCommercialCopy,
+  notes: z.string().optional(),
+});
+export type ReleaseMetadata = z.infer<typeof ReleaseMetadataSchema>;
+
 /** Lowercase kebab-case slug, e.g. "dusty-pink". */
 export const SlugSchema = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
 
@@ -29,6 +76,7 @@ export const ManifestItemSchema = z.object({
   /** Set true in Checkpoint A to exclude a photo from all later stages. */
   skip: z.boolean().optional(),
   colorways: z.array(ColorwaySchema).min(1),
+  release: ReleaseMetadataSchema.optional(),
 });
 export type ManifestItem = z.infer<typeof ManifestItemSchema>;
 
@@ -136,4 +184,42 @@ export function slugify(name: string): string {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '') || 'unnamed'
   );
+}
+
+export function classificationReadinessIssues(item: ManifestItem): string[] {
+  const release = item.release;
+  if (!release) return ['missing release classification'];
+  const issues: string[] = [];
+  if (release.productType === 'unknown') issues.push('product type is unknown');
+  if (release.measuredWidthCm === null || release.measuredLengthCm === null) {
+    issues.push('dimensions are not measured');
+  }
+  if (!release.materialConstruction?.trim()) issues.push('material/construction is missing');
+  if (release.setContents === null) issues.push('set contents are incomplete');
+  if (release.sourceQuality !== 'accepted') issues.push(`source quality is ${release.sourceQuality}`);
+  if (release.classificationStatus !== 'ready') {
+    issues.push(`classification status is ${release.classificationStatus}`);
+  }
+  return issues;
+}
+
+/** Commercial fields are deliberately a separate publication gate. */
+export function publicationReadinessIssues(item: ManifestItem): string[] {
+  const release = item.release;
+  if (!release) return ['missing release classification'];
+  const issues: string[] = [];
+  if (!release.commercialDesignNo?.trim()) issues.push('commercial design number is missing');
+  if (!release.commercialName?.trim()) issues.push('commercial name is missing');
+  if (!release.variantSize?.trim()) issues.push('variant size is missing');
+  if (!release.materialName?.trim()) issues.push('release material is missing');
+  if (release.pricePaise === null || release.stockQuantity === null) {
+    issues.push('release price/stock metadata is missing');
+  }
+  if (!release.description?.trim()) issues.push('commercial description is missing');
+  if (!release.careInstructions?.trim()) issues.push('care instructions are missing');
+  return issues;
+}
+
+export function isGenerationReady(item: ManifestItem): boolean {
+  return classificationReadinessIssues(item).length === 0;
 }

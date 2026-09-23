@@ -106,6 +106,9 @@ export default function CatalogFilters({
   const currentMaterial = searchParams.get("material") ?? "";
   const currentColor = searchParams.get("color") ?? "";
   const currentSort = searchParams.get("sort") ?? "";
+  // The backend's default sort is name ascending. Treat an explicit `name`
+  // query as the same visible default so the control never claims recency.
+  const selectedSort = currentSort === "name" ? "" : currentSort;
 
   const activeCount = [currentCategory, currentMaterial, currentColor].filter(
     Boolean,
@@ -183,12 +186,11 @@ export default function CatalogFilters({
         </h2>
         <select
           aria-label="Sort by"
-          value={currentSort}
+          value={selectedSort}
           onChange={(e) => updateParam("sort", e.target.value || null)}
           className="w-full rounded border border-outline-variant bg-surface px-3 py-2 text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value="">Newest Arrivals</option>
-          <option value="name">Name (A-Z)</option>
+          <option value="">Name (A-Z)</option>
           <option value="price_asc">Price: Low to High</option>
           <option value="price_desc">Price: High to Low</option>
         </select>
